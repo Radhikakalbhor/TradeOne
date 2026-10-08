@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Approve Consent Request - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper" style="min-height: auto; padding: 40px 20px;">
+  <div class="auth-card" style="max-width: 620px;">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+        <div class="brand-logo-icon" style="width: 48px; height: 48px; font-size: 1.5rem; border-radius: 12px;">ND</div>
+      </div>
+      <h1 class="auth-title">Data Sharing Request</h1>
+      <p class="auth-subtitle">Account Aggregator Framework &bull; Consent Artefact</p>
+    </div>
+
+    <!-- Request Details Box -->
+    <div style="background: var(--bg-muted); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; margin-bottom: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Requesting Application</span>
+          <h3 style="margin-top: 2px;">{{ consent.app.name if consent.app else consent.client_id }}</h3>
+          <span style="font-size: 0.75rem; font-family: monospace; color: var(--text-light);">Client ID: {{ consent.client_id }}</span>
+        </div>
+        <span class="badge badge-warning">Awaiting Approval</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem;">
+        <div>
+          <strong style="color: var(--text-main);">Purpose:</strong> 
+          <span>{{ consent.purpose_text }} (Code: {{ consent.purpose_code }})</span>
+        </div>
+        <div>
+          <strong style="color: var(--text-main);">Requested Data Types:</strong>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+            {% for fi in fi_types %}
+            <span class="badge badge-info">{{ fi }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px;">
+          <div>
+            <strong style="color: var(--text-main);">Statement Range:</strong><br/>
+            <span style="color: var(--text-muted); font-size: 0.82rem;">{{ consent.data_from }} to {{ consent.data_to }}</span>
+          </div>
+          <div>
+            <strong style="color: var(--text-main);">Duration & Frequency:</strong><br/>
+            <span style="color: var(--text-muted); font-size: 0.82rem;">{{ consent.consent_duration_days }} Days &bull; {{ consent.fetch_frequency_value }}x / {{ consent.fetch_frequency_unit }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form for Account Selection and Approval -->
+    <form action="/consent/approve" method="POST" id="consent-approval-form">
+      <input type="hidden" name="handle" value="{{ consent.consent_handle }}">
+
+      <div style="margin-bottom: 24px;">
+        <label class="form-label" style="font-size: 0.95rem; margin-bottom: 10px;">
+          Select Demat Accounts to Include in this Consent:
+        </label>
+        
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for acc in accounts %}
+          <label style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-surface); border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer;">
+            <input type="checkbox" name="account_ids" value="{{ acc.id }}" checked style="width: 18px; height: 18px; accent-color: var(--saffron-main);">
+            <div style="flex: 1;">
+              <strong>{{ acc.dp_name }}</strong>
+              <div style="font-size: 0.78rem; color: var(--text-muted); font-family: monospace;">
+                Account: {{ acc.masked_account_number }} &bull; DP ID: {{ acc.dp_id }}
+              </div>
+            </div>
+            <span class="badge badge-success">{{ acc.status }}</span>
+          </label>
+          {% else %}
+          <div style="padding: 14px; color: var(--text-muted); text-align: center;">
+            No demat accounts found for this user.
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
+        <button type="submit" name="action" value="REJECT" class="btn btn-secondary btn-lg" id="btn-reject-consent">
+          Reject
+        </button>
+        <button type="submit" name="action" value="APPROVE" class="btn btn-primary btn-lg" id="btn-approve-consent">
+          Approve & Share Data
+        </button>
+      </div>
+    </form>
+
+    <div style="margin-top: 18px; text-align: center; font-size: 0.78rem; color: var(--text-muted);">
+      Signed in as <strong>{{ user.email }}</strong>. You can pause or revoke this consent anytime from your Consents dashboard.
+    </div>
+
+  </div>
+</div>
+{% endblock %}

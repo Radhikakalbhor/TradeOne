@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - NationalDepo Central Depository{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Consolidated Demat Portfolio</h1>
+    <p class="page-subtitle">Single depository registry across all linked Depository Participants (Brokers)</p>
+  </div>
+  <div style="display: flex; gap: 10px;">
+    <a href="/cas" class="btn btn-secondary">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      Download CAS PDF
+    </a>
+    <a href="/consents" class="btn btn-primary">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+      </svg>
+      Data Consents ({{ active_consents_count }})
+    </a>
+  </div>
+</div>
+
+<!-- Primary Stats Overview Grid -->
+<div class="grid-4" style="margin-bottom: 24px;">
+  <div class="stat-card">
+    <div class="stat-label">Total Portfolio Valuation</div>
+    <div class="stat-value" id="stat-total-value">{{ format_inr(summary.total_value) }}</div>
+    <div class="stat-subtext">
+      {% if summary.day_change >= 0 %}
+      <span class="badge badge-success">▲ {{ format_inr(summary.day_change) }} (+{{ "%.2f"|format(summary.day_change_pct) }}%)</span>
+      {% else %}
+      <span class="badge badge-danger">▼ {{ format_inr(summary.day_change) }} ({{ "%.2f"|format(summary.day_change_pct) }}%)</span>
+      {% endif %}
+      <span style="color: var(--text-muted); font-size: 0.75rem;">today</span>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Active Demat Accounts</div>
+    <div class="stat-value">{{ summary.num_accounts }}</div>
+    <div class="stat-subtext">
+      <a href="/accounts" style="color: var(--saffron-main); text-decoration: none; font-weight: 500;">
+        Across {{ summary.num_dps }} Depository Participants &rarr;
+      </a>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Distinct Securities</div>
+    <div class="stat-value">{{ summary.num_securities }}</div>
+    <div class="stat-subtext">
+      <span style="color: var(--text-muted);">Equities, Bonds, REITs, ETFs</span>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Unrealized Profit & Loss</div>
+    <div class="stat-value" style="color: {% if summary.total_pnl >= 0 %}var(--success){% else %}var(--danger){% endif %};">
+      {{ format_inr(summary.total_pnl) }}
+    </div>
+    <div class="stat-subtext">
+      <span class="badge {% if summary.total_pnl >= 0 %}badge-success{% else %}badge-danger{% endif %}">
+        {% if summary.total_pnl >= 0 %}+{% endif %}{{ "%.2f"|format(summary.total_pnl_pct) }}%
+      </span>
+      <span style="color: var(--text-muted);">cost: {{ format_inr(summary.total_invested) }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Section: Asset Class and DP Allocation -->
+<div class="grid-2" style="margin-bottom: 24px;">
+  <div class="card">
+    <div class="card-title">
+      <span>Allocation by Asset Class</span>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">Unified Across Demats</span>
+    </div>
+    <div style="height: 250px; position: relative; display: flex; justify-content: center; align-items: center;">
+      <canvas id="assetChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span>Holdings Distribution by Broker (DP)</span>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">Depository Participants</span>
+    </div>
+    <div style="height: 250px; position: relative; display: flex; justify-content: center; align-items: center;">
+      <canvas id="dpChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Top Holdings Overview Table -->
+<div class="card">
+  <div class="card-title">
+    <span>Top Securities (Aggregated Across Demats)</span>
+    <a href="/holdings" class="btn btn-outline btn-sm">View All Holdings &rarr;</a>
+  </div>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Security Name</th>
+          <th>ISIN</th>
+          <th>Asset Class</th>
+          <th class="text-right">Total Units</th>
+          <th class="text-right">Last Price</th>
+          <th class="text-right">Market Value</th>
+          <th class="text-right">Unrealized P&L</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in top_holdings %}
+        <tr>
+          <td>
+            <strong>{{ h.security_name }}</strong>
+            <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">{{ h.symbol }}</span>
+          </td>
+          <td style="font-family: monospace; font-size: 0.82rem;">{{ h.isin }}</td>
+          <td>
+            <span class="badge badge-info">{{ h.asset_class }}</span>
+          </td>
+          <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(h.total_units) }}</td>
+          <td class="text-right">₹{{ "%.2f"|format(h.last_price) }}</td>
+          <td class="text-right" style="font-weight: 600;">{{ format_inr(h.current_value) }}</td>
+          <td class="text-right">
+            {% if h.pnl >= 0 %}
+            <span style="color: var(--success); font-weight: 600;">+{{ format_inr(h.pnl) }} (+{{ "%.2f"|format(h.pnl_pct) }}%)</span>
+            {% else %}
+            <span style="color: var(--danger); font-weight: 600;">{{ format_inr(h.pnl) }} ({{ "%.2f"|format(h.pnl_pct) }}%)</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center" style="padding: 30px; color: var(--text-muted);">
+            No securities currently held in registered demat accounts.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const assetData = {{ summary.asset_allocation | tojson }};
+  const dpData = {{ summary.dp_allocation | tojson }};
+
+  // Asset class donut chart
+  const assetLabels = Object.keys(assetData);
+  const assetValues = Object.values(assetData);
+
+  const colors = [
+    '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'
+  ];
+
+  if (assetLabels.length > 0) {
+    new Chart(document.getElementById('assetChart'), {
+      type: 'doughnut',
+      data: {
+        labels: assetLabels,
+        datasets: [{
+          data: assetValues,
+          backgroundColor: colors.slice(0, assetLabels.length),
+          borderWidth: 2,
+          borderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1c2129' : '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Inter', size: 11 } } },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return ` ${ctx.label}: ₹${Number(ctx.raw).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+              }
+            }
+          }
+        },
+        cutout: '65%'
+      }
+    });
+  }
+
+  // DP donut chart
+  const dpLabels = Object.keys(dpData);
+  const dpValues = Object.values(dpData);
+
+  if (dpLabels.length > 0) {
+    new Chart(document.getElementById('dpChart'), {
+      type: 'doughnut',
+      data: {
+        labels: dpLabels,
+        datasets: [{
+          data: dpValues,
+          backgroundColor: ['#d97706', '#2563eb', '#059669', '#7c3aed', '#db2777'].slice(0, dpLabels.length),
+          borderWidth: 2,
+          borderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1c2129' : '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Inter', size: 11 } } },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return ` ${ctx.label}: ₹${Number(ctx.raw).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+              }
+            }
+          }
+        },
+        cutout: '65%'
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

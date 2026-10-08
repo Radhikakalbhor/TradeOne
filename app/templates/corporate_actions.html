@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Corporate Actions - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Corporate Actions Registry</h1>
+    <p class="page-subtitle">Historical and upcoming corporate actions affecting securities registered in NationalDepo</p>
+  </div>
+</div>
+
+<div class="card" style="padding: 0; overflow: hidden;">
+  <div class="table-container" style="border: none;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Record Date</th>
+          <th>Security Name</th>
+          <th>ISIN</th>
+          <th>Action Type</th>
+          <th>Ratio / Amount</th>
+          <th>Description</th>
+          <th>Portfolio Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ca in actions %}
+        <tr>
+          <td style="font-weight: 600; white-space: nowrap;">{{ ca.record_date }}</td>
+          <td>
+            <strong>{{ ca.instrument.name if ca.instrument else '-' }}</strong>
+            <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">{{ ca.instrument.symbol if ca.instrument else '-' }}</span>
+          </td>
+          <td style="font-family: monospace; font-size: 0.82rem;">{{ ca.isin }}</td>
+          <td>
+            <span class="badge {% if ca.action_type == 'DIVIDEND' %}badge-success{% elif ca.action_type == 'BONUS' %}badge-info{% elif ca.action_type == 'SPLIT' %}badge-warning{% else %}badge-muted{% endif %}">
+              {{ ca.action_type }}
+            </span>
+          </td>
+          <td style="font-weight: 700; color: var(--text-main);">{{ ca.ratio_or_amount }}</td>
+          <td style="font-size: 0.85rem; color: var(--text-muted);">{{ ca.description }}</td>
+          <td>
+            {% if ca.isin in user_isins %}
+            <span class="badge badge-success">Held in Demat</span>
+            {% else %}
+            <span class="badge badge-muted">Not Held</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center" style="padding: 36px; color: var(--text-muted);">
+            No corporate actions recorded.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

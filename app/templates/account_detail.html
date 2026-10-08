@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Account {{ account.masked_account_number }} - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div style="margin-bottom: 6px;">
+      <a href="/accounts" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">&larr; Back to all Demat Accounts</a>
+    </div>
+    <h1>{{ account.dp_name }}</h1>
+    <p class="page-subtitle">Demat Account No: <strong>{{ account.masked_account_number }}</strong> &bull; DP ID: {{ account.dp_id }}</p>
+  </div>
+  <div>
+    <a href="/statement?account_id={{ account.id }}" class="btn btn-secondary">
+      View Account Statement &rarr;
+    </a>
+  </div>
+</div>
+
+<div class="grid-4" style="margin-bottom: 24px;">
+  <div class="stat-card">
+    <div class="stat-label">Total Account Value</div>
+    <div class="stat-value">{{ format_inr(total_value) }}</div>
+    <div class="stat-subtext"><span class="badge badge-success">Live Valuation</span></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Holdings Count</div>
+    <div class="stat-value">{{ holdings|length }}</div>
+    <div class="stat-subtext">Securities held</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Account Status</div>
+    <div class="stat-value" style="font-size: 1.3rem;">
+      <span class="badge {% if account.status == 'ACTIVE' %}badge-success{% else %}badge-danger{% endif %}" style="font-size: 1rem; padding: 6px 12px;">
+        {{ account.status }}
+      </span>
+    </div>
+    <div class="stat-subtext">Opened: {{ account.opened_date }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Account Type</div>
+    <div class="stat-value" style="font-size: 1.3rem;">{{ account.account_type }}</div>
+    <div class="stat-subtext">Nominee: {{ account.nominee_status }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Securities Held in this Account</div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Security Name</th>
+          <th>ISIN</th>
+          <th>Asset Class</th>
+          <th class="text-right">Free Units</th>
+          <th class="text-right">Locked / Pledged</th>
+          <th class="text-right">Last Price</th>
+          <th class="text-right">Current Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in holdings %}
+        {% set h = item.holding %}
+        {% set instr = h.instrument %}
+        <tr>
+          <td>
+            <strong>{{ instr.name }}</strong>
+            <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">{{ instr.symbol }}</span>
+          </td>
+          <td style="font-family: monospace; font-size: 0.82rem;">{{ h.isin }}</td>
+          <td><span class="badge badge-info">{{ instr.asset_class }}</span></td>
+          <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(h.free_units) }}</td>
+          <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(h.pledged_units + h.locked_units) }}</td>
+          <td class="text-right">₹{{ "%.2f"|format(instr.last_price) }}</td>
+          <td class="text-right" style="font-weight: 600;">{{ format_inr(item.current_value) }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center" style="padding: 24px; color: var(--text-muted);">
+            No securities currently held in this demat account.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

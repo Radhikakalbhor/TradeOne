@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Security Center - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Security Center & Sessions</h1>
+    <p class="page-subtitle">Manage device sessions, login activity, and account access safeguards</p>
+  </div>
+  <div>
+    <form action="/security/logout-all" method="POST" onsubmit="return confirm('Log out of all devices? You will need to sign in again.');">
+      <button type="submit" class="btn btn-danger" id="btn-logout-all">
+        Logout from All Devices
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-title">Active & Recent Sessions</div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Session ID</th>
+          <th>Created Time</th>
+          <th>Last Activity</th>
+          <th>IP Address</th>
+          <th>User Agent / Device</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr>
+          <td style="font-family: monospace; font-size: 0.8rem;">{{ s.session_id[:16] }}...</td>
+          <td style="font-size: 0.82rem; color: var(--text-muted); white-space: nowrap;">
+            {{ s.created_at.strftime('%d-%b-%Y %H:%M') if s.created_at else '-' }}
+          </td>
+          <td style="font-size: 0.82rem; color: var(--text-muted); white-space: nowrap;">
+            {{ s.last_activity.strftime('%d-%b-%Y %H:%M') if s.last_activity else '-' }}
+          </td>
+          <td style="font-family: monospace; font-size: 0.82rem;">{{ s.ip_address or 'Localhost' }}</td>
+          <td style="font-size: 0.82rem; color: var(--text-muted); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {{ s.user_agent or 'Unknown Browser' }}
+          </td>
+          <td>
+            <span class="badge {% if s.is_active %}badge-success{% else %}badge-muted{% endif %}">
+              {% if s.is_active %}Active{% else %}Terminated{% endif %}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="text-center" style="padding: 24px; color: var(--text-muted);">
+            No session activity found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Security Policies Enforced</div>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; font-size: 0.88rem; color: var(--text-muted);">
+    <div style="padding: 14px; background: var(--bg-muted); border-radius: 8px;">
+      <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">Session Idle Timeout</strong>
+      Sessions automatically invalidate after 30 minutes of inactivity.
+    </div>
+    <div style="padding: 14px; background: var(--bg-muted); border-radius: 8px;">
+      <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">OTP Brute-Force Lockout</strong>
+      Maximum 5 failed code attempts followed by an automatic 15-minute freeze.
+    </div>
+    <div style="padding: 14px; background: var(--bg-muted); border-radius: 8px;">
+      <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">Cryptographic Signatures</strong>
+      All AA consent artefacts and outgoing webhooks are signed using HMAC-SHA256.
+    </div>
+  </div>
+</div>
+{% endblock %}

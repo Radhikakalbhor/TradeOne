@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Code - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card" style="max-width: 460px;">
+    <div class="auth-header">
+      <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+        <div class="brand-logo-icon" style="width: 48px; height: 48px; font-size: 1.6rem; border-radius: 12px;">ND</div>
+      </div>
+      <h1 class="auth-title">Enter Verification Code</h1>
+      <p class="auth-subtitle">We sent a 6-digit security code to<br/><strong>{{ email }}</strong></p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert" id="otp-error-alert">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+      </svg>
+      <div>{{ error }}</div>
+    </div>
+    {% endif %}
+
+    {% if dev_hint %}
+    <div class="alert alert-info" style="display: flex; justify-content: space-between; align-items: center;" id="dev-hint-banner">
+      <div>
+        <strong>Dev Hint:</strong> Code is <span style="font-family: monospace; font-weight: 700; font-size: 1.1rem; letter-spacing: 2px;">{{ dev_hint }}</span>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="fillOtp('{{ dev_hint }}')">Autofill</button>
+    </div>
+    {% endif %}
+
+    <form action="/auth/email/verify-otp" method="POST" id="otp-form">
+      <input type="hidden" name="email" value="{{ email }}">
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      <input type="hidden" name="otp_code" id="full-otp-input" value="">
+
+      <!-- 6 Auto-advancing boxes -->
+      <div class="otp-container">
+        <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+        <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+        <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+        <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+        <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+        <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+      </div>
+
+      <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-bottom: 20px;">
+        Code is valid for {{ expiry_minutes }} minutes. Max 5 attempts before 15-minute lockout.
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-submit-otp">
+        Verify & Sign In
+      </button>
+    </form>
+
+    <div style="margin-top: 24px; text-align: center; display: flex; flex-direction: column; gap: 8px;">
+      <form action="/auth/email/request-otp" method="POST">
+        <input type="hidden" name="email" value="{{ email }}">
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        <button type="submit" class="btn btn-outline btn-sm" id="resend-otp-btn">
+          Resend code <span id="resend-timer"></span>
+        </button>
+      </form>
+      <a href="/auth/login" style="font-size: 0.82rem; color: var(--text-muted); text-decoration: none; margin-top: 8px;">
+        &larr; Try a different email address
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function fillOtp(code) {
+  const digits = document.querySelectorAll('.otp-digit');
+  if (digits.length === 6 && code.length === 6) {
+    for (let i = 0; i < 6; i++) {
+      digits[i].value = code[i];
+    }
+    document.getElementById('full-otp-input').value = code;
+    document.getElementById('otp-form').submit();
+  }
+}
+</script>
+{% endblock %}

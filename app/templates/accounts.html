@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}My Demat Accounts - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>My Registered Demat Accounts</h1>
+    <p class="page-subtitle">Demat accounts registered under Depository Beneficiary Owner ID: <strong>{{ user.bo_id }}</strong></p>
+  </div>
+  <div>
+    <span class="badge badge-warning" style="font-size: 0.85rem; padding: 6px 12px;">
+      Total Linked Accounts: {{ account_cards|length }}
+    </span>
+  </div>
+</div>
+
+<div class="grid-3" style="margin-bottom: 30px;">
+  {% for item in account_cards %}
+  {% set acc = item.account %}
+  <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+        <div>
+          <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700;">DP ID: {{ acc.dp_id }}</span>
+          <h3 style="margin-top: 2px;">{{ acc.dp_name }}</h3>
+        </div>
+        <span class="badge {% if acc.status == 'ACTIVE' %}badge-success{% else %}badge-danger{% endif %}">
+          {{ acc.status }}
+        </span>
+      </div>
+
+      <div style="margin: 16px 0; padding: 14px; background: var(--bg-muted); border-radius: 8px; border: 1px solid var(--border-color);">
+        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Demat Account Number</div>
+        <div style="font-size: 1.15rem; font-weight: 700; font-family: monospace; letter-spacing: 1px; color: var(--text-main);">
+          {{ acc.masked_account_number }}
+        </div>
+        <div style="font-size: 0.72rem; color: var(--text-light); margin-top: 2px;">
+          Client Ref: {{ acc.id }} &bull; Opened: {{ acc.opened_date }}
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; font-size: 0.85rem;">
+        <div>
+          <span style="color: var(--text-muted); display: block; font-size: 0.75rem;">Account Type</span>
+          <strong>{{ acc.account_type }}</strong>
+        </div>
+        <div>
+          <span style="color: var(--text-muted); display: block; font-size: 0.75rem;">Nominee Status</span>
+          <span class="badge {% if acc.nominee_status == 'REGISTERED' %}badge-info{% else %}badge-warning{% endif %}">
+            {{ acc.nominee_status }}
+          </span>
+        </div>
+        <div>
+          <span style="color: var(--text-muted); display: block; font-size: 0.75rem;">Holdings Count</span>
+          <strong>{{ item.holding_count }} Securities</strong>
+        </div>
+        <div>
+          <span style="color: var(--text-muted); display: block; font-size: 0.75rem;">Valuation</span>
+          <strong style="color: var(--saffron-main);">{{ format_inr(item.total_value) }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <a href="/accounts/{{ acc.id }}" class="btn btn-secondary btn-block">
+        View Demat Holdings &rarr;
+      </a>
+    </div>
+  </div>
+  {% else %}
+  <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+    <p style="color: var(--text-muted); margin-bottom: 16px;">No demat accounts currently linked to your profile.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

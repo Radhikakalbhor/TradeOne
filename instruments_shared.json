@@ -1,0 +1,156 @@
+[
+  {
+    "isin": "INE002A01018",
+    "symbol": "RELIANCE",
+    "name": "Reliance Industries Limited",
+    "isin_description": "EQUITY SHARES",
+    "asset_class": "EQUITY",
+    "fi_type": "EQUITIES",
+    "last_price": 2842.5,
+    "prev_close": 2810.0,
+    "change_pct": 1.16
+  },
+  {
+    "isin": "INE467B01029",
+    "symbol": "TCS",
+    "name": "Tata Consultancy Services Ltd",
+    "isin_description": "EQUITY SHARES",
+    "asset_class": "EQUITY",
+    "fi_type": "EQUITIES",
+    "last_price": 4120.8,
+    "prev_close": 4150.0,
+    "change_pct": -0.7
+  },
+  {
+    "isin": "INE009A01021",
+    "symbol": "INFY",
+    "name": "Infosys Limited",
+    "isin_description": "EQUITY SHARES",
+    "asset_class": "EQUITY",
+    "fi_type": "EQUITIES",
+    "last_price": 1895.3,
+    "prev_close": 1870.1,
+    "change_pct": 1.35
+  },
+  {
+    "isin": "INE040A01034",
+    "symbol": "HDFCBANK",
+    "name": "HDFC Bank Limited",
+    "isin_description": "EQUITY SHARES",
+    "asset_class": "EQUITY",
+    "fi_type": "EQUITIES",
+    "last_price": 1648.75,
+    "prev_close": 1635.0,
+    "change_pct": 0.84
+  },
+  {
+    "isin": "INE155A01022",
+    "symbol": "TATAMOTORS",
+    "name": "Tata Motors Limited",
+    "isin_description": "EQUITY SHARES",
+    "asset_class": "EQUITY",
+    "fi_type": "EQUITIES",
+    "last_price": 932.4,
+    "prev_close": 920.0,
+    "change_pct": 1.35
+  },
+  {
+    "isin": "INE041A01026",
+    "symbol": "ITC",
+    "name": "ITC Limited",
+    "isin_description": "EQUITY SHARES",
+    "asset_class": "EQUITY",
+    "fi_type": "EQUITIES",
+    "last_price": 502.15,
+    "prev_close": 498.5,
+    "change_pct": 0.73
+  },
+  {
+    "isin": "INE041025011",
+    "symbol": "EMBASSY",
+    "name": "Embassy Office Parks REIT",
+    "isin_description": "REIT UNITS",
+    "asset_class": "REIT",
+    "fi_type": "REIT",
+    "last_price": 384.2,
+    "prev_close": 381.0,
+    "change_pct": 0.84
+  },
+  {
+    "isin": "INE0BW225017",
+    "symbol": "MINDSPACE",
+    "name": "Mindspace Business Parks REIT",
+    "isin_description": "REIT UNITS",
+    "asset_class": "REIT",
+    "fi_type": "REIT",
+    "last_price": 342.5,
+    "prev_close": 340.0,
+    "change_pct": 0.74
+  },
+  {
+    "isin": "INE002S25010",
+    "symbol": "PGINVIT",
+    "name": "POWERGRID Infrastructure Investment Trust",
+    "isin_description": "INVIT UNITS",
+    "asset_class": "INVIT",
+    "fi_type": "INVIT",
+    "last_price": 98.4,
+    "prev_close": 97.9,
+    "change_pct": 0.51
+  },
+  {
+    "isin": "INF204KB14I2",
+    "symbol": "NIFTYBEES",
+    "name": "Nippon India Nifty 50 BeES ETF",
+    "isin_description": "ETF UNITS",
+    "asset_class": "ETF",
+    "fi_type": "ETF",
+    "last_price": 272.1,
+    "prev_close": 270.8,
+    "change_pct": 0.48
+  },
+  {
+    "isin": "INF204KB17H7",
+    "symbol": "GOLDBEES",
+    "name": "Nippon India ETF Gold BeES",
+    "isin_description": "ETF UNITS",
+    "asset_class": "ETF",
+    "fi_type": "ETF",
+    "last_price": 68.9,
+    "prev_close": 68.2,
+    "change_pct": 1.03
+  },
+  {
+    "isin": "IN0020230085",
+    "symbol": "GS2033-718",
+    "name": "Government of India 7.18% 2033 GS",
+    "isin_description": "GOVERNMENT BOND",
+    "asset_class": "BOND",
+    "fi_type": "BONDS",
+    "last_price": 101.4,
+    "prev_close": 101.2,
+    "change_pct": 0.2
+  },
+  {
+    "isin": "INE906H07788",
+    "symbol": "NHAI-2035",
+    "name": "NHAI 7.60% Tax Free Bond 2035",
+    "isin_description": "TAX FREE INFRA BOND",
+    "asset_class": "BOND",
+    "fi_type": "BONDS",
+    "last_price": 116.8,
+    "prev_close": 116.5,
+    "change_pct": 0.26
+  },
+  {
+    "isin": "INF209K01168",
+    "symbol": "PPFAS-FLEXI",
+    "name": "Parag Parikh Flexi Cap Fund - Direct Growth",
+    "isin_description": "MUTUAL FUND UNITS",
+    "asset_class": "MUTUAL_FUND",
+    "fi_type": "MUTUAL_FUNDS",
+    "last_price": 78.45,
+    "prev_close": 78.1,
+    "change_pct": 0.45
+  }
+]

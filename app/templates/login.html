@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - NationalDepo Depository Simulator{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+        <div class="brand-logo-icon" style="width: 48px; height: 48px; font-size: 1.6rem; border-radius: 12px;">ND</div>
+      </div>
+      <h1 class="auth-title">National<span>Depo</span></h1>
+      <p class="auth-subtitle">One view of every demat account</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert" id="login-error-alert">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+      </svg>
+      <div>{{ error }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Email Form First -->
+    <form action="/auth/email/request-otp" method="POST" id="login-form">
+      {% if next %}
+      <input type="hidden" name="next" value="{{ next }}">
+      {% endif %}
+
+      <div class="form-group">
+        <label for="login-email-input" class="form-label">Email Address</label>
+        <input 
+          type="email" 
+          id="login-email-input" 
+          name="email" 
+          class="form-input" 
+          placeholder="name@example.com or work/college email" 
+          value="{{ email }}" 
+          required 
+          autocomplete="email"
+          autofocus
+        />
+        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">
+          Works for any email address, personal, work, or university.
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-request-otp">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+        </svg>
+        Email me a one-time code
+      </button>
+    </form>
+
+    <div class="auth-divider">Or continue with</div>
+
+    <!-- OAuth Options -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <a href="/auth/google" class="btn btn-secondary btn-block" id="btn-google-login">
+        <svg width="18" height="18" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        Continue with Google
+      </a>
+
+      <a href="/auth/microsoft" class="btn btn-secondary btn-block" id="btn-microsoft-login">
+        <svg width="18" height="18" viewBox="0 0 23 23">
+          <path fill="#f35325" d="M1 1h10v10H1z"/>
+          <path fill="#81bc06" d="M12 1h10v10H12z"/>
+          <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+          <path fill="#ffba08" d="M12 12h10v10H12z"/>
+        </svg>
+        Continue with Microsoft
+      </a>
+    </div>
+
+    <!-- Demo Accounts Section (Shown when OTP_DEV_MODE is true) -->
+    {% if otp_dev_mode %}
+    <div class="demo-box">
+      <div class="demo-title">
+        <span>Demo Accounts (Dev Bypass)</span>
+        <span class="badge badge-warning">Simulated</span>
+      </div>
+      <div class="demo-btn-group">
+        <form action="/auth/demo-login" method="POST">
+          {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+          <input type="hidden" name="email" value="aarav.mehta@example.com">
+          <button type="submit" class="btn btn-secondary btn-sm btn-block" id="demo-login-aarav" title="3 Demat Accounts (NiftyTrade, BharatInvest, BondBazaar)">
+            <strong>Aarav Mehta</strong><br/>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">3 Demats &bull; Equity+Debt</span>
+          </button>
+        </form>
+
+        <form action="/auth/demo-login" method="POST">
+          {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+          <input type="hidden" name="email" value="priya.nair@example.com">
+          <button type="submit" class="btn btn-secondary btn-sm btn-block" id="demo-login-priya" title="2 Demat Accounts (InvIT + Gold ETF)">
+            <strong>Priya Nair</strong><br/>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">2 Demats &bull; InvIT+Gold</span>
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

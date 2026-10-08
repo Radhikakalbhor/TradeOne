@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Data Sharing Consents - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Data Sharing Consents (Account Aggregator)</h1>
+    <p class="page-subtitle">Manage external financial apps with consent-based data access to your depository holdings</p>
+  </div>
+</div>
+
+<!-- Active and Past Consents Table -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-title">Granted Consent Artefacts</div>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Application</th>
+          <th>Consent ID</th>
+          <th>Purpose</th>
+          <th>Data Types</th>
+          <th>Frequency</th>
+          <th>Expiry Date</th>
+          <th>Status</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in consents %}
+        <tr>
+          <td>
+            <strong>{{ c.app.name if c.app else c.client_id }}</strong>
+            <span style="display: block; font-size: 0.72rem; color: var(--text-muted);">{{ c.client_id }}</span>
+          </td>
+          <td style="font-family: monospace; font-size: 0.8rem;">
+            {{ c.consent_id }}
+          </td>
+          <td style="font-size: 0.82rem;">{{ c.purpose_text }}</td>
+          <td>
+            <span class="badge badge-info" style="font-size: 0.72rem;">{{ c.fi_types_json }}</span>
+          </td>
+          <td style="font-size: 0.82rem;">{{ c.fetch_frequency_value }}x / {{ c.fetch_frequency_unit }}</td>
+          <td style="font-size: 0.82rem; white-space: nowrap;">
+            {{ c.expires_at.strftime('%d-%b-%Y') if c.expires_at else '-' }}
+          </td>
+          <td>
+            <span class="badge {% if c.status == 'ACTIVE' %}badge-success{% elif c.status == 'PAUSED' %}badge-warning{% elif c.status == 'REVOKED' %}badge-danger{% else %}badge-muted{% endif %}">
+              {{ c.status }}
+            </span>
+          </td>
+          <td class="text-right">
+            {% if c.status in ['ACTIVE', 'PAUSED'] %}
+            <div style="display: inline-flex; gap: 6px;">
+              <form action="/consents/{{ c.consent_id }}/toggle-pause" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-secondary btn-sm" title="{% if c.status == 'ACTIVE' %}Pause Data Sharing{% else %}Resume Data Sharing{% endif %}">
+                  {% if c.status == 'ACTIVE' %}Pause{% else %}Resume{% endif %}
+                </button>
+              </form>
+
+              <form action="/consents/{{ c.consent_id }}/revoke" method="POST" style="display: inline;" onsubmit="return confirm('Revoke consent permanently?');">
+                <button type="submit" class="btn btn-danger btn-sm">
+                  Revoke
+                </button>
+              </form>
+            </div>
+            {% else %}
+            <span style="font-size: 0.75rem; color: var(--text-muted);">No action</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center" style="padding: 30px; color: var(--text-muted);">
+            No data sharing consents have been granted.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- API Access Log -->
+<div class="card">
+  <div class="card-title">Consent Access Audit Trail</div>
+  <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+    Real-time log of every occasion an approved external app requested or fetched your demat data.
+  </p>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Timestamp (UTC)</th>
+          <th>Consent ID</th>
+          <th>Session ID</th>
+          <th>IP Address</th>
+          <th>Action</th>
+          <th>Status Code</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in logs %}
+        <tr>
+          <td style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">
+            {{ l.timestamp.strftime('%d-%b-%Y %H:%M:%S') if l.timestamp else '-' }}
+          </td>
+          <td style="font-family: monospace; font-size: 0.8rem;">{{ l.consent_id }}</td>
+          <td style="font-family: monospace; font-size: 0.8rem;">{{ l.session_id or '-' }}</td>
+          <td style="font-family: monospace; font-size: 0.8rem;">{{ l.ip_address }}</td>
+          <td><span class="badge badge-info">{{ l.action }}</span></td>
+          <td>
+            <span class="badge {% if l.status_code == 200 %}badge-success{% elif l.status_code == 202 %}badge-warning{% else %}badge-danger{% endif %}">
+              {{ l.status_code }}
+            </span>
+          </td>
+          <td style="font-size: 0.82rem;">{{ l.details }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center" style="padding: 24px; color: var(--text-muted);">
+            No data access events logged yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

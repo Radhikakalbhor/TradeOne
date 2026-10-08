@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Consolidated Account Statement (CAS) - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Consolidated Account Statement (CAS)</h1>
+    <p class="page-subtitle">Official digitally signed depository statement containing all linked demat holdings and transaction history</p>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Download Form Card -->
+  <div class="card">
+    <div class="card-title">Generate Statement Document</div>
+    <form action="/cas/download.pdf" method="GET">
+      <div class="form-group">
+        <label class="form-label">Statement Period</label>
+        <select name="months" class="form-select">
+          <option value="1">Past 1 Month</option>
+          <option value="3">Past 3 Months (Quarterly)</option>
+          <option value="6" selected>Past 6 Months (Semi-Annual)</option>
+          <option value="12">Past 12 Months (Financial Year)</option>
+        </select>
+      </div>
+
+      <div class="alert alert-info" style="margin-bottom: 24px;">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <div>
+          <strong>Document Security Notice:</strong><br/>
+          As per Indian Depository standards, this PDF is password-protected using your <strong>Last 4 Digits of PAN + Date of Birth (DDMM)</strong>.<br/>
+          Your password to open the file: <span style="font-family: monospace; font-weight: 700; color: var(--text-main); font-size: 1rem; background: var(--bg-surface); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color);">{{ password_hint }}</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg btn-block" id="btn-download-cas">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        Download Password-Protected CAS PDF
+      </button>
+    </form>
+  </div>
+
+  <!-- Information Card -->
+  <div class="card">
+    <div class="card-title">About NationalDepo CAS</div>
+    <div style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+      <p style="margin-bottom: 14px;">
+        A Consolidated Account Statement (CAS) provides a single, unified view of all investments across all demat accounts held by an investor across different brokers.
+      </p>
+      <ul style="padding-left: 20px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <li>Consolidates holdings across all linked Depository Participants.</li>
+        <li>Lists ISINs, security descriptions, free units, and pledged/locked units.</li>
+        <li>Itemizes portfolio market valuations as of current closing prices.</li>
+        <li>Includes full transaction debit/credit history for the selected timeframe.</li>
+        <li>Encrypted with 128-bit AES password protection.</li>
+      </ul>
+      <div style="padding: 12px; background: var(--bg-muted); border-radius: 8px; font-size: 0.8rem;">
+        <strong>Simulated Data Sandbox:</strong> Generated statements are for integration and sandbox testing only and contain simulated portfolio data.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

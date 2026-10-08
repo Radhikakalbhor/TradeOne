@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Unified Holdings - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Unified Holdings Register</h1>
+    <p class="page-subtitle">Centralized securities ledger across every registered Demat account</p>
+  </div>
+  <div style="display: flex; align-items: center; gap: 14px; background: var(--bg-card); padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+    <label for="merge-toggle" style="font-size: 0.85rem; font-weight: 600; cursor: pointer;">Merge by ISIN across Accounts</label>
+    <label class="switch">
+      <input type="checkbox" id="merge-toggle" {% if merge_by_isin %}checked{% endif %} onchange="toggleMerge(this.checked)">
+      <span class="slider"></span>
+    </label>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="padding: 16px; margin-bottom: 20px;">
+  <form method="GET" action="/holdings" class="filter-bar" style="margin-bottom: 0;">
+    <input type="hidden" name="merge" value="{% if merge_by_isin %}true{% else %}false{% endif %}">
+
+    <div style="flex: 2; min-width: 200px;">
+      <input 
+        type="text" 
+        name="search" 
+        class="form-input" 
+        placeholder="Search security name, symbol, or ISIN..." 
+        value="{{ search }}" 
+      />
+    </div>
+
+    {% if not merge_by_isin %}
+    <div style="flex: 1; min-width: 160px;">
+      <select name="dp" class="form-select">
+        <option value="">All Brokers (DPs)</option>
+        {% for d in user_dps %}
+        <option value="{{ d }}" {% if dp_filter == d %}selected{% endif %}>{{ d }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div style="flex: 1; min-width: 160px;">
+      <select name="asset_class" class="form-select">
+        <option value="">All Asset Classes</option>
+        <option value="EQUITY" {% if asset_filter == 'EQUITY' %}selected{% endif %}>Equity</option>
+        <option value="REIT" {% if asset_filter == 'REIT' %}selected{% endif %}>REIT</option>
+        <option value="INVIT" {% if asset_filter == 'INVIT' %}selected{% endif %}>InvIT</option>
+        <option value="ETF" {% if asset_filter == 'ETF' %}selected{% endif %}>ETF</option>
+        <option value="BOND" {% if asset_filter == 'BOND' %}selected{% endif %}>Bond / Debt</option>
+        <option value="MUTUAL_FUND" {% if asset_filter == 'MUTUAL_FUND' %}selected{% endif %}>Mutual Fund</option>
+      </select>
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-secondary">Filter</button>
+      <a href="/holdings{% if merge_by_isin %}?merge=true{% endif %}" class="btn btn-outline">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Holdings Table -->
+<div class="card" style="padding: 0; overflow: hidden;">
+  <div class="table-container" style="border: none;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Security Name & Symbol</th>
+          <th>ISIN</th>
+          {% if not merge_by_isin %}
+          <th>Depository Participant</th>
+          <th>Account No</th>
+          {% endif %}
+          <th>Class</th>
+          <th class="text-right">Free Units</th>
+          <th class="text-right">Locked / Pledged</th>
+          <th class="text-right">Total Units</th>
+          <th class="text-right">Last Price</th>
+          <th class="text-right">Market Value</th>
+          <th class="text-right">Unrealized P&L</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in holdings %}
+        <tr>
+          <td>
+            <strong>{{ h.security_name }}</strong>
+            <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">{{ h.symbol }}</span>
+          </td>
+          <td style="font-family: monospace; font-size: 0.82rem;">{{ h.isin }}</td>
+          {% if not merge_by_isin %}
+          <td>{{ h.dp_name }}</td>
+          <td style="font-family: monospace; font-size: 0.8rem;">{{ h.masked_account_number }}</td>
+          {% endif %}
+          <td><span class="badge badge-info">{{ h.asset_class }}</span></td>
+          <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(h.free_units) }}</td>
+          <td class="text-right" style="font-family: monospace; color: var(--text-muted);">{{ "%.3f"|format(h.pledged_units + h.locked_units) }}</td>
+          <td class="text-right" style="font-family: monospace; font-weight: 600;">{{ "%.3f"|format(h.total_units) }}</td>
+          <td class="text-right">₹{{ "%.2f"|format(h.last_price) }}</td>
+          <td class="text-right" style="font-weight: 700; color: var(--text-main);">{{ format_inr(h.current_value) }}</td>
+          <td class="text-right">
+            {% if h.pnl >= 0 %}
+            <span style="color: var(--success); font-weight: 600;">+{{ format_inr(h.pnl) }} (+{{ "%.2f"|format(h.pnl_pct) }}%)</span>
+            {% else %}
+            <span style="color: var(--danger); font-weight: 600;">{{ format_inr(h.pnl) }} ({{ "%.2f"|format(h.pnl_pct) }}%)</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="{% if not merge_by_isin %}11{% else %}9{% endif %}" class="text-center" style="padding: 36px; color: var(--text-muted);">
+            No holdings found matching the filter criteria.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function toggleMerge(isMerged) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('merge', isMerged ? 'true' : 'false');
+  window.location.href = url.toString();
+}
+</script>
+{% endblock %}

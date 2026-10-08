@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Investor Profile & Nominee - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Investor Profile & Nominee Registry</h1>
+    <p class="page-subtitle">Depository KYC records and registered nominee details</p>
+  </div>
+</div>
+
+{% if success %}
+<div class="alert alert-success">
+  <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+  </svg>
+  <div>{{ success }}</div>
+</div>
+{% endif %}
+
+<div class="grid-2">
+  <!-- Profile & KYC Details Card -->
+  <div class="card">
+    <div class="card-title">Depository KYC Details</div>
+    
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div>
+        <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block;">Beneficiary Owner ID (BO ID)</span>
+        <strong style="font-family: monospace; font-size: 1.15rem; color: var(--saffron-main);">{{ user.bo_id }}</strong>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block;">Full Name</span>
+          <strong>{{ user.name }}</strong>
+        </div>
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block;">Masked PAN</span>
+          <strong style="font-family: monospace;">{{ user.masked_pan }}</strong>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block;">Email Address</span>
+          <strong>{{ user.email }}</strong>
+        </div>
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block;">Mobile Number</span>
+          <strong>{{ user.mobile }}</strong>
+        </div>
+      </div>
+
+      <div style="margin-top: 10px; padding: 14px; background: var(--bg-muted); border-radius: 8px;">
+        <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 8px; font-weight: 700;">
+          Linked Login Providers
+        </span>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          {% for am in user.auth_methods %}
+          <span class="badge badge-info" style="font-size: 0.8rem; padding: 4px 10px;">
+            {{ am.provider|capitalize }} ({{ am.email }})
+          </span>
+          {% else %}
+          <span style="font-size: 0.82rem; color: var(--text-muted);">No external auth linked</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nominee Details Card -->
+  <div class="card">
+    <div class="card-title">Registered Nominee Information</div>
+    <form action="/profile/nominee" method="POST">
+      <div class="form-group">
+        <label class="form-label">Nominee Full Name</label>
+        <input 
+          type="text" 
+          name="name" 
+          class="form-input" 
+          value="{{ nominee.name if nominee else '' }}" 
+          required 
+        />
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Relationship with Investor</label>
+          <select name="relationship_type" class="form-select">
+            <option value="SPOUSE" {% if nominee and nominee.relationship_type == 'SPOUSE' %}selected{% endif %}>Spouse</option>
+            <option value="CHILD" {% if nominee and nominee.relationship_type == 'CHILD' %}selected{% endif %}>Child / Dependent</option>
+            <option value="PARENT" {% if nominee and nominee.relationship_type == 'PARENT' %}selected{% endif %}>Parent</option>
+            <option value="SIBLING" {% if nominee and nominee.relationship_type == 'SIBLING' %}selected{% endif %}>Sibling</option>
+            <option value="OTHER" {% if nominee and nominee.relationship_type == 'OTHER' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Allocation Percentage (%)</label>
+          <input 
+            type="number" 
+            name="percentage" 
+            class="form-input" 
+            value="{{ nominee.percentage if nominee else 100 }}" 
+            min="1" 
+            max="100" 
+            required 
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nominee Date of Birth (Optional)</label>
+        <input 
+          type="date" 
+          name="dob" 
+          class="form-input" 
+          value="{{ nominee.dob if nominee and nominee.dob else '1995-05-15' }}" 
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="btn-save-nominee">
+        Save Nominee Details
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

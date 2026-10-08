@@ -1,0 +1,18 @@
+[
+  {
+    "email": "aarav.mehta@example.com",
+    "name": "Aarav Mehta",
+    "bo_id": "1208160012345678",
+    "masked_pan": "ABCXX1234X",
+    "dob": "15081992",
+    "mobile": "+91 9876543210"
+  },
+  {
+    "email": "priya.nair@example.com",
+    "name": "Priya Nair",
+    "bo_id": "1208160087654321",
+    "masked_pan": "XYZXX9876Y",
+    "dob": "22041995",
+    "mobile": "+91 9812345678"
+  }
+]

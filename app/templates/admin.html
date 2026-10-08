@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Console - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Depository Administrator Console</h1>
+    <p class="page-subtitle">Simulation testbed controls, account management, latency toggles & log audit</p>
+  </div>
+  <div style="display: flex; gap: 10px;">
+    <form action="/admin/reset-all" method="POST" onsubmit="return confirm('WARNING: Reset ALL database records back to clean seed data?');">
+      <button type="submit" class="btn btn-danger btn-sm" id="btn-reset-all">
+        Reset Database to Seed State
+      </button>
+    </form>
+    <a href="/admin/logout" class="btn btn-secondary btn-sm">Exit Admin</a>
+  </div>
+</div>
+
+<!-- Simulation Configuration Form -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-title">Simulation Environment Controls</div>
+  <form action="/admin/settings/update" method="POST" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; align-items: end;">
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label">Data Prep Delay (Sec)</label>
+      <input type="number" name="data_prep_delay" class="form-input" value="{{ settings.get('data_prep_delay', '4') }}" min="0" max="60" required />
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" name="fail_next_session" value="true" {% if settings.get('fail_next_session') == 'true' %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--saffron-main);" />
+        Fail Next Data Session
+      </label>
+      <span style="font-size: 0.72rem; color: var(--text-muted);">One-time 500 failure simulation</span>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" name="slow_mode" value="true" {% if settings.get('slow_mode') == 'true' %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--saffron-main);" />
+        Slow Mode (+5s Latency)
+      </label>
+      <span style="font-size: 0.72rem; color: var(--text-muted);">Artificially delay all responses</span>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" name="simulate_outage" value="true" {% if settings.get('simulate_outage') == 'true' %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--danger);" />
+        Simulate Outage (HTTP 503)
+      </label>
+      <span style="font-size: 0.72rem; color: var(--text-muted);">Returns 503 for non-admin endpoints</span>
+    </div>
+
+    <div style="grid-column: 1 / -1; margin-top: 10px;">
+      <button type="submit" class="btn btn-primary" id="btn-save-admin-settings">Update Simulation Settings</button>
+    </div>
+  </form>
+</div>
+
+<!-- User Management Table -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-title">Registered Investors & Demat Accounts</div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Investor Name & Email</th>
+          <th>BO ID</th>
+          <th>PAN</th>
+          <th>Login Methods</th>
+          <th class="text-right">Demats</th>
+          <th class="text-right">Valuation (₹)</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>
+            <strong>{{ u.name }}</strong>
+            <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">{{ u.email }}</span>
+          </td>
+          <td style="font-family: monospace; font-size: 0.8rem;">{{ u.bo_id }}</td>
+          <td style="font-family: monospace; font-size: 0.8rem;">{{ u.masked_pan }}</td>
+          <td>
+            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+              {% for m in u.methods %}
+              <span class="badge badge-info" style="font-size: 0.7rem;">{{ m }}</span>
+              {% endfor %}
+            </div>
+          </td>
+          <td class="text-right" style="font-weight: 600;">{{ u.account_count }}</td>
+          <td class="text-right" style="font-weight: 700; color: var(--saffron-main);">
+            ₹{{ "{:,.2f}".format(u.total_val) }}
+          </td>
+          <td class="text-right">
+            <form action="/admin/reset-user" method="POST" style="display: inline;" onsubmit="return confirm('Reset this user to clean state?');">
+              <input type="hidden" name="email" value="{{ u.email }}">
+              <button type="submit" class="btn btn-secondary btn-sm">Reset</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Simulate Corporate Action -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-title">Simulate Corporate Action</div>
+  <form action="/admin/corporate-action" method="POST" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: end;">
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label">Target Security</label>
+      <select name="isin" class="form-select" required>
+        {% for i in instruments %}
+        <option value="{{ i.isin }}">{{ i.symbol }} ({{ i.name[:25] }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label">Action Type</label>
+      <select name="action_type" class="form-select" required>
+        <option value="DIVIDEND">DIVIDEND (Cash Payout)</option>
+        <option value="BONUS">BONUS (1:1 Share Multiplier)</option>
+        <option value="SPLIT">SPLIT (1:2 Stock Sub-division)</option>
+        <option value="RIGHTS">RIGHTS (Rights Issue)</option>
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label">Ratio or Amount</label>
+      <input type="text" name="ratio_or_amount" class="form-input" placeholder="e.g. ₹15/share or 1:1" required />
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label">Description</label>
+      <input type="text" name="description" class="form-input" placeholder="e.g. Special Interim Dividend" required />
+    </div>
+
+    <div style="grid-column: 1 / -1; margin-top: 6px;">
+      <button type="submit" class="btn btn-secondary" id="btn-trigger-ca">Execute Corporate Action</button>
+    </div>
+  </form>
+</div>
+
+<!-- Consents Control -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-title">Active Consent Overrides</div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Consent ID</th>
+          <th>Customer Email</th>
+          <th>App</th>
+          <th>Expiry</th>
+          <th>Status</th>
+          <th class="text-right">Force Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in consents %}
+        <tr>
+          <td style="font-family: monospace; font-size: 0.8rem;">{{ c.consent_id }}</td>
+          <td>{{ c.customer_email }}</td>
+          <td>{{ c.client_id }}</td>
+          <td style="font-size: 0.8rem;">{{ c.expires_at.strftime('%d-%b-%Y') if c.expires_at else '-' }}</td>
+          <td>
+            <span class="badge {% if c.status == 'ACTIVE' %}badge-success{% elif c.status == 'PAUSED' %}badge-warning{% elif c.status == 'REVOKED' %}badge-danger{% else %}badge-muted{% endif %}">
+              {{ c.status }}
+            </span>
+          </td>
+          <td class="text-right">
+            <div style="display: inline-flex; gap: 4px;">
+              <form action="/admin/consent/{{ c.consent_id }}/action" method="POST" style="display: inline;">
+                <input type="hidden" name="action" value="EXPIRE">
+                <button type="submit" class="btn btn-secondary btn-sm">Force Expire</button>
+              </form>
+              <form action="/admin/consent/{{ c.consent_id }}/action" method="POST" style="display: inline;">
+                <input type="hidden" name="action" value="REVOKE">
+                <button type="submit" class="btn btn-danger btn-sm">Revoke</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center" style="padding: 20px; color: var(--text-muted);">No consents recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Webhook Delivery Logs Grid -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Webhook Delivery Logs</div>
+    <div class="table-container" style="max-height: 340px; overflow-y: auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Event</th>
+            <th>Consent</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for w in webhook_logs %}
+          <tr>
+            <td style="font-size: 0.75rem; color: var(--text-muted);">{{ w.timestamp.strftime('%H:%M:%S') }}</td>
+            <td><span class="badge badge-info" style="font-size: 0.7rem;">{{ w.event }}</span></td>
+            <td style="font-family: monospace; font-size: 0.75rem;">{{ w.consent_id[:12] }}..</td>
+            <td>
+              <span class="badge {% if w.success %}badge-success{% else %}badge-danger{% endif %}">
+                {{ w.status_code or 'ERR' }} ({{ w.attempts }}x)
+              </span>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-center" style="padding: 16px; color: var(--text-muted);">No webhook activity logged.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">API Access Audit Logs</div>
+    <div class="table-container" style="max-height: 340px; overflow-y: auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Action</th>
+            <th>Session</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in access_logs %}
+          <tr>
+            <td style="font-size: 0.75rem; color: var(--text-muted);">{{ a.timestamp.strftime('%H:%M:%S') }}</td>
+            <td><span class="badge badge-info" style="font-size: 0.7rem;">{{ a.action }}</span></td>
+            <td style="font-family: monospace; font-size: 0.75rem;">{{ a.session_id or '-' }}</td>
+            <td>
+              <span class="badge {% if a.status_code == 200 %}badge-success{% elif a.status_code == 202 %}badge-warning{% else %}badge-danger{% endif %}">
+                {{ a.status_code }}
+              </span>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-center" style="padding: 16px; color: var(--text-muted);">No API access logged.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Console Login - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card" style="max-width: 400px;">
+    <div class="auth-header">
+      <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+        <div class="brand-logo-icon" style="width: 48px; height: 48px; font-size: 1.6rem; border-radius: 12px; background: #0f172a;">ADM</div>
+      </div>
+      <h1 class="auth-title">Admin Console</h1>
+      <p class="auth-subtitle">Depository Simulation Controls</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <form action="/admin/login" method="POST">
+      <div class="form-group">
+        <label class="form-label">Master Admin Password</label>
+        <input 
+          type="password" 
+          name="password" 
+          class="form-input" 
+          placeholder="Enter ADMIN_PASSWORD..." 
+          required 
+          autofocus 
+        />
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+          Default configured password: <code>adminsecret123</code>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-admin-login">
+        Unlock Admin Console
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

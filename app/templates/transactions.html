@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Securities Statement - NationalDepo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Securities Transaction Statement</h1>
+    <p class="page-subtitle">Official depository ledger of securities credits, debits, settlements and transfers</p>
+  </div>
+  <div>
+    <a href="/statement/export.csv{% if account_id %}?account_id={{ account_id }}{% endif %}" class="btn btn-secondary">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+      </svg>
+      Export CSV Statement
+    </a>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="padding: 16px; margin-bottom: 20px;">
+  <form method="GET" action="/statement" class="filter-bar" style="margin-bottom: 0;">
+    <div style="flex: 2; min-width: 200px;">
+      <input 
+        type="text" 
+        name="search" 
+        class="form-input" 
+        placeholder="Search security or reference ID..." 
+        value="{{ search }}" 
+      />
+    </div>
+
+    <div style="flex: 1; min-width: 160px;">
+      <select name="account_id" class="form-select">
+        <option value="">All Demat Accounts</option>
+        {% for a in accounts %}
+        <option value="{{ a.id }}" {% if account_id == a.id %}selected{% endif %}>
+          {{ a.dp_name }} ({{ a.masked_account_number }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="flex: 1; min-width: 160px;">
+      <select name="txn_type" class="form-select">
+        <option value="">All Transaction Types</option>
+        <option value="BUY_SETTLEMENT" {% if txn_type == 'BUY_SETTLEMENT' %}selected{% endif %}>BUY Settlement</option>
+        <option value="SELL_SETTLEMENT" {% if txn_type == 'SELL_SETTLEMENT' %}selected{% endif %}>SELL Settlement</option>
+        <option value="CORPORATE_ACTION" {% if txn_type == 'CORPORATE_ACTION' %}selected{% endif %}>Corporate Action</option>
+        <option value="OFF_MARKET_TRANSFER" {% if txn_type == 'OFF_MARKET_TRANSFER' %}selected{% endif %}>Off-Market Transfer</option>
+      </select>
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-secondary">Filter</button>
+      <a href="/statement" class="btn btn-outline">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Transactions Table -->
+<div class="card" style="padding: 0; overflow: hidden;">
+  <div class="table-container" style="border: none;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>Demat Account</th>
+          <th>Security Name</th>
+          <th>ISIN</th>
+          <th>Transaction Type</th>
+          <th class="text-right">Quantity Delta</th>
+          <th class="text-right">Settlement Price</th>
+          <th>Reference ID</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transactions %}
+        <tr>
+          <td style="white-space: nowrap; font-size: 0.8rem; color: var(--text-muted);">
+            {{ t.trans_date.strftime('%d-%b-%Y %H:%M') if t.trans_date else '-' }}
+          </td>
+          <td>
+            <strong>{{ t.demat_account.dp_name if t.demat_account else '-' }}</strong>
+            <span style="display: block; font-size: 0.75rem; font-family: monospace; color: var(--text-muted);">
+              {{ t.demat_account.masked_account_number if t.demat_account else '-' }}
+            </span>
+          </td>
+          <td>
+            <strong>{{ t.instrument.name if t.instrument else '-' }}</strong>
+            <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">{{ t.instrument.symbol if t.instrument else '-' }}</span>
+          </td>
+          <td style="font-family: monospace; font-size: 0.8rem;">{{ t.isin }}</td>
+          <td>
+            <span class="badge {% if 'BUY' in t.trans_type or t.quantity > 0 %}badge-success{% elif 'SELL' in t.trans_type or t.quantity < 0 %}badge-danger{% else %}badge-info{% endif %}">
+              {{ t.trans_type }}
+            </span>
+          </td>
+          <td class="text-right" style="font-family: monospace; font-weight: 700; color: {% if t.quantity > 0 %}var(--success){% elif t.quantity < 0 %}var(--danger){% else %}var(--text-main){% endif %};">
+            {% if t.quantity > 0 %}+{% endif %}{{ "%.3f"|format(t.quantity) }}
+          </td>
+          <td class="text-right">₹{{ "%.2f"|format(t.price) }}</td>
+          <td style="font-family: monospace; font-size: 0.78rem; color: var(--text-muted);">{{ t.reference_id }}</td>
+          <td style="font-size: 0.82rem; color: var(--text-muted);">{{ t.description }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9" class="text-center" style="padding: 36px; color: var(--text-muted);">
+            No transactions found for the selected filter.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
