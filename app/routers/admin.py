@@ -24,7 +24,7 @@ def verify_admin_auth(request: Request) -> bool:
 @router.get("", response_class=HTMLResponse)
 def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     if not verify_admin_auth(request):
-        return templates.TemplateResponse("admin_login.html", {"request": request, "error": None})
+        return templates.TemplateResponse(request=request, name="admin_login.html", context={"error": None})
 
     users = db.query(User).all()
     user_list = []
@@ -59,8 +59,7 @@ def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     # Settings
     admin_settings = {s.key: s.value for s in db.query(AdminSetting).all()}
 
-    return templates.TemplateResponse("admin.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="admin.html", context={
         "users": user_list,
         "consents": consents,
         "webhook_logs": webhook_logs,
@@ -75,8 +74,7 @@ def admin_login(request: Request, password: str = Form(...)):
         resp = RedirectResponse(url="/admin", status_code=303)
         resp.set_cookie("nd_admin_auth", "authenticated", httponly=True, max_age=3600)
         return resp
-    return templates.TemplateResponse("admin_login.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="admin_login.html", context={
         "error": "Invalid admin password."
     })
 

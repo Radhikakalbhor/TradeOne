@@ -32,7 +32,7 @@ class AuthMethod(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    provider = Column(String(32), nullable=False)  # email, google, microsoft
+    provider = Column(String(32), nullable=False)  # email, google
     provider_sub = Column(String(255), nullable=True)
     email = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=utcnow)

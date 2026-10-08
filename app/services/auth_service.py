@@ -14,7 +14,7 @@ from app.services.seed_service import provision_new_user
 
 def send_otp_email(to_email: str, code: str):
     """Send clean HTML email with OTP if SMTP configured, else log."""
-    subject = f"{code} is your NationalDepo verification code"
+    subject = f"{code} is your TradeOne verification code"
     html_content = f"""
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
         <div style="margin-bottom: 20px;">
@@ -22,7 +22,7 @@ def send_otp_email(to_email: str, code: str):
             <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-top: 2px;">Simulated Depository Platform</div>
         </div>
         <p style="color: #334155; font-size: 15px; line-height: 1.5;">Hello,</p>
-        <p style="color: #334155; font-size: 15px; line-height: 1.5;">Use the one-time verification code below to sign in to your NationalDepo account. This code is valid for {settings.OTP_EXPIRY_MINUTES} minutes.</p>
+        <p style="color: #334155; font-size: 15px; line-height: 1.5;">Use the one-time verification code below to sign in to your TradeOne account. This code is valid for {settings.OTP_EXPIRY_MINUTES} minutes.</p>
         <div style="margin: 24px 0; padding: 18px; background: #f8fafc; border-radius: 6px; text-align: center; border: 1px dashed #cbd5e1;">
             <span style="font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0f172a; font-family: monospace;">{code}</span>
         </div>
@@ -45,12 +45,12 @@ def send_otp_email(to_email: str, code: str):
                 server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
                 server.sendmail(settings.SMTP_FROM, [to_email], msg.as_string())
         except Exception as e:
-            print(f"[NationalDepo SMTP ERROR] Failed to send email: {e}")
+            print(f"[TradeOne SMTP ERROR] Failed to send email: {e}")
 
     if settings.OTP_DEV_MODE:
         print(f"\n==========================================")
-        print(f"[NationalDepo DEV OTP] To: {to_email}")
-        print(f"[NationalDepo DEV OTP] CODE: {code}")
+        print(f"[TradeOne DEV OTP] To: {to_email}")
+        print(f"[TradeOne DEV OTP] CODE: {code}")
         print(f"==========================================\n")
 
 def request_email_otp(db, email: str) -> Tuple[bool, str, Optional[str]]:

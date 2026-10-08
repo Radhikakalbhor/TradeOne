@@ -342,7 +342,6 @@ def seed_database(db):
             # Add default auth methods
             db.add(AuthMethod(user_id=user.id, provider="email", email=email))
             db.add(AuthMethod(user_id=user.id, provider="google", provider_sub=f"google_{user.id}", email=email))
-            db.add(AuthMethod(user_id=user.id, provider="microsoft", provider_sub=f"ms_{user.id}", email=email))
 
             # Add default Nominee
             db.add(Nominee(

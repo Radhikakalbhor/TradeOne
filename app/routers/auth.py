@@ -12,8 +12,7 @@ from app.services.auth_service import (
     get_current_user_from_session
 )
 from app.services.oidc_service import (
-    get_google_auth_url, get_microsoft_auth_url,
-    validate_and_consume_state, exchange_google_code, exchange_microsoft_code
+    get_google_auth_url, validate_and_consume_state, exchange_google_code
 )
 from app.security import is_email_allowed, is_request_secure
 
@@ -46,14 +45,12 @@ def login_page(
         if user:
             return RedirectResponse(url=next or "/dashboard", status_code=303)
 
-    return templates.TemplateResponse("login.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="login.html", context={
         "email": email or "",
         "error": error,
         "next": next or "",
         "otp_dev_mode": settings.OTP_DEV_MODE,
-        "has_google": bool(settings.GOOGLE_CLIENT_ID),
-        "has_microsoft": bool(settings.MICROSOFT_CLIENT_ID)
+        "has_google": bool(settings.GOOGLE_CLIENT_ID)
     })
 
 @router.post("/email/request-otp")
@@ -66,14 +63,12 @@ def handle_request_otp(
     email = email.strip().lower()
     success, message, dev_code = request_email_otp(db, email)
     if not success:
-        return templates.TemplateResponse("login.html", {
-            "request": request,
+        return templates.TemplateResponse(request=request, name="login.html", context={
             "email": email,
             "error": message,
             "next": next or "",
             "otp_dev_mode": settings.OTP_DEV_MODE,
-            "has_google": bool(settings.GOOGLE_CLIENT_ID),
-            "has_microsoft": bool(settings.MICROSOFT_CLIENT_ID)
+            "has_google": bool(settings.GOOGLE_CLIENT_ID)
         })
 
     redirect_url = f"/auth/email/verify?email={email}"
@@ -92,8 +87,7 @@ def verify_otp_page(
     next: Optional[str] = Query(None),
     error: Optional[str] = Query(None)
 ):
-    return templates.TemplateResponse("otp_verify.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="otp_verify.html", context={
         "email": email,
         "dev_hint": dev_hint if settings.OTP_DEV_MODE else None,
         "next": next or "",
@@ -112,8 +106,7 @@ def handle_verify_otp(
     email = email.strip().lower()
     success, message, user = verify_email_otp(db, email, otp_code.strip())
     if not success or not user:
-        return templates.TemplateResponse("otp_verify.html", {
-            "request": request,
+        return templates.TemplateResponse(request=request, name="otp_verify.html", context={
             "email": email,
             "dev_hint": None,
             "next": next or "",
@@ -198,52 +191,6 @@ async def google_callback(
     set_auth_cookie(resp, token, request)
     return resp
 
-@router.get("/microsoft")
-def microsoft_auth_redirect():
-    if not settings.MICROSOFT_CLIENT_ID:
-        return RedirectResponse(url="/auth/login?error=Microsoft+login+is+not+configured+yet", status_code=303)
-    url = get_microsoft_auth_url()
-    return RedirectResponse(url=url, status_code=303)
-
-@router.get("/microsoft/callback")
-async def microsoft_callback(
-    request: Request,
-    code: Optional[str] = Query(None),
-    state: Optional[str] = Query(None),
-    error: Optional[str] = Query(None),
-    db: Session = Depends(get_db)
-):
-    if error or not code or not state:
-        return RedirectResponse(url=f"/auth/login?error={error or 'Microsoft login cancelled'}", status_code=303)
-
-    nonce = validate_and_consume_state(state, "microsoft")
-    if not nonce:
-        return RedirectResponse(url="/auth/login?error=Invalid+or+expired+security+state", status_code=303)
-
-    success, msg, profile = await exchange_microsoft_code(code, nonce)
-    if not success or not profile:
-        return RedirectResponse(url=f"/auth/login?error={msg}", status_code=303)
-
-    email = profile["email"]
-    allowed, allow_msg = is_email_allowed(email)
-    if not allowed:
-        return RedirectResponse(url=f"/auth/login?error={allow_msg}", status_code=303)
-
-    user = match_or_create_user(
-        db,
-        email=email,
-        provider="microsoft",
-        provider_sub=profile["provider_sub"],
-        name=profile.get("name")
-    )
-
-    client_ip = request.client.host if request.client else ""
-    user_agent = request.headers.get("user-agent", "")
-    token = create_user_session(db, user, ip_address=client_ip, user_agent=user_agent)
-
-    resp = RedirectResponse(url="/dashboard", status_code=303)
-    set_auth_cookie(resp, token, request)
-    return resp
 
 @router.get("/logout")
 def logout(request: Request, db: Session = Depends(get_db)):

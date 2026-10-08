@@ -19,3 +19,11 @@ build/
 *.egg-info/
 .DS_Store
 Thumbs.db
+
+# IDE / Editor
+.idea/
+.vscode/
+*.suo
+*.user
+*.sublime-project
+*.sublime-workspace

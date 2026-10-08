@@ -59,7 +59,7 @@ def serialize_fi_data(
             "dp": {
                 "name": acc.dp_name,
                 "dpId": acc.dp_id,
-                "depository": "NationalDepo"
+                "depository": "TradeOne"
             },
             "profile": {
                 "holders": [

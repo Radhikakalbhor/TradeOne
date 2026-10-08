@@ -31,7 +31,7 @@ async def send_webhook_with_retry(
     headers = {
         "Content-Type": "application/json",
         "X-ND-Signature": signature,
-        "User-Agent": "NationalDepo-Webhook/1.0"
+        "User-Agent": "TradeOne-Webhook/1.0"
     }
 
     max_attempts = 3
@@ -74,7 +74,7 @@ async def send_webhook_with_retry(
         db.add(log)
         db.commit()
     except Exception as e:
-        print(f"[NationalDepo Webhook Logging Error]: {e}")
+        print(f"[TradeOne Webhook Logging Error]: {e}")
     finally:
         db.close()
 

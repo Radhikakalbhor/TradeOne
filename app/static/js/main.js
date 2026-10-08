@@ -1,4 +1,4 @@
-// NationalDepo Core Client Scripts
+// TradeOne Core Client Scripts
 
 // Theme Management
 (function() {

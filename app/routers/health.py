@@ -7,7 +7,7 @@ router = APIRouter(tags=["Health"])
 def health_check():
     return {
         "status": "UP",
-        "service": "NationalDepo",
+        "service": "TradeOne",
         "description": "Simulated Depository Sandbox",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }

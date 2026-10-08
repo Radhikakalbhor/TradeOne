@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(
-    title="NationalDepo",
+    title="TradeOne",
     description="Simulated Indian Depository Sandbox (NSDL/CDSL Mock) with Account Aggregator data sharing.",
     version="1.0.0",
     docs_url="/docs",
@@ -70,7 +70,7 @@ async def admin_simulation_middleware(request: Request, call_next):
                         content={"code": "SERVICE_UNAVAILABLE", "message": "Simulated depository maintenance outage in progress.", "ref": ref_id}
                     )
                 return Response(
-                    content="<html><body style='font-family:sans-serif;text-align:center;padding:50px;'><h1>503 Service Unavailable</h1><p>NationalDepo simulated maintenance outage is currently active.</p></body></html>",
+                    content="<html><body style='font-family:sans-serif;text-align:center;padding:50px;'><h1>503 Service Unavailable</h1><p>TradeOne simulated maintenance outage is currently active.</p></body></html>",
                     status_code=503,
                     media_type="text/html"
                 )
@@ -93,4 +93,5 @@ app.include_router(admin.router)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, reload_includes=["*.env"])
+

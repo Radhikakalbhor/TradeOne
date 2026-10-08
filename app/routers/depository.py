@@ -57,8 +57,7 @@ def dashboard(
         Consent.status == "ACTIVE"
     ).count()
 
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="dashboard.html", context={
         "user": user,
         "summary": summary,
         "top_holdings": holdings,
@@ -84,8 +83,7 @@ def demat_accounts(
             "total_value": val
         })
 
-    return templates.TemplateResponse("accounts.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="accounts.html", context={
         "user": user,
         "account_cards": account_cards,
         "format_inr": format_inr
@@ -117,8 +115,7 @@ def account_detail(
                 "current_value": val
             })
 
-    return templates.TemplateResponse("account_detail.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="account_detail.html", context={
         "user": user,
         "account": acc,
         "holdings": holdings,
@@ -148,8 +145,7 @@ def holdings_view(
     # Distinct DPs for filter dropdown
     user_dps = [acc.dp_name for acc in user.demat_accounts]
 
-    return templates.TemplateResponse("holdings.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="holdings.html", context={
         "user": user,
         "holdings": holdings_list,
         "dp_filter": dp or "",
@@ -184,8 +180,7 @@ def statement_view(
 
     transactions = query.order_by(Transaction.trans_date.desc()).limit(100).all()
 
-    return templates.TemplateResponse("transactions.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="transactions.html", context={
         "user": user,
         "transactions": transactions,
         "account_id": account_id or "",
@@ -209,7 +204,7 @@ def export_statement_csv(
     transactions = query.order_by(Transaction.trans_date.desc()).all()
     csv_data = export_transactions_csv(transactions)
 
-    filename = f"NationalDepo_Statement_{datetime.now().strftime('%Y%m%d')}.csv"
+    filename = f"TradeOne_Statement_{datetime.now().strftime('%Y%m%d')}.csv"
     return Response(
         content=csv_data,
         media_type="text/csv",
@@ -227,8 +222,7 @@ def cas_page(
     ddmm = dob[:4]
     password_hint = f"{pan_digits}{ddmm}"
 
-    return templates.TemplateResponse("cas.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="cas.html", context={
         "user": user,
         "password_hint": password_hint
     })
@@ -261,7 +255,7 @@ def download_cas_pdf(
         to_date_str=to_str
     )
 
-    filename = f"NationalDepo_CAS_{user.bo_id}_{now.strftime('%Y%m%d')}.pdf"
+    filename = f"TradeOne_CAS_{user.bo_id}_{now.strftime('%Y%m%d')}.pdf"
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
@@ -280,8 +274,7 @@ def corporate_actions_view(
 
     actions = db.query(CorporateAction).order_by(CorporateAction.record_date.desc()).all()
 
-    return templates.TemplateResponse("corporate_actions.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="corporate_actions.html", context={
         "user": user,
         "actions": actions,
         "user_isins": user_isins
@@ -294,8 +287,7 @@ def profile_view(
     user: User = Depends(get_required_user)
 ):
     nominee = user.nominees[0] if user.nominees else None
-    return templates.TemplateResponse("profile.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="profile.html", context={
         "user": user,
         "nominee": nominee,
         "success": success
@@ -336,8 +328,7 @@ def consents_view(
         ConsentAccessLog.timestamp.desc()
     ).limit(50).all()
 
-    return templates.TemplateResponse("consents.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="consents.html", context={
         "user": user,
         "consents": consents,
         "logs": logs
@@ -370,8 +361,8 @@ def revoke_consent(
 
 @router.get("/consent/approve", response_class=HTMLResponse)
 def consent_approve_page(
+    request: Request,
     handle: str = Query(...),
-    request: Request = None,
     db: Session = Depends(get_db)
 ):
     token = request.cookies.get("nd_session")
@@ -384,8 +375,7 @@ def consent_approve_page(
         raise HTTPException(status_code=404, detail="Consent request not found")
 
     fi_types = json.loads(consent.fi_types_json) if consent.fi_types_json else []
-    return templates.TemplateResponse("consent_approve.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="consent_approve.html", context={
         "user": user,
         "consent": consent,
         "fi_types": fi_types,
@@ -456,8 +446,7 @@ def security_page(
     sessions = db.query(UserSession).filter(UserSession.user_id == user.id).order_by(UserSession.last_activity.desc()).limit(15).all()
     current_session_token = request.cookies.get("nd_session")
     
-    return templates.TemplateResponse("security.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="security.html", context={
         "user": user,
         "sessions": sessions
     })

@@ -19,10 +19,15 @@ def setup_seed():
 def test_ingest_holdings_endpoint():
     db = SessionLocal()
     try:
+        # Reset holding to seeded value (15 units) so this test is idempotent
         holding = db.query(Holding).filter(
             Holding.demat_account_id == "da_5521",
             Holding.isin == "INE467B01029"
         ).first()
+        if holding:
+            holding.free_units = 15.0
+            db.commit()
+            db.refresh(holding)
         initial_units = holding.free_units if holding else 0.0
 
         # Ingest a buy settlement of 10 units TCS for Aarav Mehta at NiftyTrade
@@ -64,7 +69,7 @@ def test_ingest_holdings_endpoint():
             "dpId": "IN300001",
             "maskedAccNumber": "XXXX5521",
             "isin": "INE467B01029",
-            "quantityDelta": -50.0, # only 20 available!
+            "quantityDelta": -50.0, # only 25 available after buy above
             "avgPrice": 4100.0,
             "reason": "SELL_SETTLEMENT"
         }

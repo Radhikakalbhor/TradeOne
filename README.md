@@ -1,8 +1,8 @@
-# NationalDepo 🏦
+# TradeOne 🏦
 > **Simulated Central Depository & Account Aggregator Sandbox**  
 > *"One view of every demat account"*
 
-NationalDepo is a simulated Indian securities depository platform (in the role NSDL and CDSL play in India). It acts as a sandbox data provider and centralized holdings registry for portfolio aggregators, wealth management services, and mock broker integrations.
+TradeOne is a simulated Indian securities depository platform (in the role NSDL and CDSL play in India). It acts as a sandbox data provider and centralized holdings registry for portfolio aggregators, wealth management services, and mock broker integrations.
 
 *Disclaimer: Simulated data - not a real depository. For development, integration, and sandbox testing only.*
 
@@ -16,7 +16,7 @@ NationalDepo is a simulated Indian securities depository platform (in the role N
 - **Account Aggregator (AA) Consent API**: Full consent-driven financial data sharing architecture (`/aa/v1/consents`, `/aa/v1/sessions`, `/aa/v1/sessions/{id}/data`) with cryptographic HMAC-SHA256 signatures and webhook notifications (`CONSENT_APPROVED`, `DATA_READY`, `HOLDINGS_CHANGED`, etc.).
 - **Multi-Method Secure Authentication**:
   - Email One-Time Code (OTP) with 6-digit auto-advancing boxes, 30s resend timer, 5-attempt rate limit & 15-minute lockout.
-  - OpenID Connect (OIDC) with **Google** and **Microsoft**.
+  - OpenID Connect (OIDC) with **Google**.
   - One-click Dev Demo accounts (**Aarav Mehta** and **Priya Nair**).
 - **Internal Broker Ingestion API**: Real-time webhook and settlement sync endpoint (`POST /internal/v1/ingest/holdings`) enabling mock brokers to update depository holdings after trades.
 - **Administrator Console**: Full testbed controls at `/admin` (simulate 503 outages, +5s latency, data prep delay, fail next session, and simulate corporate actions like bonuses, splits, and dividends).
@@ -102,21 +102,6 @@ Create a `.env` file in the project root:
    GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
    ```
 
-### Microsoft OAuth Configuration
-1. Go to Microsoft Entra ID (Azure Portal) &rarr; **App Registrations**.
-2. New registration &rarr; Supported account types (e.g., Multitenant or personal accounts).
-3. Add a Web Redirect URI:
-   - Local: `http://localhost:8000/auth/microsoft/callback`
-   - Production / Render: `https://<your-render-domain>/auth/microsoft/callback`
-4. Create a Client Secret under **Certificates & Secrets**.
-5. Set in `.env`:
-   ```env
-   MICROSOFT_CLIENT_ID=your-microsoft-app-id
-   MICROSOFT_CLIENT_SECRET=your-microsoft-secret
-   MICROSOFT_TENANT=common
-   MICROSOFT_REDIRECT_URI=http://localhost:8000/auth/microsoft/callback
-   ```
-
 ### SMTP Email Configuration (Optional)
 ```env
 SMTP_HOST=smtp.gmail.com
@@ -130,7 +115,7 @@ SMTP_FROM=no-reply@nationaldepo.sim
 
 ## 🔄 Account Aggregator (AA) Consent Flow via cURL
 
-NationalDepo comes pre-seeded with registered client application credentials:
+TradeOne comes pre-seeded with registered client application credentials:
 - **Client ID**: `portfolio-aggregator`
 - **Client Secret**: `nd-demo-secret`
 
@@ -164,7 +149,7 @@ curl -X POST "http://localhost:8000/aa/v1/consents" \
 1. Open the `approvalUrl` in your browser.
 2. Sign in as Aarav Mehta (or using Email OTP).
 3. Select which Demat Accounts to share with the external app.
-4. Click **"Approve & Share Data"**. NationalDepo signs the consent artefact and sends a `CONSENT_APPROVED` webhook.
+4. Click **"Approve & Share Data"**. TradeOne signs the consent artefact and sends a `CONSENT_APPROVED` webhook.
 
 ### Step 3: Check Consent Status & Signed Artefact
 ```bash
@@ -227,7 +212,7 @@ curl -X GET "http://localhost:8000/aa/v1/sessions/ses_7f21/data" \
       "dp": {
         "name": "NiftyTrade Securities",
         "dpId": "IN300001",
-        "depository": "NationalDepo"
+        "depository": "TradeOne"
       },
       "profile": {
         "holders": [{"name": "Aarav Mehta", "type": "PRIMARY"}],
@@ -267,7 +252,7 @@ curl -X POST "http://localhost:8000/aa/v1/consents/cns_35e80dc9a76472f1/revoke" 
 
 ## 📡 Internal Broker Ingestion Endpoint
 
-Mock brokers call this endpoint after trade executions to sync settlement into the investor's demat account at NationalDepo:
+Mock brokers call this endpoint after trade executions to sync settlement into the investor's demat account at TradeOne:
 
 ```bash
 curl -X POST "http://localhost:8000/internal/v1/ingest/holdings" \
@@ -322,4 +307,4 @@ This repository is ready to deploy directly on Render:
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 4. Add environment variables from `.env.example`.
-5. NationalDepo will be live with full HTTPS support, automatic reverse proxy detection, and persistent SQLite database.
+5. TradeOne will be live with full HTTPS support, automatic reverse proxy detection, and persistent SQLite database.
