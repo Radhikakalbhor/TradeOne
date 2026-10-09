@@ -195,3 +195,55 @@ def test_admin_auth_cookie_signed():
     assert res_valid.status_code == 200
     assert "Simulation testbed controls" in res_valid.text
 
+
+def test_production_passes_with_resend_without_smtp():
+    """Verify that in production, configuring RESEND_API_KEY satisfies email delivery without requiring SMTP."""
+    s = Settings()
+    prod_env = {
+        "ENVIRONMENT": "production",
+        "SECRET_KEY": "valid_secret_key_long_enough_32_chars!",
+        "SESSION_SECRET": "valid_session_secret_long_enough_32!",
+        "ADMIN_PASSWORD": "ValidProdPassword99!",
+        "INGEST_API_KEY": "valid_ingest_key_32_chars_long!!",
+        "SHARED_IDENTITY_SALT": "valid_shared_salt_32_chars_long!",
+        "INTERNAL_API_KEY": "valid_internal_key_32_chars_long!",
+        "OTP_DEV_MODE": "false",
+        "DEMO_MODE": "false",
+        "RESEND_API_KEY": "re_prod_api_key_valid_987654321",
+        "RESEND_FROM": "TradeOne <onboarding@resend.dev>",
+        "SMTP_HOST": "",
+        "SMTP_PORT": "587",
+        "SMTP_USER": "",
+        "SMTP_PASSWORD": ""
+    }
+    with patch.dict(os.environ, prod_env, clear=True):
+        errors = s.validate_production_configuration()
+        assert errors == []
+        assert s.IS_PRODUCTION is True
+        assert s.RESEND_API_KEY == "re_prod_api_key_valid_987654321"
+
+
+def test_production_rejects_placeholder_resend_key():
+    """Verify that placeholder RESEND_API_KEY values are rejected in production."""
+    s = Settings()
+    prod_env = {
+        "ENVIRONMENT": "production",
+        "SECRET_KEY": "valid_secret_key_long_enough_32_chars!",
+        "SESSION_SECRET": "valid_session_secret_long_enough_32!",
+        "ADMIN_PASSWORD": "ValidProdPassword99!",
+        "INGEST_API_KEY": "valid_ingest_key_32_chars_long!!",
+        "SHARED_IDENTITY_SALT": "valid_shared_salt_32_chars_long!",
+        "INTERNAL_API_KEY": "valid_internal_key_32_chars_long!",
+        "OTP_DEV_MODE": "false",
+        "DEMO_MODE": "false",
+        "RESEND_API_KEY": "change-me-resend-key",
+        "SMTP_HOST": "",
+        "SMTP_PORT": "587",
+        "SMTP_USER": "",
+        "SMTP_PASSWORD": ""
+    }
+    with patch.dict(os.environ, prod_env, clear=True):
+        with pytest.raises(RuntimeError) as excinfo:
+            s.validate_production_configuration()
+        assert "RESEND_API_KEY" in str(excinfo.value)
+

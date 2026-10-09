@@ -385,7 +385,11 @@ NIFTYTRADE_URL=https://nifty-50-5nzz.onrender.com
 BHARATINVEST_URL=https://bharatinvest.onrender.com
 BONDBAZAAR_URL=https://bondbazaar-1.onrender.com
 
-# SMTP Delivery
+# Email Delivery (HTTPS API recommended for Render to bypass outbound SMTP socket restriction)
+RESEND_API_KEY=your-resend-api-key
+RESEND_FROM=TradeOne <onboarding@resend.dev>
+
+# SMTP Delivery (Optional fallback for local or non-restricted environments)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com

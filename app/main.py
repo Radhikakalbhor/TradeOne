@@ -8,16 +8,27 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
+import logging
 from app.config import settings
 from app.database import engine, Base, SessionLocal
 from app.models import AdminSetting
 from app.services.seed_service import seed_database
 from app.routers import auth, depository, aa_api, internal, admin, health
 
+logger = logging.getLogger("app.main")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Validate production configuration if running in production
     settings.validate_production_configuration()
+
+    # Diagnostic email provider logging on startup (safe, no secrets)
+    if settings.RESEND_API_KEY:
+        logger.info("Email OTP provider: Resend HTTPS API (sender: %s)", settings.RESEND_FROM)
+    elif settings.SMTP_HOST and settings.SMTP_USER and settings.SMTP_PASSWORD:
+        logger.info("Email OTP provider: SMTP fallback (host: %s, port: %s)", settings.SMTP_HOST, settings.SMTP_PORT)
+    else:
+        logger.warning("Email OTP provider: Neither Resend nor SMTP is configured.")
 
     # Create DB tables
     Base.metadata.create_all(bind=engine)

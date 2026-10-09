@@ -1,4 +1,5 @@
 import smtplib
+import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime, timezone, timedelta
@@ -12,6 +13,8 @@ from app.security import (
 )
 from app.services.seed_service import provision_new_user
 from app.shared_identity import normalize_email, generate_identity
+
+logger = logging.getLogger("app.services.auth_service")
 
 # In-memory testing cache only accessible in OTP_DEV_MODE via dedicated test endpoint
 _dev_otp_store = {}
@@ -30,35 +33,53 @@ def is_smtp_configured() -> bool:
         and settings.SMTP_PASSWORD and settings.SMTP_PASSWORD.strip()
     )
 
-def send_otp_email(to_email: str, code: str) -> Tuple[bool, str]:
-    """Send clean HTML email with OTP using configured SMTP provider.
-    Returns (success, status_or_error_message).
-    """
-    if not is_smtp_configured():
-        return False, (
-            "Email delivery is not configured. Missing required SMTP configuration: "
-            "SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM. "
-            "Please configure your email provider credentials in .env to receive verification codes."
-        )
+def is_resend_configured() -> bool:
+    """Check if Resend HTTPS API key is configured in the environment."""
+    return bool(settings.RESEND_API_KEY and settings.RESEND_API_KEY.strip())
 
-    subject = f"{code} is your TradeOne verification code"
-    html_content = f"""
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
-        <div style="margin-bottom: 20px;">
-            <span style="font-size: 20px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px;">Trade<span style="color: #f59e0b;">One</span></span>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-top: 2px;">Unified Depository &amp; Portfolio Platform</div>
-        </div>
-        <p style="color: #334155; font-size: 15px; line-height: 1.5;">Hello,</p>
-        <p style="color: #334155; font-size: 15px; line-height: 1.5;">Use the one-time verification code below to sign in to your TradeOne account. This code is valid for {settings.OTP_EXPIRY_MINUTES} minutes.</p>
-        <div style="margin: 24px 0; padding: 18px; background: #f8fafc; border-radius: 6px; text-align: center; border: 1px dashed #cbd5e1;">
-            <span style="font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0f172a; font-family: monospace;">{code}</span>
-        </div>
-        <p style="color: #64748b; font-size: 13px; line-height: 1.4;">If you did not request this code, you can safely ignore this email.</p>
-        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-        <p style="color: #94a3b8; font-size: 11px; text-align: center;">TradeOne Depository Platform &bull; Security Verification</p>
-    </div>
+def send_email_via_resend(to_email: str, subject: str, html_content: str) -> Tuple[bool, str]:
+    """Deliver email via Resend HTTPS API over port 443.
+    Bypasses cloud datacenter outbound SMTP port blocks (Errno 101 Network unreachable).
+    Never logs or exposes the API key or verification code.
     """
+    api_key = settings.RESEND_API_KEY.strip().strip('"').strip("'")
+    if not api_key:
+        return False, "RESEND_API_KEY is not configured."
 
+    from_addr = settings.RESEND_FROM or "TradeOne <onboarding@resend.dev>"
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "User-Agent": "TradeOne-Depository/1.0"
+    }
+    payload = {
+        "from": from_addr,
+        "to": [to_email],
+        "subject": subject,
+        "html": html_content
+    }
+
+    try:
+        import httpx
+        with httpx.Client(timeout=10.0) as client:
+            resp = client.post("https://api.resend.com/emails", json=payload, headers=headers)
+            if 200 <= resp.status_code < 300:
+                return True, "Verification code sent to your email."
+
+            try:
+                err_data = resp.json()
+                err_msg = err_data.get("message") or err_data.get("error", {}).get("message") or resp.text
+            except Exception:
+                err_msg = resp.text
+            return False, f"Email delivery provider error (HTTP {resp.status_code}): {err_msg}"
+    except (httpx.TimeoutException, httpx.ConnectTimeout):
+        return False, "Email delivery timed out contacting provider."
+    except Exception as exc:
+        return False, f"Failed to deliver email via HTTPS API: {type(exc).__name__}: {str(exc)}"
+
+def send_email_via_smtp(to_email: str, subject: str, html_content: str) -> Tuple[bool, str]:
+    """Deliver email via SMTP over port 587 (STARTTLS) or 465 (SSL)."""
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
@@ -82,6 +103,54 @@ def send_otp_email(to_email: str, code: str) -> Tuple[bool, str]:
         return True, "Verification code sent to your email."
     except Exception as e:
         return False, f"Failed to deliver verification email: {str(e)}"
+
+def send_otp_email(to_email: str, code: str) -> Tuple[bool, str]:
+    """Send clean HTML email with OTP using configured HTTPS API provider (Resend) or SMTP fallback.
+    Returns (success, status_or_error_message).
+    """
+    subject = f"{code} is your TradeOne verification code"
+    html_content = f"""
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+        <div style="margin-bottom: 20px;">
+            <span style="font-size: 20px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px;">Trade<span style="color: #f59e0b;">One</span></span>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-top: 2px;">Unified Depository &amp; Portfolio Platform</div>
+        </div>
+        <p style="color: #334155; font-size: 15px; line-height: 1.5;">Hello,</p>
+        <p style="color: #334155; font-size: 15px; line-height: 1.5;">Use the one-time verification code below to sign in to your TradeOne account. This code is valid for {settings.OTP_EXPIRY_MINUTES} minutes.</p>
+        <div style="margin: 24px 0; padding: 18px; background: #f8fafc; border-radius: 6px; text-align: center; border: 1px dashed #cbd5e1;">
+            <span style="font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0f172a; font-family: monospace;">{code}</span>
+        </div>
+        <p style="color: #64748b; font-size: 13px; line-height: 1.4;">If you did not request this code, you can safely ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+        <p style="color: #94a3b8; font-size: 11px; text-align: center;">TradeOne Depository Platform &bull; Security Verification</p>
+    </div>
+    """
+
+    # Priority 1: HTTPS Email API (Resend) - immune to outbound SMTP network restrictions
+    if is_resend_configured():
+        logger.info("Selected email provider: Resend (HTTPS API over port 443). Recipient: %s, Sender: %s", to_email, settings.RESEND_FROM)
+        success, msg = send_email_via_resend(to_email, subject, html_content)
+        if success:
+            logger.info("Resend HTTPS API email successfully dispatched for %s", to_email)
+        else:
+            logger.warning("Resend HTTPS API email dispatch failed for %s: %s", to_email, msg)
+        return success, msg
+
+    # Priority 2: SMTP fallback (when explicitly configured and Resend is not set)
+    if is_smtp_configured():
+        logger.info("Selected email provider: SMTP fallback (Host: %s, Port: %s). Recipient: %s", settings.SMTP_HOST, settings.SMTP_PORT, to_email)
+        success, msg = send_email_via_smtp(to_email, subject, html_content)
+        if success:
+            logger.info("SMTP email successfully dispatched for %s", to_email)
+        else:
+            logger.warning("SMTP email dispatch failed for %s: %s", to_email, msg)
+        return success, msg
+
+    logger.warning("No email provider configured. RESEND_API_KEY is unset and SMTP credentials are not configured.")
+    return False, (
+        "Email delivery is not configured. Please configure RESEND_API_KEY (recommended for cloud/Render) "
+        "or SMTP credentials (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD) in your environment."
+    )
 
 def request_email_otp(db, email: str, send_email: bool = True) -> Tuple[bool, str, Optional[str]]:
     """Generate and record OTP. Invalidate previous OTPs.

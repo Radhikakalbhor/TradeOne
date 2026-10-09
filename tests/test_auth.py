@@ -13,7 +13,8 @@ from starlette.testclient import TestClient
 from app.main import app
 from app.services.auth_service import (
     request_email_otp, verify_email_otp, match_or_create_user,
-    send_otp_email, is_smtp_configured
+    send_otp_email, is_smtp_configured, is_resend_configured,
+    send_email_via_resend
 )
 
 @pytest.fixture(scope="module", autouse=True)
@@ -297,5 +298,152 @@ def test_verify_otp_web_flow_and_duplicate_submission_idempotency():
             assert res_digits.status_code == 303
             assert res_digits.headers["location"] == "/dashboard"
             assert "nd_session" in res_digits.cookies
+    finally:
+        db.close()
+
+
+def test_resend_email_delivery_success(monkeypatch):
+    """Test successful email delivery via Resend HTTPS API mocking httpx.Client."""
+    monkeypatch.setenv("RESEND_API_KEY", "re_test_api_key_1234567890")
+    monkeypatch.setenv("RESEND_FROM", "TradeOne <onboarding@resend.dev>")
+    assert is_resend_configured() is True
+
+    fake_response = MagicMock()
+    fake_response.status_code = 200
+    fake_response.json.return_value = {"id": "re_msg_12345"}
+
+    with patch("httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.post.return_value = fake_response
+        mock_client_cls.return_value = mock_client
+
+        sent, msg = send_email_via_resend("user@example.com", "Your Code", "<p>Code 123456</p>")
+        assert sent is True
+        assert "sent" in msg.lower()
+
+        # Check call arguments
+        mock_client.post.assert_called_once()
+        args, kwargs = mock_client.post.call_args
+        assert args[0] == "https://api.resend.com/emails"
+        assert kwargs["headers"]["Authorization"] == "Bearer re_test_api_key_1234567890"
+        assert kwargs["json"]["to"] == ["user@example.com"]
+        assert kwargs["json"]["from"] == "TradeOne <onboarding@resend.dev>"
+        assert kwargs["json"]["subject"] == "Your Code"
+        assert "<p>Code 123456</p>" in kwargs["json"]["html"]
+
+
+def test_resend_email_delivery_provider_error(monkeypatch):
+    """Test handling of Resend API error responses (e.g. 422 unverified domain) without crashing."""
+    monkeypatch.setenv("RESEND_API_KEY", "re_test_key")
+    monkeypatch.setenv("RESEND_FROM", "TradeOne <invalid@customdomain.com>")
+
+    fake_response = MagicMock()
+    fake_response.status_code = 422
+    fake_response.json.return_value = {"message": "Domain customdomain.com is not verified."}
+
+    with patch("httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.post.return_value = fake_response
+        mock_client_cls.return_value = mock_client
+
+        sent, msg = send_email_via_resend("user@example.com", "Subject", "<p>Body</p>")
+        assert sent is False
+        assert "422" in msg
+        assert "Domain customdomain.com is not verified" in msg
+
+
+def test_resend_email_delivery_network_timeout(monkeypatch):
+    """Test handling of network timeouts contacting Resend HTTPS API."""
+    import httpx
+    monkeypatch.setenv("RESEND_API_KEY", "re_test_key")
+
+    with patch("httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.post.side_effect = httpx.ConnectTimeout("Connect timed out")
+        mock_client_cls.return_value = mock_client
+
+        sent, msg = send_email_via_resend("user@example.com", "Subject", "<p>Body</p>")
+        assert sent is False
+        assert "timed out" in msg.lower()
+
+
+def test_resend_priority_and_no_smtp_fallback_on_failure(monkeypatch):
+    """Verify that when Resend is configured, it is prioritized and SMTP is NOT called on Resend failure."""
+    monkeypatch.setenv("RESEND_API_KEY", "re_active_key")
+    monkeypatch.setenv("SMTP_HOST", "smtp.example.com")
+    monkeypatch.setenv("SMTP_PORT", "587")
+    monkeypatch.setenv("SMTP_USER", "smtp_user")
+    monkeypatch.setenv("SMTP_PASSWORD", "smtp_pass")
+
+    assert is_resend_configured() is True
+    assert is_smtp_configured() is True
+
+    # When Resend fails, send_otp_email must NOT fall back to SMTP (which causes Errno 101 on Render)
+    fake_response = MagicMock()
+    fake_response.status_code = 401
+    fake_response.json.return_value = {"message": "API key invalid"}
+
+    with patch("httpx.Client") as mock_client_cls, patch("smtplib.SMTP") as mock_smtp:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.post.return_value = fake_response
+        mock_client_cls.return_value = mock_client
+
+        sent, msg = send_otp_email("user@example.com", "123456")
+        assert sent is False
+        assert "401" in msg
+        # Ensure SMTP was NEVER called
+        mock_smtp.assert_not_called()
+
+
+def test_otp_request_and_verification_via_resend(monkeypatch):
+    """Full end-to-end OTP cycle using Resend email delivery mock."""
+    monkeypatch.setenv("RESEND_API_KEY", "re_valid_key")
+    db = SessionLocal()
+    try:
+        import time
+        email = f"test.resend.e2e.{int(time.time()*1000)}@example.com"
+
+        fake_response = MagicMock()
+        fake_response.status_code = 200
+        fake_response.json.return_value = {"id": "re_ok_123"}
+
+        with patch("httpx.Client") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.__enter__.return_value = mock_client
+            mock_client.post.return_value = fake_response
+            mock_client_cls.return_value = mock_client
+
+            # Request OTP with send_email=True (triggers Resend)
+            success, msg, _ = request_email_otp(db, email, send_email=True)
+            assert success is True
+            assert "sent" in msg.lower()
+
+            # Retrieve active OTP from DB
+            otp = db.query(EmailOtp).filter(EmailOtp.email == email, EmailOtp.used == False).first()
+            assert otp is not None
+            exp_time = otp.expires_at if otp.expires_at.tzinfo else otp.expires_at.replace(tzinfo=timezone.utc)
+            assert exp_time > datetime.now(timezone.utc)
+
+            # Retrieve hashed code from OTP by attempting verification with correct code
+            # In order to verify, find code in mock_client call body
+            call_kwargs = mock_client.post.call_args[1]
+            import re
+            match = re.search(r'([0-9]{6})</span>', call_kwargs["json"]["html"])
+            assert match is not None
+            code = match.group(1)
+
+            # Verify OTP
+            verified, vmsg, user = verify_email_otp(db, email, code)
+            assert verified is True
+            assert user is not None
+            assert user.email == email
+
+            # One-time use: re-verification must fail
+            verified2, vmsg2, _ = verify_email_otp(db, email, code)
+            assert verified2 is False
     finally:
         db.close()

@@ -66,6 +66,22 @@ class Settings:
         from_val = os.getenv("SMTP_FROM", "").strip()
         return from_val if from_val else self.SMTP_USER
 
+    # HTTPS Email API (Resend) Settings
+    @property
+    def RESEND_API_KEY(self) -> str:
+        raw = os.getenv("RESEND_API_KEY") or os.getenv("RESEND_KEY") or ""
+        return raw.strip().strip('"').strip("'")
+
+    @property
+    def RESEND_FROM(self) -> str:
+        raw = os.getenv("RESEND_FROM") or os.getenv("RESEND_FROM_EMAIL") or ""
+        val = raw.strip().strip('"').strip("'")
+        if val:
+            return val
+        if self.SMTP_FROM and "@" in self.SMTP_FROM and not self.SMTP_FROM.endswith("example.com"):
+            return f"TradeOne <{self.SMTP_FROM}>"
+        return "TradeOne <onboarding@resend.dev>"
+
     # Depository Settings
     @property
     def OTP_DEV_MODE(self) -> bool:
@@ -314,10 +330,14 @@ class Settings:
         if self.DEMO_MODE:
             errors.append("DEMO_MODE must be false in production to prevent simulated portfolio data.")
 
-        # SMTP configuration required when Email OTP is used in production
-        if not (self.SMTP_HOST and self.SMTP_USER and self.SMTP_PASSWORD):
-            errors.append("SMTP configuration (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD) is required in production for Email OTP delivery.")
-        elif self.SMTP_PASSWORD.lower().startswith("change-me") or self.SMTP_PASSWORD.lower().startswith("your-"):
+        # Email OTP delivery configuration required in production (RESEND_API_KEY or SMTP)
+        has_resend = bool(self.RESEND_API_KEY and self.RESEND_API_KEY.strip())
+        has_smtp = bool(self.SMTP_HOST and self.SMTP_USER and self.SMTP_PASSWORD)
+        if not (has_resend or has_smtp):
+            errors.append("Email delivery configuration (RESEND_API_KEY or SMTP_HOST/SMTP_USER/SMTP_PASSWORD) is required in production for Email OTP delivery.")
+        if has_resend and (self.RESEND_API_KEY.lower().startswith("change-me") or self.RESEND_API_KEY.lower().startswith("your-")):
+            errors.append("RESEND_API_KEY contains placeholder text in production.")
+        if has_smtp and (self.SMTP_PASSWORD.lower().startswith("change-me") or self.SMTP_PASSWORD.lower().startswith("your-")):
             errors.append("SMTP_PASSWORD contains placeholder text in production.")
 
         # Check broker keys for placeholders if provided

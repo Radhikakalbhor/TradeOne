@@ -111,13 +111,22 @@ Create a `.env` file in the project root:
    GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
    ```
 
-### SMTP Email Configuration (Optional)
+### Email Delivery Configuration (OTP Verification)
+For cloud platforms such as Render where outbound SMTP ports (25, 465, 587) are restricted or block TCP sockets with `[Errno 101] Network is unreachable`, use an HTTPS Email API provider (Resend):
+
 ```env
-SMTP_HOST=smtp.gmail.com
+# Resend HTTPS API (Recommended for Render & cloud platforms — port 443 HTTPS)
+RESEND_API_KEY=your-resend-api-key
+RESEND_FROM=TradeOne <onboarding@resend.dev>
+```
+
+#### SMTP Email Configuration (Optional fallback for local / non-restricted environments)
+```env
+SMTP_HOST=smtp.example.com
 SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
+SMTP_USER=your-email@example.com
 SMTP_PASSWORD=your-app-password
-SMTP_FROM=no-reply@nationaldepo.sim
+SMTP_FROM=no-reply@tradeone.example.com
 ```
 
 ---
