@@ -109,11 +109,11 @@ class Settings:
     # Shared Identity & Cross-Broker Sandbox Settings
     @property
     def SHARED_IDENTITY_SALT(self) -> str:
-        return os.getenv("SHARED_IDENTITY_SALT", "tradeone-shared-identity-salt-2026").strip()
+        return os.getenv("SHARED_IDENTITY_SALT", "tradeone-shared-identity-salt-2026").strip().strip('"').strip("'")
 
     @property
     def INTERNAL_API_KEY(self) -> str:
-        return os.getenv("INTERNAL_API_KEY", "tradeone-internal-key-2026").strip()
+        return os.getenv("INTERNAL_API_KEY", "tradeone-internal-key-2026").strip().strip('"').strip("'")
 
     @property
     def INTERNAL_API_ENABLED(self) -> bool:
@@ -155,7 +155,7 @@ class Settings:
 
     @property
     def NIFTYTRADE_INTERNAL_KEY(self) -> str:
-        return os.getenv("NIFTYTRADE_INTERNAL_KEY", "").strip()
+        return os.getenv("NIFTYTRADE_INTERNAL_KEY", "").strip().strip('"').strip("'")
 
     @property
     def BHARATINVEST_URL(self) -> str:
@@ -163,7 +163,7 @@ class Settings:
 
     @property
     def BHARATINVEST_INTERNAL_KEY(self) -> str:
-        return os.getenv("BHARATINVEST_INTERNAL_KEY", "").strip()
+        return os.getenv("BHARATINVEST_INTERNAL_KEY", "").strip().strip('"').strip("'")
 
     @property
     def BONDBAZAAR_URL(self) -> str:
@@ -171,7 +171,7 @@ class Settings:
 
     @property
     def BONDBAZAAR_INTERNAL_KEY(self) -> str:
-        return os.getenv("BONDBAZAAR_INTERNAL_KEY", "").strip()
+        return os.getenv("BONDBAZAAR_INTERNAL_KEY", "").strip().strip('"').strip("'")
 
     @property
     def BROKER_PROVIDERS(self) -> dict:
@@ -319,6 +319,15 @@ class Settings:
             errors.append("SMTP configuration (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD) is required in production for Email OTP delivery.")
         elif self.SMTP_PASSWORD.lower().startswith("change-me") or self.SMTP_PASSWORD.lower().startswith("your-"):
             errors.append("SMTP_PASSWORD contains placeholder text in production.")
+
+        # Check broker keys for placeholders if provided
+        for b_name, b_val in [
+            ("NIFTYTRADE_INTERNAL_KEY", self.NIFTYTRADE_INTERNAL_KEY),
+            ("BHARATINVEST_INTERNAL_KEY", self.BHARATINVEST_INTERNAL_KEY),
+            ("BONDBAZAAR_INTERNAL_KEY", self.BONDBAZAAR_INTERNAL_KEY),
+        ]:
+            if b_val and (b_val.lower().startswith("change-me") or b_val.lower().startswith("your-")):
+                errors.append(f"{b_name} contains placeholder text in production.")
 
         if errors:
             raise RuntimeError("Production configuration security violation:\n - " + "\n - ".join(errors))

@@ -57,8 +57,9 @@ class BrokerAdapter:
     def _headers(self, provider_code: str) -> Dict[str, str]:
         """Construct secure server-to-server headers. Never logs or leaks the key."""
         config = self.get_provider_config(provider_code)
+        key = (config.get("internal_key") or "").strip().strip('"').strip("'")
         return {
-            "x-internal-key": config["internal_key"],
+            "x-internal-key": key,
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
@@ -112,10 +113,13 @@ class BrokerAdapter:
                         }
 
                     if resp.status_code in (400, 401, 403):
+                        msg = f"Provider returned HTTP {resp.status_code}"
+                        if resp.status_code == 401:
+                            msg = "Provider returned HTTP 401 (Authentication failed - invalid internal key)"
                         return False, {
                             "code": f"HTTP_{resp.status_code}",
                             "status_code": resp.status_code,
-                            "message": f"Provider returned HTTP {resp.status_code}",
+                            "message": msg,
                             "_status_code": resp.status_code,
                             "_response_time_ms": elapsed_ms
                         }
@@ -208,6 +212,22 @@ class BrokerAdapter:
         """
         config = self.get_provider_config(provider_code)
         norm_email = normalize_email(email)
+
+        key = (config.get("internal_key") or "").strip().strip('"').strip("'")
+        if not key:
+            return {
+                "provider": provider_code,
+                "broker_name": config["broker_name"],
+                "dp_name": config["dp_name"],
+                "dp_id": config["dp_id"],
+                "status": "unavailable",
+                "error": f"Internal API key not configured for {config['broker_name']}",
+                "profile": None,
+                "holdings": [],
+                "summary": None,
+                "http_status": 401,
+                "response_time_ms": 0.0
+            }
 
         # 1. Provision user (idempotent)
         prov_ok, prov_data = self.provision_user(provider_code, norm_email, full_name)

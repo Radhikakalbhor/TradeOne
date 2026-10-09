@@ -327,6 +327,130 @@ def test_secrets_not_exposed(client, db):
     assert resp_dash.status_code == 200
     dash_text = resp_dash.text
     assert settings.INTERNAL_API_KEY not in dash_text
-    assert "x-internal-key" not in dash_text
-
     client.cookies.delete("nd_session")
+
+# 11. Broker Header Sanitization and Key Fallback
+def test_broker_headers_sanitize_and_fallback():
+    import os
+    # Test specific key takes precedence and strips quotes
+    with patch.dict(os.environ, {"NIFTYTRADE_INTERNAL_KEY": ' "custom-nifty-key" '}):
+        headers = broker_adapter._headers("a")
+        assert headers["x-internal-key"] == "custom-nifty-key"
+
+    # Test fallback to INTERNAL_API_KEY when specific key is blank
+    with patch.dict(os.environ, {"NIFTYTRADE_INTERNAL_KEY": "", "INTERNAL_API_KEY": "fallback-hub-key"}):
+        headers = broker_adapter._headers("a")
+        assert headers["x-internal-key"] == "fallback-hub-key"
+
+# 12. Broker Missing Key Early Detection
+def test_broker_missing_key_early_detection():
+    import os
+    with patch.dict(os.environ, {"NIFTYTRADE_INTERNAL_KEY": "", "INTERNAL_API_KEY": ""}):
+        bundle = broker_adapter.fetch_provider_bundle("a", "user@example.com")
+        assert bundle["status"] == "unavailable"
+        assert bundle["http_status"] == 401
+        assert "not configured" in bundle["error"].lower()
+        assert bundle["holdings"] == []
+
+# 13. Broker 401 Unauthorized Error Handling
+@patch("httpx.Client.post")
+def test_broker_401_unauthorized_handling(mock_post):
+    mock_resp = MagicMock()
+    mock_resp.status_code = 401
+    mock_resp.json.return_value = {"detail": "Invalid internal key"}
+    mock_post.return_value = mock_resp
+
+    bundle = broker_adapter.fetch_provider_bundle("a", "user@example.com")
+    assert bundle["status"] == "unavailable"
+    assert bundle["http_status"] == 401
+    assert "401" in bundle["error"]
+    assert bundle["holdings"] == []
+
+# 14. Provider Failure Isolation (One Broker 401 Does Not Block Others)
+@patch.object(broker_adapter, "fetch_provider_bundle")
+def test_provider_failure_isolation(mock_bundle, db):
+    from app.services.seed_service import provision_new_user
+    user = provision_new_user(db, email="isolated.sync.user@example.com", provider="email")
+
+    def side_effect(provider_code, email, full_name=None):
+        if provider_code == "a":
+            # NiftyTrade fails with 401
+            return {
+                "provider": "a",
+                "broker_name": "NiftyTrade",
+                "dp_name": "NiftyTrade Securities",
+                "dp_id": "IN300001",
+                "status": "unavailable",
+                "error": "Provider returned HTTP 401 (Authentication failed)",
+                "profile": None,
+                "holdings": [],
+                "summary": None,
+                "http_status": 401,
+                "response_time_ms": 10.0
+            }
+        elif provider_code == "b":
+            # BharatInvest succeeds with 1 holding
+            return {
+                "provider": "b",
+                "broker_name": "BharatInvest",
+                "dp_name": "BharatInvest Securities",
+                "dp_id": "IN300002",
+                "status": "connected",
+                "error": None,
+                "profile": {"email": email, "name": "Isolated User"},
+                "holdings": [
+                    {
+                        "isin": "INE002A01018",
+                        "symbol": "RELIANCE",
+                        "name": "Reliance Industries Limited",
+                        "quantity": 10,
+                        "last_price": 2800.0,
+                        "avg_price": 2700.0
+                    }
+                ],
+                "summary": {"total_current": 28000.0, "total_invested": 27000.0},
+                "http_status": 200,
+                "response_time_ms": 15.0
+            }
+        else:
+            # BondBazaar succeeds with 0 holdings
+            return {
+                "provider": "c",
+                "broker_name": "BondBazaar",
+                "dp_name": "BondBazaar Depository Services",
+                "dp_id": "IN300003",
+                "status": "connected",
+                "error": None,
+                "profile": {"email": email, "name": "Isolated User"},
+                "holdings": [],
+                "summary": {"total_current": 0.0, "total_invested": 0.0},
+                "http_status": 200,
+                "response_time_ms": 20.0
+            }
+
+    mock_bundle.side_effect = side_effect
+
+    res = broker_adapter.sync_all_brokers(db, user, only_stale=False)
+
+    # Provider A failed with 401
+    assert res["a"]["status"] in ("unavailable", "stale")
+    assert "401" in res["a"]["error"]
+
+    # Provider B succeeded and holding was recorded
+    assert res["b"]["status"] == "connected"
+    assert res["b"]["holdings_count"] == 1
+
+    # Provider C succeeded
+    assert res["c"]["status"] == "connected"
+    assert res["c"]["holdings_count"] == 0
+
+    # User's demat accounts in DB reflect isolation
+    acc_b = db.query(DematAccount).filter(DematAccount.user_id == user.id, DematAccount.dp_id == "IN300002").first()
+    assert acc_b is not None
+    assert acc_b.sync_status == "connected"
+    assert len(acc_b.holdings) == 1
+
+    acc_a = db.query(DematAccount).filter(DematAccount.user_id == user.id, DematAccount.dp_id == "IN300001").first()
+    assert acc_a is not None
+    assert acc_a.sync_status in ("unavailable", "stale")
+

@@ -202,7 +202,7 @@
       </thead>
       <tbody>
         {% for code, sub in summary.broker_subtotals.items() %}
-        {% set pct = (sub.current_value / summary.total_value * 100) if summary.total_value > 0 else 0.0 %}
+        {% set pct = sub.pct if sub.pct is defined else ((sub.current_value / summary.total_value * 100) if summary.total_value > 0 else 0.0) %}
         <tr>
           <td>
             <strong>{{ sub.broker_name }}</strong>

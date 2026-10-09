@@ -224,6 +224,7 @@ def get_portfolio_summary(db, user: User) -> Dict[str, Any]:
             "current_value": Decimal("0"),
             "pnl": Decimal("0"),
             "pnl_pct": Decimal("0"),
+            "pct": Decimal("0"),
             "holdings_count": 0,
             "status": sync_status,
             "note": note_text
@@ -295,13 +296,18 @@ def get_portfolio_summary(db, user: User) -> Dict[str, Any]:
             "current_value": float(current_val)
         })
 
-    # Finalize broker subtotals: PnL and PnL %
+    # Finalize broker subtotals: PnL, PnL %, and portfolio %
     for b_sub in broker_subtotals.values():
         b_sub["pnl"] = b_sub["current_value"] - b_sub["invested"]
         if b_sub["invested"] > Decimal("0"):
             b_sub["pnl_pct"] = (b_sub["pnl"] / b_sub["invested"] * Decimal("100"))
         else:
             b_sub["pnl_pct"] = Decimal("0")
+
+        if total_value_dec > Decimal("0"):
+            b_sub["pct"] = (b_sub["current_value"] / total_value_dec * Decimal("100"))
+        else:
+            b_sub["pct"] = Decimal("0")
 
     total_pnl_dec = total_value_dec - total_invested_dec
     total_pnl_pct_dec = (total_pnl_dec / total_invested_dec * Decimal("100")) if total_invested_dec > Decimal("0") else Decimal("0")
@@ -321,15 +327,17 @@ def get_portfolio_summary(db, user: User) -> Dict[str, Any]:
     distinct_dps = {acc.dp_name for acc in accounts}
 
     return {
-        "total_value": float(total_value_dec),
+        "total_value": total_value_dec,
         "total_value_dec": total_value_dec,
-        "total_invested": float(total_invested_dec),
+        "total_value_float": float(total_value_dec),
+        "total_invested": total_invested_dec,
         "total_invested_dec": total_invested_dec,
-        "total_pnl": float(total_pnl_dec),
+        "total_invested_float": float(total_invested_dec),
+        "total_pnl": total_pnl_dec,
         "total_pnl_dec": total_pnl_dec,
-        "total_pnl_pct": float(total_pnl_pct_dec),
-        "day_change": float(day_change_dec),
-        "day_change_pct": float(day_change_pct_dec),
+        "total_pnl_pct": total_pnl_pct_dec,
+        "day_change": day_change_dec,
+        "day_change_pct": day_change_pct_dec,
         "num_accounts": len(accounts),
         "num_dps": len(distinct_dps),
         "num_securities": len(distinct_isins),

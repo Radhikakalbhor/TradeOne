@@ -134,12 +134,12 @@ def get_user_summary(
     summary = get_portfolio_summary(db, user)
     return {
         "email": norm_email,
-        "invested": round(summary["total_invested"], 2),
-        "current_value": round(summary["total_value"], 2),
-        "day_change": round(summary["day_change"], 2),
-        "day_change_pct": round(summary["day_change_pct"], 2),
-        "total_pnl": round(summary["total_pnl"], 2),
-        "total_pnl_pct": round(summary["total_pnl_pct"], 2)
+        "invested": round(float(summary["total_invested"]), 2),
+        "current_value": round(float(summary["total_value"]), 2),
+        "day_change": round(float(summary["day_change"]), 2),
+        "day_change_pct": round(float(summary["day_change_pct"]), 2),
+        "total_pnl": round(float(summary["total_pnl"]), 2),
+        "total_pnl_pct": round(float(summary["total_pnl_pct"]), 2)
     }
 
 import time

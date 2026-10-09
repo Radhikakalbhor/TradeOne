@@ -350,3 +350,54 @@ def test_no_seeded_data_ever_appears_for_google_users(db):
     assert summary["total_value"] == 0.0
     assert summary["total_invested"] == 0.0
     assert summary["num_securities"] == 0
+
+# 10. Dashboard Rendering Regression Tests (Decimal Arithmetic & Zero State)
+def test_dashboard_rendering_with_decimal_monetary_values(client, db):
+    user_email = "dashboard.render.test@gmail.com"
+    user = provision_new_user(db, email=user_email, provider="google")
+    token = create_user_session(db, user)
+    client.cookies.set("nd_session", token)
+
+    # Sync holdings for user
+    mock_bundle_a = {
+        "provider": "a", "broker_name": "NiftyTrade", "dp_name": "NiftyTrade Securities", "dp_id": "IN300001",
+        "status": "connected", "error": None, "profile": {"email": user_email},
+        "holdings": [{"isin": "INE002A01018", "symbol": "RELIANCE", "name": "Reliance", "quantity": 10, "last_price": 2800.0, "avg_price": 2500.0}],
+        "summary": {"total_current": 28000.0, "total_invested": 25000.0}
+    }
+    mock_bundle_b = {
+        "provider": "b", "broker_name": "BharatInvest", "dp_name": "BharatInvest Securities", "dp_id": "IN300002",
+        "status": "connected", "error": None, "profile": {"email": user_email},
+        "holdings": [{"isin": "INE467B01029", "symbol": "TCS", "name": "TCS", "quantity": 5, "last_price": 4000.0, "avg_price": 3800.0}],
+        "summary": {"total_current": 20000.0, "total_invested": 19000.0}
+    }
+    broker_adapter._apply_bundle_to_db(db, user, "a", mock_bundle_a)
+    broker_adapter._apply_bundle_to_db(db, user, "b", mock_bundle_b)
+
+    # Fetch dashboard (MUST return HTTP 200 and NOT crash with TypeError on sub.current_value / summary.total_value)
+    resp = client.get("/dashboard")
+    assert resp.status_code == 200
+    html = resp.text
+    assert "NiftyTrade" in html
+    assert "BharatInvest" in html
+    assert "Grand Total Consolidated" in html
+    assert "table-broker-subtotals" in html
+    # Check percentage formatting is present
+    assert "% of Portfolio" in html
+
+    client.cookies.delete("nd_session")
+
+def test_dashboard_rendering_zero_total_portfolio(client, db):
+    user_email = "zero.portfolio.render@gmail.com"
+    user = provision_new_user(db, email=user_email, provider="google")
+    token = create_user_session(db, user)
+    client.cookies.set("nd_session", token)
+
+    # Fetch dashboard for user with 0 holdings
+    resp = client.get("/dashboard")
+    assert resp.status_code == 200
+    html = resp.text
+    assert "No holdings yet" in html
+
+    client.cookies.delete("nd_session")
+
