@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 from app.main import app
 from app.database import SessionLocal, Base, engine
@@ -48,34 +49,15 @@ def test_ingest_holdings_endpoint():
 
         # With valid API key
         headers = {"x-api-key": settings.INGEST_API_KEY}
-        res = client.post("/internal/v1/ingest/holdings", json=payload, headers=headers)
-        assert res.status_code == 200
-        data = res.json()
-        assert data["status"] == "SUCCESS"
-        assert data["updatedFreeUnits"] == initial_units + 10.0
-
-        # Check transaction created
-        txn = db.query(Transaction).filter(
-            Transaction.isin == "INE467B01029",
-            Transaction.quantity == 10.0
-        ).order_by(Transaction.trans_date.desc()).first()
-        assert txn is not None
-        assert txn.trans_type == "BUY_SETTLEMENT"
-
-        # Test negative quantity rejection if units exceed current balance
-        bad_payload = {
-            "email": "aarav.mehta@example.com",
-            "dpName": "NiftyTrade Securities",
-            "dpId": "IN300001",
-            "maskedAccNumber": "XXXX5521",
-            "isin": "INE467B01029",
-            "quantityDelta": -50.0, # only 25 available after buy above
-            "avgPrice": 4100.0,
-            "reason": "SELL_SETTLEMENT"
-        }
-        res_bad = client.post("/internal/v1/ingest/holdings", json=bad_payload, headers=headers)
-        assert res_bad.status_code == 400
-        assert "INSUFFICIENT_HOLDINGS" in res_bad.json()["detail"]["code"]
+        with patch("app.services.broker_adapter.broker_adapter.sync_user_from_broker") as mock_sync:
+            mock_sync.return_value = {"provider": "a", "status": "connected", "holdings_count": 1}
+            res = client.post("/internal/v1/ingest/holdings", json=payload, headers=headers)
+            assert res.status_code == 200
+            data = res.json()
+            assert data["status"] == "SUCCESS"
+            assert data["action"] == "SNAPSHOT_RESYNC"
+            assert data["provider"] == "a"
+            assert mock_sync.called
     finally:
         db.close()
 

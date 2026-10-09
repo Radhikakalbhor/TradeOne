@@ -65,3 +65,13 @@ class NomineeUpdateRequest(BaseModel):
     percentage: int
     dob: Optional[str] = None
     guardian_name: Optional[str] = None
+
+class ProvisionUserRequest(BaseModel):
+    email: str
+    full_name: Optional[str] = None
+
+class InternalEventRequest(BaseModel):
+    provider: str
+    email: str
+    event: str = "HOLDINGS_CHANGED"
+    occurredAt: Optional[str] = None

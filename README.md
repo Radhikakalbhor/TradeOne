@@ -1,5 +1,5 @@
 # TradeOne 🏦
-> **Simulated Central Depository & Account Aggregator Sandbox**  
+> **Simulated Central Depository & Account Aggregator Sandbox**
 > *"One view of every demat account"*
 
 TradeOne is a simulated Indian securities depository platform (in the role NSDL and CDSL play in India). It acts as a sandbox data provider and centralized holdings registry for portfolio aggregators, wealth management services, and mock broker integrations.
@@ -82,6 +82,15 @@ Create a `.env` file in the project root:
 | `SESSION_SECRET` | `nationaldepo-session-encryption...` | Session cookie encryption secret |
 | `ADMIN_PASSWORD` | `adminsecret123` | Admin dashboard unlock password |
 | `INGEST_API_KEY` | `nd-ingest-secret-key-2026` | API key for mock brokers to sync trade settlements |
+| `SHARED_IDENTITY_SALT`| `tradeone-shared-identity-salt-2026`| Shared secret across all 4 sibling projects to guarantee deterministic identity |
+| `INTERNAL_API_KEY` | `tradeone-internal-key-2026` | Trusted server-to-server internal API key (`x-internal-key`) |
+| `INTERNAL_API_ENABLED`| `true` | Enable/disable trusted internal server endpoints |
+| `SEED_STARTER_PORTFOLIO`| `true` | Generate deterministic starter holdings for new users |
+| `STARTING_FUNDS` | `1000000.0` | Initial simulated wallet balance (₹10,00,000) |
+| `TRADEONE_URL` | `""` | Hub URL for broker apps to dispatch `HOLDINGS_CHANGED` events |
+| `PROVIDER_CODE` | `tradeone` | Provider code (`tradeone`, `a`, `b`, or `c`) |
+| `DP_NAME` | `TradeOne Depository` | Depository participant name |
+| `DP_ID` | `IN300000` | Depository participant identifier |
 | `OTP_DEV_MODE` | `true` | When true, logs OTP to server console, shows dev UI hint, enables demo logins |
 | `OTP_EXPIRY_MINUTES`| `10` | One-time code validity window |
 | `CONSENT_DEFAULT_DAYS`| `90` | Default validity for Account Aggregator consents |
@@ -277,6 +286,211 @@ curl -X POST "http://localhost:8000/internal/v1/ingest/holdings" \
 
 ---
 
+---
+
+## 🤝 Shared Identity & Deterministic Profiles (`app/shared_identity.py`)
+
+All 4 sibling sandbox sites (**NiftyTrade**, **BharatInvest**, **BondBazaar**, and the hub **TradeOne**) use an identical, deterministic identity generation algorithm derived from `HMAC-SHA256(SHARED_IDENTITY_SALT, normalize_email(email))`. When an investor logs in with the same Google or email credentials on any platform, their profile, PAN, mobile, DOB, and client code suffix match consistently across the entire ecosystem.
+
+### Deterministic Generation Algorithm (Copy verbatim across projects)
+
+```python
+import os
+import hmac
+import hashlib
+from typing import Optional, Dict
+
+def normalize_email(email: Optional[str]) -> str:
+    """Normalize email: strip leading/trailing whitespace and lowercase."""
+    if not email:
+        return ""
+    return email.strip().lower()
+
+def generate_identity(email: str, salt: Optional[str] = None) -> Dict[str, str]:
+    """Deterministically derive identity fields from an email address."""
+    norm_email = normalize_email(email)
+    secret_salt = salt or os.getenv("SHARED_IDENTITY_SALT", "tradeone-shared-identity-salt-2026")
+
+    # 64-char hex digest
+    h = hmac.new(secret_salt.encode("utf-8"), norm_email.encode("utf-8"), hashlib.sha256).hexdigest()
+
+    # 1. Full name fallback
+    local_part = norm_email.split("@")[0] if "@" in norm_email else norm_email
+    clean_local = local_part.replace(".", " ").replace("_", " ").replace("-", " ")
+    full_name_fallback = " ".join([w.capitalize() for w in clean_local.split() if w]) or "Investor User"
+
+    # 2. Fake masked PAN: ABCXX1234X (never looks like real PAN/Aadhaar)
+    letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+    c1, c2, c3 = letters[int(h[0:2], 16) % len(letters)], letters[int(h[2:4], 16) % len(letters)], letters[int(h[4:6], 16) % len(letters)]
+    d1, d2, d3, d4 = str(int(h[6:8], 16) % 10), str(int(h[8:10], 16) % 10), str(int(h[10:12], 16) % 10), str(int(h[12:14], 16) % 10)
+    masked_pan = f"{c1}{c2}{c3}XX{d1}{d2}{d3}{d4}X"
+
+    # 3. Mobile: 10-digit number starting with 9
+    mobile_val = int(h[14:24], 16) % 1_000_000_000
+    mobile = f"9{mobile_val:09d}"
+
+    # 4. DOB: DDMM only for CAS PDF passwords
+    day = (int(h[24:26], 16) % 28) + 1
+    month = (int(h[26:28], 16) % 12) + 1
+    dob = f"{day:02d}{month:02d}"
+
+    # 5. Address city & nominee
+    cities = ["Mumbai", "Bengaluru", "Delhi", "Pune", "Hyderabad", "Chennai", "Ahmedabad", "Kolkata", "Jaipur", "Surat"]
+    address_city = cities[int(h[28:30], 16) % len(cities)]
+    nominees = ["Ananya Sharma", "Karthik Verma", "Rohan Patel", "Sneha Iyer", "Aditya Joshi", "Pooja Reddy", "Vikram Malhotra", "Neha Gupta"]
+    nominee_name = nominees[int(h[30:32], 16) % len(nominees)]
+
+    # 6. Client code suffix (6 hex characters)
+    client_code_suffix = h[32:38].upper()
+
+    return {
+        "full_name_fallback": full_name_fallback,
+        "masked_pan": masked_pan,
+        "mobile": mobile,
+        "dob": dob,
+        "address_city": address_city,
+        "nominee_name": nominee_name,
+        "client_code_suffix": client_code_suffix
+    }
+```
+
+---
+
+## 🛡️ Trusted Server-to-Server Internal Endpoints (`/internal/v1/*`)
+
+When `INTERNAL_API_ENABLED=true`, trusted sibling servers can communicate securely over server-to-server endpoints.
+
+### Authentication & Security
+- **Header**: `x-internal-key: <INTERNAL_API_KEY>`
+- **Constant-Time Verification**: Uses `secrets.compare_digest` to prevent timing attacks.
+- **Key Safety**: The internal key is never printed or written to application logs.
+- **Rate Limit**: 60 requests/minute per client IP (returns `HTTP 429 RATE_LIMIT_EXCEEDED` if exceeded).
+- **Unauthorized Requests**: Reject with `HTTP 401 UNAUTHORIZED` JSON error.
+
+### 1. Provision User (Idempotent)
+Finds existing user by normalized email or creates them with deterministic identity, starter portfolio, and ₹10,00,000 wallet balance.
+```bash
+curl -X POST "http://localhost:8000/internal/v1/users/provision" \
+  -H "Content-Type: application/json" \
+  -H "x-internal-key: tradeone-internal-key-2026" \
+  -d '{
+    "email": "kavita.deshmukh@example.com",
+    "full_name": "Kavita Deshmukh"
+  }'
+```
+**Response (`HTTP 200`):**
+```json
+{
+  "status": "CREATED",
+  "client_code": "1208160012345678",
+  "email": "kavita.deshmukh@example.com"
+}
+```
+
+### 2. Get User Profile
+Returns investor KYC profile with normalized email, client code (BO ID), masked PAN, demat number, and DP info.
+```bash
+curl -X GET "http://localhost:8000/internal/v1/users/kavita.deshmukh@example.com/profile" \
+  -H "x-internal-key: tradeone-internal-key-2026"
+```
+**Response (`HTTP 200`):**
+```json
+{
+  "name": "Kavita Deshmukh",
+  "email": "kavita.deshmukh@example.com",
+  "client_code": "1208160012345678",
+  "masked_pan": "ABCXX1234X",
+  "masked_demat_number": "XXXX5521",
+  "dp_name": "BharatInvest Securities",
+  "dp_id": "IN300002",
+  "mobile": "9876543210"
+}
+```
+
+### 3. Get User Holdings
+Returns the EXACT same JSON structure, field names, number formats, and pagination as the public holdings endpoint (`/api/v1/holdings`), allowing a single adapter to parse both.
+```bash
+curl -X GET "http://localhost:8000/internal/v1/users/kavita.deshmukh@example.com/holdings?page=1&page_size=50" \
+  -H "x-internal-key: tradeone-internal-key-2026"
+```
+**Response (`HTTP 200`):**
+```json
+{
+  "total": 7,
+  "page": 1,
+  "page_size": 50,
+  "total_pages": 1,
+  "holdings": [
+    {
+      "id": 101,
+      "demat_account_id": "da_b_a1b2c3",
+      "dp_name": "BharatInvest Securities",
+      "masked_account_number": "XXXX8842",
+      "isin": "INE002A01018",
+      "symbol": "RELIANCE",
+      "security_name": "Reliance Industries Limited",
+      "asset_class": "EQUITY",
+      "free_units": 24.0,
+      "pledged_units": 0.0,
+      "locked_units": 0.0,
+      "total_units": 24.0,
+      "last_price": 2842.5,
+      "avg_price": 2728.8,
+      "current_value": 68220.0,
+      "investment_value": 65491.2,
+      "pnl": 2728.8,
+      "pnl_pct": 4.17
+    }
+  ]
+}
+```
+
+### 4. Get User Summary
+Returns portfolio totals (invested, current value, day change, total PnL) for fast cross-broker reconciliation.
+```bash
+curl -X GET "http://localhost:8000/internal/v1/users/kavita.deshmukh@example.com/summary" \
+  -H "x-internal-key: tradeone-internal-key-2026"
+```
+**Response (`HTTP 200`):**
+```json
+{
+  "email": "kavita.deshmukh@example.com",
+  "invested": 145230.50,
+  "current_value": 152840.00,
+  "day_change": 1280.20,
+  "day_change_pct": 0.84,
+  "total_pnl": 7609.50,
+  "total_pnl_pct": 5.24
+}
+```
+
+### 5. Cross-Broker Event Notification (`POST /internal/v1/events`)
+Receives real-time "please re-pull" notifications from sibling brokers when investor holdings change.
+```bash
+curl -X POST "http://localhost:8000/internal/v1/events" \
+  -H "Content-Type: application/json" \
+  -H "x-internal-key: tradeone-internal-key-2026" \
+  -d '{
+    "provider": "b",
+    "email": "kavita.deshmukh@example.com",
+    "event": "HOLDINGS_CHANGED",
+    "occurredAt": "2026-10-09T01:15:00Z"
+  }'
+```
+
+---
+
+## 📬 Outbox Pattern & Background Event Dispatcher
+
+To notify TradeOne or sibling nodes whenever holdings change (executed trade, SIP, allotment, settlement, admin edit), TradeOne implements a transactional **Outbox Pattern**:
+1. Every holdings modification enqueues a lightweight event into the `outbox_events` table within the database transaction.
+2. The transaction never blocks or fails if notification dispatch is delayed or unavailable.
+3. The background dispatcher delivers events to `{TRADEONE_URL}/internal/v1/events` with header `x-internal-key: <INTERNAL_API_KEY>`.
+4. Failed deliveries are retried using **exponential backoff** (`2^attempts` seconds) up to **10 attempts**.
+5. If `TRADEONE_URL` is unset, dispatch operations safely skip without error.
+
+---
+
 ## 🧪 Running Automated Tests
 
 Run the full pytest suite:
@@ -284,16 +498,17 @@ Run the full pytest suite:
 .\.venv\Scripts\python -m pytest -v
 ```
 
-All 9 test suites verify:
-- OTP generation, single-use, expiry, and 5-attempt brute-force lockout.
-- User matching and account linking by lowercase email.
-- Allowed email and allowed domain restrictions.
-- End-to-end AA Consent lifecycle (create, approve, poll, revoke, pause).
-- Daily fetch frequency limit enforcement (`HTTP 429 FETCH_LIMIT_EXCEEDED`).
-- Account scoping (session data only contains user-selected demat accounts).
-- HMAC-SHA256 webhook signatures and headers (`X-ND-Signature`).
-- Broker Ingestion endpoint validation and negative quantity protection.
-- Password-protected CAS PDF generation and decryption validation via `pypdf`.
+All **17 test suites** verify:
+- **Shared Identity**: Identical output for identical email, distinct output for different emails, valid PAN, mobile, and DDMM DOB formatting.
+- **Email Normalization**: Casing and leading/trailing whitespace normalization across storage, comparisons, and outputs.
+- **Provisioning Idempotency**: `POST /internal/v1/users/provision` returns `CREATED` on first invocation and `EXISTS` on subsequent calls without duplicating records or reset wallet funds.
+- **Deterministic Starter Portfolio**: Same email generates identical holdings even after database reset; quantities and prices deviate within +/-15% of market price; cross-broker overlap verified on RELIANCE, TCS, and HDFCBANK.
+- **Internal Authentication**: Rejects missing or invalid `x-internal-key` with `HTTP 401 UNAUTHORIZED`; handles missing users with `HTTP 404 USER_NOT_FOUND`.
+- **Public & Internal Format Parity**: `GET /internal/v1/users/{email}/holdings` returns identical field names, pagination, and JSON structure as `GET /api/v1/holdings`.
+- **Same-Account Google Sign-in**: Google OAuth links seamlessly to pre-provisioned user accounts via normalized email, preserving demat accounts, starter portfolios, and holdings.
+- **Outbox Worker & Retries**: Lightweight event enqueueing, exponential backoff retries, and non-blocking execution.
+- **AA Consent Lifecycle**: Creation, approval, polling, session token generation, daily fetch limits, and cryptographic HMAC-SHA256 signatures.
+- **CAS PDF Generation**: Password-protected consolidated account statement generation and PDF decryption validation.
 
 ---
 

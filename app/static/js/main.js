@@ -52,6 +52,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (otpInputs.length === 6 && fullOtpInput) {
     otpInputs[0].focus();
+    let isSubmitting = false;
+
+    function updateFullOtp() {
+      let code = '';
+      otpInputs.forEach(i => code += (i.value || ''));
+      fullOtpInput.value = code;
+    }
 
     otpInputs.forEach((input, index) => {
       input.addEventListener('input', (e) => {
@@ -63,6 +70,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         updateFullOtp();
+        if (index === 5 && e.target.value) {
+          const submitBtn = document.getElementById('btn-submit-otp');
+          if (submitBtn) {
+            submitBtn.focus();
+          }
+        }
       });
 
       input.addEventListener('keydown', (e) => {
@@ -80,34 +93,59 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           otpInputs[5].focus();
           updateFullOtp();
+          const submitBtn = document.getElementById('btn-submit-otp');
+          if (submitBtn) {
+            submitBtn.focus();
+          }
         }
       });
     });
 
-    function updateFullOtp() {
-      let code = '';
-      otpInputs.forEach(i => code += i.value);
-      fullOtpInput.value = code;
-      if (code.length === 6 && otpForm) {
-        // Auto-submit when all 6 digits entered
-        setTimeout(() => otpForm.submit(), 150);
-      }
+    if (otpForm) {
+      otpForm.addEventListener('submit', function(e) {
+        if (isSubmitting) {
+          e.preventDefault();
+          return;
+        }
+
+        updateFullOtp();
+        const code = fullOtpInput ? fullOtpInput.value.trim() : '';
+        if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) {
+          e.preventDefault();
+          for (let i = 0; i < otpInputs.length; i++) {
+            if (!otpInputs[i].value) {
+              otpInputs[i].focus();
+              break;
+            }
+          }
+          return;
+        }
+
+        isSubmitting = true;
+        const submitBtn = document.getElementById('btn-submit-otp');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Verifying...';
+        }
+      });
     }
   }
 
-  // 30-Second Resend Countdown Timer
+  // 45-Second Resend Countdown Timer
   const resendBtn = document.getElementById('resend-otp-btn');
   const resendTimerSpan = document.getElementById('resend-timer');
   if (resendBtn && resendTimerSpan) {
-    let timeLeft = 30;
+    let timeLeft = 45;
     resendBtn.disabled = true;
     resendBtn.style.opacity = '0.6';
     resendBtn.style.pointerEvents = 'none';
+    resendTimerSpan.textContent = `(${timeLeft}s)`;
 
     const interval = setInterval(() => {
       timeLeft -= 1;
-      resendTimerSpan.textContent = `(${timeLeft}s)`;
-      if (timeLeft <= 0) {
+      if (timeLeft > 0) {
+        resendTimerSpan.textContent = `(${timeLeft}s)`;
+      } else {
         clearInterval(interval);
         resendBtn.disabled = false;
         resendBtn.style.opacity = '1';

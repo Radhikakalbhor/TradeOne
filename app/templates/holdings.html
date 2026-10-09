@@ -89,12 +89,36 @@
           <td>
             <strong>{{ h.security_name }}</strong>
             <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">{{ h.symbol }}</span>
+            {% if h.broker_breakdown %}
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
+              {% for b in h.broker_breakdown %}
+              <span class="badge" style="font-size: 0.72rem; padding: 2px 7px; background: var(--bg-muted); border: 1px solid var(--border-color); color: var(--text-main);">
+                {{ b.broker_name }}: <strong>{{ "%.3f"|format(b.quantity) }}</strong>
+              </span>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if h.bond_details and (h.is_bond or h.asset_class == 'BOND') %}
+            <div style="margin-top: 6px; padding: 4px 8px; background: rgba(59, 130, 246, 0.08); border-radius: 4px; border: 1px solid rgba(59, 130, 246, 0.2); font-size: 0.72rem; color: var(--text-main);">
+              <span style="font-weight: 600; color: #3b82f6;">Debt Specifications:</span>
+              Coupon: <strong>{{ h.bond_details.coupon }}</strong> &bull;
+              YTM: <strong>{{ h.bond_details.ytm }}</strong> &bull;
+              Maturity: <strong>{{ h.bond_details.maturity_date }}</strong> &bull;
+              Accrued Int: <strong>{{ h.bond_details.accrued_interest }}</strong> &bull;
+              Type: <strong>{{ h.bond_details.security_type }}</strong>
+            </div>
+            {% endif %}
           </td>
           <td style="font-family: monospace; font-size: 0.82rem;">{{ h.isin }}</td>
           {% if not merge_by_isin %}
-          <td>{{ h.dp_name }}</td>
+          <td>
+            <strong>{{ h.broker_name or h.dp_name }}</strong>
+            {% if h.dp_id %}<span style="display: block; font-size: 0.72rem; color: var(--text-muted);">{{ h.dp_id }}</span>{% endif %}
+          </td>
           <td style="font-family: monospace; font-size: 0.8rem;">{{ h.masked_account_number }}</td>
           {% endif %}
+
           <td><span class="badge badge-info">{{ h.asset_class }}</span></td>
           <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(h.free_units) }}</td>
           <td class="text-right" style="font-family: monospace; color: var(--text-muted);">{{ "%.3f"|format(h.pledged_units + h.locked_units) }}</td>

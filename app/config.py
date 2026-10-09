@@ -19,7 +19,7 @@ class Settings:
     @property
     def SESSION_SECRET(self) -> str:
         return os.getenv("SESSION_SECRET", "nationaldepo-session-encryption-key-32-chars-long!").strip()
-    
+
     # Google OAuth
     @property
     def GOOGLE_CLIENT_ID(self) -> str:
@@ -40,7 +40,7 @@ class Settings:
     @property
     def GOOGLE_REDIRECT_URI(self) -> str:
         return os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback").strip().strip('"').strip("'")
-    
+
     # SMTP Settings
     @property
     def SMTP_HOST(self) -> str:
@@ -59,12 +59,13 @@ class Settings:
 
     @property
     def SMTP_PASSWORD(self) -> str:
-        return os.getenv("SMTP_PASSWORD", "")
+        return os.getenv("SMTP_PASSWORD", "").strip().replace(" ", "")
 
     @property
     def SMTP_FROM(self) -> str:
-        return os.getenv("SMTP_FROM", "no-reply@nationaldepo.sim").strip()
-    
+        from_val = os.getenv("SMTP_FROM", "").strip()
+        return from_val if from_val else self.SMTP_USER
+
     # Depository Settings
     @property
     def OTP_DEV_MODE(self) -> bool:
@@ -85,9 +86,15 @@ class Settings:
             return 90
 
     @property
+    def DEMO_MODE(self) -> bool:
+        return os.getenv("DEMO_MODE", "false").lower() in ("true", "1", "yes")
+
+    @property
     def SEED_STARTER_ACCOUNTS(self) -> bool:
-        return os.getenv("SEED_STARTER_ACCOUNTS", "true").lower() in ("true", "1", "yes")
-    
+        if not self.DEMO_MODE:
+            return False
+        return os.getenv("SEED_STARTER_ACCOUNTS", "false").lower() in ("true", "1", "yes")
+
     # Admin & Ingest
     @property
     def ADMIN_PASSWORD(self) -> str:
@@ -96,7 +103,104 @@ class Settings:
     @property
     def INGEST_API_KEY(self) -> str:
         return os.getenv("INGEST_API_KEY", "nd-ingest-secret-key-2026")
-    
+
+    # Shared Identity & Cross-Broker Sandbox Settings
+    @property
+    def SHARED_IDENTITY_SALT(self) -> str:
+        return os.getenv("SHARED_IDENTITY_SALT", "tradeone-shared-identity-salt-2026").strip()
+
+    @property
+    def INTERNAL_API_KEY(self) -> str:
+        return os.getenv("INTERNAL_API_KEY", "tradeone-internal-key-2026").strip()
+
+    @property
+    def INTERNAL_API_ENABLED(self) -> bool:
+        return os.getenv("INTERNAL_API_ENABLED", "true").lower() in ("true", "1", "yes")
+
+    @property
+    def SEED_STARTER_PORTFOLIO(self) -> bool:
+        if not self.DEMO_MODE:
+            return False
+        return os.getenv("SEED_STARTER_PORTFOLIO", "false").lower() in ("true", "1", "yes")
+
+    @property
+    def STARTING_FUNDS(self) -> float:
+        try:
+            return float(os.getenv("STARTING_FUNDS", "1000000.0"))
+        except ValueError:
+            return 1000000.0
+
+    @property
+    def TRADEONE_URL(self) -> str:
+        return os.getenv("TRADEONE_URL", "").strip().rstrip("/")
+
+    @property
+    def PROVIDER_CODE(self) -> str:
+        return os.getenv("PROVIDER_CODE", "tradeone").strip().lower()
+
+    @property
+    def DP_NAME(self) -> str:
+        return os.getenv("DP_NAME", "TradeOne Depository").strip()
+
+    @property
+    def DP_ID(self) -> str:
+        return os.getenv("DP_ID", "IN300000").strip()
+
+    # External Mock Broker Providers (TradeOne Hub Integration)
+    @property
+    def NIFTYTRADE_URL(self) -> str:
+        return os.getenv("NIFTYTRADE_URL", "https://nifty-50-5nzz.onrender.com").strip().rstrip("/")
+
+    @property
+    def NIFTYTRADE_INTERNAL_KEY(self) -> str:
+        return os.getenv("NIFTYTRADE_INTERNAL_KEY", "").strip()
+
+    @property
+    def BHARATINVEST_URL(self) -> str:
+        return os.getenv("BHARATINVEST_URL", "https://bharatinvest.onrender.com").strip().rstrip("/")
+
+    @property
+    def BHARATINVEST_INTERNAL_KEY(self) -> str:
+        return os.getenv("BHARATINVEST_INTERNAL_KEY", "").strip()
+
+    @property
+    def BONDBAZAAR_URL(self) -> str:
+        return os.getenv("BONDBAZAAR_URL", "https://bondbazaar-1.onrender.com").strip().rstrip("/")
+
+    @property
+    def BONDBAZAAR_INTERNAL_KEY(self) -> str:
+        return os.getenv("BONDBAZAAR_INTERNAL_KEY", "").strip()
+
+    @property
+    def BROKER_PROVIDERS(self) -> dict:
+        """Returns standard configuration mapping for the three sibling broker providers."""
+        return {
+            "a": {
+                "provider_code": "a",
+                "broker_name": "NiftyTrade",
+                "dp_name": "NiftyTrade Securities",
+                "dp_id": "IN300001",
+                "url": self.NIFTYTRADE_URL,
+                "internal_key": self.NIFTYTRADE_INTERNAL_KEY or self.INTERNAL_API_KEY
+            },
+            "b": {
+                "provider_code": "b",
+                "broker_name": "BharatInvest",
+                "dp_name": "BharatInvest Securities",
+                "dp_id": "IN300002",
+                "url": self.BHARATINVEST_URL,
+                "internal_key": self.BHARATINVEST_INTERNAL_KEY or self.INTERNAL_API_KEY
+            },
+            "c": {
+                "provider_code": "c",
+                "broker_name": "BondBazaar",
+                "dp_name": "BondBazaar Depository Services",
+                "dp_id": "IN300003",
+                "url": self.BONDBAZAAR_URL,
+                "internal_key": self.BONDBAZAAR_INTERNAL_KEY or self.INTERNAL_API_KEY
+            }
+        }
+
     # Access Control
     @property
     def ALLOWED_EMAILS_RAW(self) -> str:
@@ -127,7 +231,7 @@ class Settings:
     def ALLOWED_EMAIL_DOMAINS_RAW(self):
         if hasattr(self, "_allowed_email_domains_raw"):
             del self._allowed_email_domains_raw
-    
+
     # App & Database
     @property
     def DATABASE_URL(self) -> str:
@@ -140,6 +244,16 @@ class Settings:
     @property
     def BASE_URL(self) -> str:
         return os.getenv("BASE_URL", "http://localhost:8000")
+
+    @property
+    def DEMO_AUTO_LINK(self) -> bool:
+        if not self.DEMO_MODE:
+            return False
+        return os.getenv("DEMO_AUTO_LINK", "false").lower() in ("true", "1", "yes")
+
+    @property
+    def PUBLIC_BASE_URL(self) -> str:
+        return os.getenv("PUBLIC_BASE_URL", self.BASE_URL).strip().rstrip("/")
 
     @property
     def ALLOWED_EMAILS(self) -> Set[str]:

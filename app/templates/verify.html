@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Verify with Brokers - TradeOne Central Depository{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Live Broker Verification</h1>
+    <p class="page-subtitle">Real-time reconciliation between TradeOne's depository registry and connected broker services</p>
+  </div>
+  <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <a href="/dashboard" class="btn btn-outline">&larr; Back to Dashboard</a>
+    <form method="POST" action="/verify/resync-all" style="margin: 0;">
+      <button type="submit" class="btn btn-primary" id="btn-resync-all">
+        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 4px;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Re-sync All Brokers Now
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Overall Verification Summary Banner -->
+<div class="card" style="margin-bottom: 24px; border-left: 5px solid {% if overall_matched %}var(--success){% else %}var(--danger){% endif %};">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700;">Account Identity & Truth Verification</div>
+      <h2 style="margin: 4px 0;">
+        {% if overall_matched %}
+        <span style="color: var(--success);">✓ Perfect Match</span> &mdash; TradeOne Matches Broker Data Exactly
+        {% else %}
+        <span style="color: var(--danger);">⚠ Discrepancy Found</span> &mdash; Differences Detected Against Live Brokers
+        {% endif %}
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+        Identity: <strong style="color: var(--text-main);">{{ user.email }}</strong> &bull; Only live broker endpoints are used as the single source of truth.
+      </p>
+    </div>
+    <div>
+      <span class="badge {% if overall_matched %}badge-success{% else %}badge-danger{% endif %}" style="font-size: 0.95rem; padding: 6px 14px;">
+        {% if overall_matched %}Verified Truth Match{% else %}Mismatch Detected{% endif %}
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Three Broker Verification Cards -->
+<div style="display: flex; flex-direction: column; gap: 24px; margin-bottom: 30px;">
+  {% for p in providers %}
+  <div class="card" style="padding: 22px;">
+    <!-- Broker Header with Status and Response Time -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <h3 style="margin: 0; font-size: 1.15rem;">{{ p.broker_name }}</h3>
+          <span style="font-family: monospace; font-size: 0.8rem; color: var(--text-muted);">({{ p.dp_id }})</span>
+          {% if p.http_status == 200 %}
+          <span class="badge badge-success" style="font-size: 0.75rem;">HTTP 200 OK</span>
+          {% elif p.http_status == 404 %}
+          <span class="badge badge-info" style="font-size: 0.75rem;">HTTP 404 (No account yet)</span>
+          {% else %}
+          <span class="badge badge-danger" style="font-size: 0.75rem;">HTTP {{ p.http_status }}</span>
+          {% endif %}
+          <span style="font-size: 0.78rem; color: var(--text-muted); margin-left: 4px;">{{ p.response_time_ms }} ms response time</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+          Stored: <strong>{{ format_inr(p.stored_total) }}</strong> &bull; Live Broker: <strong>{{ format_inr(p.live_total) }}</strong>
+          {% if p.error %}
+          <span style="color: var(--danger); margin-left: 8px;">⚠ {{ p.error }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: center;">
+        {% if p.all_matched %}
+        <span class="badge badge-success" style="padding: 5px 12px; font-size: 0.8rem;">✓ Match</span>
+        {% else %}
+        <span class="badge badge-danger" style="padding: 5px 12px; font-size: 0.8rem;">⚠ Mismatch</span>
+        {% endif %}
+        <form method="POST" action="/verify/resync/{{ p.provider }}" style="margin: 0;">
+          <button type="submit" class="btn btn-secondary btn-sm" id="btn-resync-{{ p.provider }}">
+            ↻ Re-sync now
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Broker Holdings Comparison Table -->
+    {% if p.rows %}
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ISIN / Symbol</th>
+            <th class="text-right">Broker Qty</th>
+            <th class="text-right">TradeOne Qty</th>
+            <th class="text-right">Broker Avg Price</th>
+            <th class="text-right">TradeOne Avg Price</th>
+            <th class="text-right">Broker Value</th>
+            <th class="text-right">TradeOne Value</th>
+            <th class="text-center">Verification Status</th>
+            <th class="text-right">Exact Difference</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in p.rows %}
+          <tr style="background: {% if not r.is_match %}rgba(239, 68, 68, 0.06){% else %}transparent{% endif %};">
+            <td>
+              <strong>{{ r.symbol }}</strong>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ r.name }}</div>
+              <div style="font-family: monospace; font-size: 0.72rem; color: var(--text-muted);">{{ r.isin }}</div>
+            </td>
+            <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(r.live_qty) }}</td>
+            <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(r.stored_qty) }}</td>
+            <td class="text-right">₹{{ "%.2f"|format(r.live_avg) }}</td>
+            <td class="text-right">₹{{ "%.2f"|format(r.stored_avg) }}</td>
+            <td class="text-right" style="font-weight: 600;">{{ format_inr(r.live_val) }}</td>
+            <td class="text-right" style="font-weight: 600;">{{ format_inr(r.stored_val) }}</td>
+            <td class="text-center">
+              {% if r.is_match %}
+              <span class="badge badge-success" style="font-size: 0.75rem; padding: 3px 8px;">Match</span>
+              {% else %}
+              <span class="badge badge-danger" style="font-size: 0.75rem; padding: 3px 8px;">Mismatch</span>
+              {% endif %}
+            </td>
+            <td class="text-right" style="font-size: 0.8rem; font-family: monospace;">
+              {% if r.is_match %}
+              <span style="color: var(--success);">0.00 diff</span>
+              {% else %}
+              <span style="color: var(--danger); font-weight: 600;">
+                Qty: {{ "%+.3f"|format(r.qty_diff) }} | Val: {{ format_inr(r.val_diff) }}
+              </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% elif p.http_status == 404 %}
+    <div style="padding: 24px; text-align: center; background: var(--bg-muted); border-radius: 8px; color: var(--text-muted);">
+      <p style="margin: 0; font-size: 0.9rem;">
+        No account on {{ p.broker_name }} for <strong>{{ user.email }}</strong>.
+      </p>
+      <p style="margin: 4px 0 0 0; font-size: 0.8rem;">
+        Verified: TradeOne correctly registers 0 holdings for this broker.
+      </p>
+    </div>
+    {% elif not p.is_reachable %}
+    <div style="padding: 24px; text-align: center; background: rgba(239, 68, 68, 0.05); border: 1px dashed var(--danger); border-radius: 8px; color: var(--danger);">
+      <p style="margin: 0; font-weight: 600;">Unable to reach {{ p.broker_name }} endpoint (HTTP {{ p.http_status }}).</p>
+      <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--text-muted);">TradeOne preserves last good snapshot data and marks link as STALE until provider becomes available.</p>
+    </div>
+    {% else %}
+    <div style="padding: 24px; text-align: center; background: var(--bg-muted); border-radius: 8px; color: var(--text-muted);">
+      <p style="margin: 0; font-size: 0.9rem;">No holdings reported by {{ p.broker_name }}.</p>
+      <p style="margin: 4px 0 0 0; font-size: 0.8rem;">TradeOne stored holdings: 0 positions (Match).</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

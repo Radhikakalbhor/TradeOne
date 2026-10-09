@@ -9,7 +9,12 @@
     <p class="page-subtitle">Simulation testbed controls, account management, latency toggles & log audit</p>
   </div>
   <div style="display: flex; gap: 10px;">
-    <form action="/admin/reset-all" method="POST" onsubmit="return confirm('WARNING: Reset ALL database records back to clean seed data?');">
+    <form action="/admin/purge-stale-data" method="POST" onsubmit="return confirm('Purge all stale, seeded, and mock holdings and rebuild strictly from live broker sync?');" style="margin: 0;">
+      <button type="submit" class="btn btn-secondary btn-sm" id="btn-purge-stale">
+        Purge Stale Data & Re-sync
+      </button>
+    </form>
+    <form action="/admin/reset-all" method="POST" onsubmit="return confirm('WARNING: Reset ALL database records back to clean seed data?');" style="margin: 0;">
       <button type="submit" class="btn btn-danger btn-sm" id="btn-reset-all">
         Reset Database to Seed State
       </button>

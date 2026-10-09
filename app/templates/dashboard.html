@@ -6,16 +6,30 @@
 <div class="page-header">
   <div>
     <h1>Consolidated Demat Portfolio</h1>
-    <p class="page-subtitle">Single depository registry across all linked Depository Participants (Brokers)</p>
+    <p class="page-subtitle">Central depository registry across all linked Depository Participants (Brokers)</p>
   </div>
-  <div style="display: flex; gap: 10px;">
+  <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+    <a href="/verify" class="btn btn-secondary" id="btn-verify-brokers">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      Verify with Brokers
+    </a>
+    <form method="POST" action="/accounts/sync-all" style="margin: 0;" id="form-refresh-now">
+      <button type="submit" class="btn btn-primary" id="btn-refresh-now">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="refresh-spinner-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span id="refresh-button-text">Refresh Now</span>
+      </button>
+    </form>
     <a href="/cas" class="btn btn-secondary">
       <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
       </svg>
       Download CAS PDF
     </a>
-    <a href="/consents" class="btn btn-primary">
+    <a href="/consents" class="btn btn-secondary">
       <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
       </svg>
@@ -23,6 +37,101 @@
     </a>
   </div>
 </div>
+
+<!-- Warning banner if any data is STALE -->
+{% if summary.has_stale_data %}
+<div style="background: rgba(245, 158, 11, 0.12); border: 1px solid var(--warning); color: #d97706; padding: 14px 18px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <span style="font-size: 1.2rem;">⚠️</span>
+    <div>
+      <strong>Notice: Stale Data Included</strong> &mdash;
+      Data from <strong>{{ summary.stale_providers|join(', ') }}</strong> could not be refreshed live and reflects the last successful snapshot.
+      Portfolio numbers are computed with partial fresh data and partial cached data.
+    </div>
+  </div>
+  <form method="POST" action="/accounts/sync-all" style="margin: 0;">
+    <button type="submit" class="btn btn-secondary btn-sm" style="border-color: #d97706; color: #d97706;">
+      ↻ Retry Failed Sync
+    </button>
+  </form>
+</div>
+{% endif %}
+
+<!-- Connected Broker Sandbox Hub Status Cards -->
+{% if summary.provider_statuses %}
+<div class="card" style="margin-bottom: 24px; padding: 18px 20px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+    <div>
+      <h3 style="margin: 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+        <span>Connected Broker Sources of Truth</span>
+        <span class="badge badge-info" style="font-size: 0.7rem;">Automated Single Registry</span>
+      </h3>
+      <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted);">
+        Every number on this dashboard is sourced strictly from these three deployed brokers for <strong>{{ user.email }}</strong>.
+      </p>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <a href="/verify" class="btn btn-outline btn-sm">
+        🔍 Verify with Brokers
+      </a>
+      <form method="POST" action="/accounts/sync-all" style="margin: 0;">
+        <button type="submit" class="btn btn-secondary btn-sm">
+          ↻ Sync All Now
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+    {% for code, p in summary.provider_statuses.items() %}
+    {% set sub = summary.broker_subtotals[code] if summary.broker_subtotals and code in summary.broker_subtotals else None %}
+    <div style="padding: 12px 14px; background: var(--bg-muted); border: 1px solid var(--border-color); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <strong style="font-size: 0.9rem;">{{ p.broker_name }}</strong>
+          <span style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">({{ p.dp_id }})</span>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 3px;">
+          Last synced: <span>{{ p.last_synced_human }}</span>
+          {% if sub %}
+          &bull; <strong>{{ sub.holdings_count }} holding{% if sub.holdings_count != 1 %}s{% endif %}</strong>
+          {% endif %}
+        </div>
+        {% if p.status == 'no_account' %}
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; font-style: italic;">
+          No account on {{ p.broker_name }} for this email
+        </div>
+        {% elif p.error %}
+        <div style="font-size: 0.72rem; color: var(--danger); margin-top: 2px;">
+          {{ p.error }}
+        </div>
+        {% endif %}
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px;">
+        {% if p.status == 'connected' %}
+        <span class="badge badge-success" style="font-size: 0.75rem;">✓ Synced</span>
+        {% elif p.status == 'no_account' %}
+        <span class="badge" style="font-size: 0.75rem; background: var(--border-color); color: var(--text-muted);">0 holdings</span>
+        {% elif p.status == 'stale' %}
+        <span class="badge badge-warning" style="font-size: 0.75rem;">▲ Stale</span>
+        <form method="POST" action="/accounts/sync/{{ code }}" style="margin: 0;">
+          <button type="submit" class="btn btn-outline btn-sm" style="padding: 2px 8px; font-size: 0.72rem;">Retry</button>
+        </form>
+        {% elif p.status == 'error' %}
+        <span class="badge badge-danger" style="font-size: 0.75rem;">⚠ Error</span>
+        {% else %}
+        <span class="badge badge-danger" style="font-size: 0.75rem;">⚠ Unreachable</span>
+        <form method="POST" action="/accounts/sync/{{ code }}" style="margin: 0;">
+          <button type="submit" class="btn btn-outline btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: var(--danger); border-color: var(--danger);">Retry</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <!-- Primary Stats Overview Grid -->
 <div class="grid-4" style="margin-bottom: 24px;">
@@ -41,7 +150,7 @@
 
   <div class="stat-card">
     <div class="stat-label">Active Demat Accounts</div>
-    <div class="stat-value">{{ summary.num_accounts }}</div>
+    <div class="stat-value" id="stat-num-accounts">{{ summary.num_accounts }}</div>
     <div class="stat-subtext">
       <a href="/accounts" style="color: var(--saffron-main); text-decoration: none; font-weight: 500;">
         Across {{ summary.num_dps }} Depository Participants &rarr;
@@ -51,7 +160,7 @@
 
   <div class="stat-card">
     <div class="stat-label">Distinct Securities</div>
-    <div class="stat-value">{{ summary.num_securities }}</div>
+    <div class="stat-value" id="stat-num-securities">{{ summary.num_securities }}</div>
     <div class="stat-subtext">
       <span style="color: var(--text-muted);">Equities, Bonds, REITs, ETFs</span>
     </div>
@@ -59,7 +168,7 @@
 
   <div class="stat-card">
     <div class="stat-label">Unrealized Profit & Loss</div>
-    <div class="stat-value" style="color: {% if summary.total_pnl >= 0 %}var(--success){% else %}var(--danger){% endif %};">
+    <div class="stat-value" id="stat-total-pnl" style="color: {% if summary.total_pnl >= 0 %}var(--success){% else %}var(--danger){% endif %};">
       {{ format_inr(summary.total_pnl) }}
     </div>
     <div class="stat-subtext">
@@ -71,28 +180,157 @@
   </div>
 </div>
 
-<!-- Charts Section: Asset Class and DP Allocation -->
-<div class="grid-2" style="margin-bottom: 24px;">
+<!-- Per-Broker Subtotals Section (Exact Math Verification) -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-title" style="margin-bottom: 12px;">
+    <span>Per-Broker Holdings & Valuation Subtotals</span>
+    <span style="font-size: 0.8rem; color: var(--text-muted);">Subtotals add up exactly to grand total</span>
+  </div>
+  <div class="table-container">
+    <table class="data-table" id="table-broker-subtotals">
+      <thead>
+        <tr>
+          <th>Broker / DP</th>
+          <th>Sync Status</th>
+          <th class="text-right">Holdings Count</th>
+          <th class="text-right">Total Units</th>
+          <th class="text-right">Invested Value</th>
+          <th class="text-right">Current Valuation</th>
+          <th class="text-right">Unrealized P&L</th>
+          <th class="text-right">% of Portfolio</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for code, sub in summary.broker_subtotals.items() %}
+        {% set pct = (sub.current_value / summary.total_value * 100) if summary.total_value > 0 else 0.0 %}
+        <tr>
+          <td>
+            <strong>{{ sub.broker_name }}</strong>
+            <span style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted); display: block;">{{ sub.dp_id }}</span>
+          </td>
+          <td>
+            {% if sub.status == 'connected' %}
+            <span class="badge badge-success" style="font-size: 0.75rem;">Connected</span>
+            {% elif sub.status == 'no_account' %}
+            <span class="badge" style="font-size: 0.75rem; background: var(--border-color); color: var(--text-muted);">No Account</span>
+            {% elif sub.status == 'stale' %}
+            <span class="badge badge-warning" style="font-size: 0.75rem;">Stale</span>
+            {% else %}
+            <span class="badge badge-danger" style="font-size: 0.75rem;">Unavailable</span>
+            {% endif %}
+          </td>
+          <td class="text-right">{{ sub.holdings_count }}</td>
+          <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(sub.quantity) }}</td>
+          <td class="text-right">{{ format_inr(sub.invested) }}</td>
+          <td class="text-right" style="font-weight: 600;">{{ format_inr(sub.current_value) }}</td>
+          <td class="text-right">
+            {% if sub.pnl >= 0 %}
+            <span style="color: var(--success); font-weight: 600;">+{{ format_inr(sub.pnl) }} (+{{ "%.2f"|format(sub.pnl_pct) }}%)</span>
+            {% else %}
+            <span style="color: var(--danger); font-weight: 600;">{{ format_inr(sub.pnl) }} ({{ "%.2f"|format(sub.pnl_pct) }}%)</span>
+            {% endif %}
+          </td>
+          <td class="text-right" style="font-weight: 600;">{{ "%.1f"|format(pct) }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr style="border-top: 2px solid var(--border-color); font-weight: bold; background: var(--bg-muted);">
+          <td>Grand Total Consolidated</td>
+          <td>&mdash;</td>
+          <td class="text-right">{{ summary.num_securities }}</td>
+          <td class="text-right">&mdash;</td>
+          <td class="text-right">{{ format_inr(summary.total_invested) }}</td>
+          <td class="text-right" style="color: var(--saffron-main);">{{ format_inr(summary.total_value) }}</td>
+          <td class="text-right">
+            {% if summary.total_pnl >= 0 %}
+            <span style="color: var(--success);">+{{ format_inr(summary.total_pnl) }} (+{{ "%.2f"|format(summary.total_pnl_pct) }}%)</span>
+            {% else %}
+            <span style="color: var(--danger);">{{ format_inr(summary.total_pnl) }} ({{ "%.2f"|format(summary.total_pnl_pct) }}%)</span>
+            {% endif %}
+          </td>
+          <td class="text-right">100.0%</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- Zero State Display -->
+{% if summary.total_value <= 0 and top_holdings|length == 0 %}
+<div class="card" id="empty-state-card" style="padding: 48px 24px; text-align: center; margin-bottom: 24px; background: var(--bg-muted); border: 2px dashed var(--border-color); border-radius: 12px;">
+  <div style="max-width: 540px; margin: 0 auto;">
+    <div style="font-size: 3rem; margin-bottom: 12px;">📈</div>
+    <h2 style="margin: 0 0 10px 0; font-size: 1.35rem; color: var(--text-main);">No holdings yet</h2>
+    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin: 0 0 24px 0;">
+      No holdings yet. Trade on NiftyTrade, BharatInvest or BondBazaar with this same Google account and they will appear here.
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+      <form method="POST" action="/accounts/sync-all" style="margin: 0;">
+        <button type="submit" class="btn btn-primary">
+          ↻ Check brokers now
+        </button>
+      </form>
+      <a href="/verify" class="btn btn-outline">
+        🔍 Verify live with brokers
+      </a>
+    </div>
+  </div>
+</div>
+{% else %}
+
+<!-- Portfolio Insights Section (Only shown when user has holdings) -->
+{% if summary.insights %}
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-title" style="margin-bottom: 14px;">
+    <span>Portfolio Analytics & Factual Insights</span>
+    <span style="font-size: 0.8rem; color: var(--text-muted);">Derived from Active Demat Holdings</span>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+    {% for ins in summary.insights %}
+    <div style="padding: 12px 14px; background: var(--bg-muted); border-radius: 8px; border-left: 4px solid {% if ins.type == 'risk' %}var(--danger){% elif ins.type == 'absence' %}#8b5cf6{% else %}var(--saffron-main){% endif %};">
+      <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: var(--text-muted);">{{ ins.title }}</div>
+      <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-main);">{{ ins.message }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Charts Section: Asset Class, DP Allocation, and Sector Allocation (Only when user has holdings) -->
+{% if summary.asset_allocation or summary.dp_allocation or summary.sector_allocation %}
+<div class="grid-3" style="margin-bottom: 24px;">
   <div class="card">
     <div class="card-title">
-      <span>Allocation by Asset Class</span>
-      <span style="font-size: 0.8rem; color: var(--text-muted);">Unified Across Demats</span>
+      <span>Asset Class</span>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">By Class</span>
     </div>
-    <div style="height: 250px; position: relative; display: flex; justify-content: center; align-items: center;">
+    <div style="height: 240px; position: relative; display: flex; justify-content: center; align-items: center;">
       <canvas id="assetChart"></canvas>
     </div>
   </div>
 
   <div class="card">
     <div class="card-title">
-      <span>Holdings Distribution by Broker (DP)</span>
-      <span style="font-size: 0.8rem; color: var(--text-muted);">Depository Participants</span>
+      <span>Broker (DP)</span>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">By Provider</span>
     </div>
-    <div style="height: 250px; position: relative; display: flex; justify-content: center; align-items: center;">
+    <div style="height: 240px; position: relative; display: flex; justify-content: center; align-items: center;">
       <canvas id="dpChart"></canvas>
     </div>
   </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span>Sector Allocation</span>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">By Sector</span>
+    </div>
+    <div style="height: 240px; position: relative; display: flex; justify-content: center; align-items: center;">
+      <canvas id="sectorChart"></canvas>
+    </div>
+  </div>
 </div>
+{% endif %}
 
 <!-- Top Holdings Overview Table -->
 <div class="card">
@@ -120,6 +358,15 @@
           <td>
             <strong>{{ h.security_name }}</strong>
             <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">{{ h.symbol }}</span>
+            {% if h.broker_breakdown %}
+            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px;">
+              {% for b in h.broker_breakdown %}
+              <span class="badge" style="font-size: 0.7rem; padding: 1px 6px; background: var(--bg-muted); border: 1px solid var(--border-color);">
+                {{ b.broker_name }}: {{ "%.2f"|format(b.quantity) }}
+              </span>
+              {% endfor %}
+            </div>
+            {% endif %}
           </td>
           <td style="font-family: monospace; font-size: 0.82rem;">{{ h.isin }}</td>
           <td>
@@ -136,34 +383,43 @@
             {% endif %}
           </td>
         </tr>
-        {% else %}
-        <tr>
-          <td colspan="7" class="text-center" style="padding: 30px; color: var(--text-muted);">
-            No securities currently held in registered demat accounts.
-          </td>
-        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  const formRefresh = document.getElementById('form-refresh-now');
+  if (formRefresh) {
+    formRefresh.addEventListener('submit', function() {
+      const btn = document.getElementById('btn-refresh-now');
+      const icon = document.getElementById('refresh-spinner-icon');
+      const text = document.getElementById('refresh-button-text');
+      if (btn && icon && text) {
+        btn.disabled = true;
+        text.textContent = 'Syncing...';
+        icon.style.animation = 'spin 1s linear infinite';
+      }
+    });
+  }
+
   const assetData = {{ summary.asset_allocation | tojson }};
   const dpData = {{ summary.dp_allocation | tojson }};
-
-  // Asset class donut chart
-  const assetLabels = Object.keys(assetData);
-  const assetValues = Object.values(assetData);
+  const sectorData = {{ summary.sector_allocation | tojson }};
 
   const colors = [
-    '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'
+    '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b', '#14b8a6', '#f97316'
   ];
 
-  if (assetLabels.length > 0) {
+  // Asset class donut chart
+  const assetLabels = Object.keys(assetData || {});
+  const assetValues = Object.values(assetData || {});
+  if (assetLabels.length > 0 && document.getElementById('assetChart')) {
     new Chart(document.getElementById('assetChart'), {
       type: 'doughnut',
       data: {
@@ -179,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Inter', size: 11 } } },
+          legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Inter', size: 10 } } },
           tooltip: {
             callbacks: {
               label: function(ctx) {
@@ -194,10 +450,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // DP donut chart
-  const dpLabels = Object.keys(dpData);
-  const dpValues = Object.values(dpData);
-
-  if (dpLabels.length > 0) {
+  const dpLabels = Object.keys(dpData || {});
+  const dpValues = Object.values(dpData || {});
+  if (dpLabels.length > 0 && document.getElementById('dpChart')) {
     new Chart(document.getElementById('dpChart'), {
       type: 'doughnut',
       data: {
@@ -213,7 +468,40 @@ document.addEventListener('DOMContentLoaded', function() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Inter', size: 11 } } },
+          legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Inter', size: 10 } } },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return ` ${ctx.label}: ₹${Number(ctx.raw).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+              }
+            }
+          }
+        },
+        cutout: '65%'
+      }
+    });
+  }
+
+  // Sector donut chart
+  const sectorLabels = Object.keys(sectorData || {});
+  const sectorValues = Object.values(sectorData || {});
+  if (sectorLabels.length > 0 && document.getElementById('sectorChart')) {
+    new Chart(document.getElementById('sectorChart'), {
+      type: 'doughnut',
+      data: {
+        labels: sectorLabels,
+        datasets: [{
+          data: sectorValues,
+          backgroundColor: colors.slice(0, sectorLabels.length),
+          borderWidth: 2,
+          borderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1c2129' : '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Inter', size: 10 } } },
           tooltip: {
             callbacks: {
               label: function(ctx) {
@@ -228,4 +516,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+<style>
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>
 {% endblock %}

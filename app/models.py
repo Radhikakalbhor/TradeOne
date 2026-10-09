@@ -18,6 +18,7 @@ class User(Base):
     masked_pan = Column(String(16), nullable=False)
     dob = Column(String(16), nullable=False, default="15081992")  # DDMMYYYY format
     mobile = Column(String(32), nullable=False)
+    wallet_balance = Column(Float, default=1000000.0)
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
@@ -114,8 +115,28 @@ class DematAccount(Base):
     status = Column(String(32), default="ACTIVE")           # ACTIVE, FROZEN
     opened_date = Column(String(32), default="2021-04-12")
     nominee_status = Column(String(32), default="REGISTERED") # REGISTERED, NOT_REGISTERED
+    provider_code = Column(String(32), nullable=True) # a, b, c
+    sync_status = Column(String(32), default="connected") # connected, stale, unavailable
+    last_synced_at = Column(DateTime, nullable=True)
+    sync_error = Column(Text, nullable=True)
+    connection_method = Column(String(64), default="Auto-linked (demo)")
 
     user = relationship("User", back_populates="demat_accounts")
+
+    @property
+    def effective_connection_method(self) -> str:
+        """Prefers consent connection if active consent exists, otherwise auto-linked."""
+        if self.user and self.user.consents:
+            for c in self.user.consents:
+                if c.status == "ACTIVE":
+                    try:
+                        import json
+                        sel_accs = json.loads(c.selected_account_ids_json or "[]")
+                        if not sel_accs or self.id in sel_accs or self.dp_id in sel_accs:
+                            return "Connected via consent"
+                    except Exception:
+                        return "Connected via consent"
+        return self.connection_method or "Auto-linked (demo)"
     holdings = relationship("Holding", back_populates="demat_account", cascade="all, delete-orphan")
     transactions = relationship("Transaction", back_populates="demat_account", cascade="all, delete-orphan")
 
@@ -129,6 +150,7 @@ class Holding(Base):
     pledged_units = Column(Float, default=0.0)
     locked_units = Column(Float, default=0.0)
     avg_price = Column(Float, default=0.0)
+    metadata_json = Column(Text, nullable=True)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     demat_account = relationship("DematAccount", back_populates="holdings")
@@ -268,3 +290,18 @@ class AdminSetting(Base):
 
     key = Column(String(64), primary_key=True)
     value = Column(String(255), nullable=False)
+
+class OutboxEvent(Base):
+    __tablename__ = "outbox_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    provider = Column(String(32), nullable=False)
+    email = Column(String(255), index=True, nullable=False)
+    event = Column(String(64), nullable=False, default="HOLDINGS_CHANGED")
+    occurred_at = Column(DateTime, default=utcnow)
+    status = Column(String(32), default="PENDING")  # PENDING, SENT, FAILED
+    attempts = Column(Integer, default=0)
+    max_attempts = Column(Integer, default=10)
+    next_retry_at = Column(DateTime, default=utcnow)
+    last_error = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utcnow)

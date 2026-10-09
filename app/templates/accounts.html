@@ -8,10 +8,28 @@
     <h1>My Registered Demat Accounts</h1>
     <p class="page-subtitle">Demat accounts registered under Depository Beneficiary Owner ID: <strong>{{ user.bo_id }}</strong></p>
   </div>
-  <div>
+  <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <a href="/admin/consistency" class="btn btn-secondary">
+      🔍 Verify Consistency
+    </a>
+    <form method="POST" action="/accounts/sync-all" style="margin: 0;">
+      <button type="submit" class="btn btn-primary">
+        ↻ Sync All Accounts
+      </button>
+    </form>
     <span class="badge badge-warning" style="font-size: 0.85rem; padding: 6px 12px;">
-      Total Linked Accounts: {{ account_cards|length }}
+      Total Accounts: {{ account_cards|length }}
     </span>
+  </div>
+</div>
+
+<!-- Architecture & Connection Method Explanatory Banner -->
+<div class="card" style="margin-bottom: 24px; padding: 14px 18px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25);">
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <span style="font-size: 1.2rem;">ℹ️</span>
+    <div style="font-size: 0.85rem; color: var(--text-main);">
+      <strong>Connection Mode Architecture:</strong> Demo mode uses trusted server-to-server access; production uses the Account Aggregator consent flow.
+    </div>
   </div>
 </div>
 
@@ -22,12 +40,26 @@
     <div>
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
         <div>
-          <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700;">DP ID: {{ acc.dp_id }}</span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700;">DP ID: {{ acc.dp_id }}</span>
+            {% if acc.provider_code %}
+            <span class="badge badge-info" style="font-size: 0.68rem; padding: 1px 6px;">Provider {{ acc.provider_code|upper }}</span>
+            {% endif %}
+          </div>
           <h3 style="margin-top: 2px;">{{ acc.dp_name }}</h3>
         </div>
-        <span class="badge {% if acc.status == 'ACTIVE' %}badge-success{% else %}badge-danger{% endif %}">
-          {{ acc.status }}
-        </span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          {% if acc.sync_status == 'connected' %}
+          <span class="badge badge-success" style="font-size: 0.72rem; padding: 2px 8px;">Connected</span>
+          {% elif acc.sync_status == 'stale' %}
+          <span class="badge badge-warning" style="font-size: 0.72rem; padding: 2px 8px;">Stale</span>
+          {% elif acc.sync_status == 'unavailable' %}
+          <span class="badge badge-danger" style="font-size: 0.72rem; padding: 2px 8px;">Unavailable</span>
+          {% endif %}
+          <span class="badge {% if acc.status == 'ACTIVE' %}badge-info{% else %}badge-danger{% endif %}">
+            {{ acc.status }}
+          </span>
+        </div>
       </div>
 
       <div style="margin: 16px 0; padding: 14px; background: var(--bg-muted); border-radius: 8px; border: 1px solid var(--border-color);">
@@ -35,9 +67,17 @@
         <div style="font-size: 1.15rem; font-weight: 700; font-family: monospace; letter-spacing: 1px; color: var(--text-main);">
           {{ acc.masked_account_number }}
         </div>
-        <div style="font-size: 0.72rem; color: var(--text-light); margin-top: 2px;">
+        <div style="font-size: 0.72rem; color: var(--text-light); margin-top: 4px;">
           Client Ref: {{ acc.id }} &bull; Opened: {{ acc.opened_date }}
         </div>
+        <div style="font-size: 0.75rem; color: var(--saffron-main); font-weight: 600; margin-top: 6px;">
+          Method: {{ acc.effective_connection_method }}
+        </div>
+        {% if acc.last_synced_at %}
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+          Last Synced: {{ acc.last_synced_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}
+        </div>
+        {% endif %}
       </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; font-size: 0.85rem;">
@@ -62,10 +102,17 @@
       </div>
     </div>
 
-    <div>
-      <a href="/accounts/{{ acc.id }}" class="btn btn-secondary btn-block">
+    <div style="display: flex; gap: 8px;">
+      <a href="/accounts/{{ acc.id }}" class="btn btn-secondary" style="flex: 1; text-align: center;">
         View Demat Holdings &rarr;
       </a>
+      {% if acc.provider_code %}
+      <form method="POST" action="/accounts/sync/{{ acc.provider_code }}" style="margin: 0;">
+        <button type="submit" class="btn btn-outline" title="Re-sync this provider">
+          ↻
+        </button>
+      </form>
+      {% endif %}
     </div>
   </div>
   {% else %}

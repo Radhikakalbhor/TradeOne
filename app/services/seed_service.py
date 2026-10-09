@@ -9,6 +9,8 @@ from app.models import (
     CorporateAction, RegisteredApp, Nominee, AdminSetting
 )
 from app.security import hash_secret
+from app.shared_identity import normalize_email, generate_identity
+from app.services.portfolio_service import generate_starter_portfolio
 
 DEFAULT_INSTRUMENTS = [
     {
@@ -203,7 +205,7 @@ def ensure_shared_files():
         if os.path.exists(p):
             instruments_file = p
             break
-            
+
     if not instruments_file:
         instruments_file = "instruments_shared.json"
         with open(instruments_file, "w", encoding="utf-8") as f:
@@ -218,7 +220,7 @@ def ensure_shared_files():
         if os.path.exists(p):
             users_file = p
             break
-            
+
     if not users_file:
         users_file = "users_shared.json"
         with open(users_file, "w", encoding="utf-8") as f:
@@ -228,10 +230,10 @@ def ensure_shared_files():
 
 def load_or_create_shared_data():
     instr_path, user_path = ensure_shared_files()
-    
+
     with open(instr_path, "r", encoding="utf-8") as f:
         instruments = json.load(f)
-        
+
     with open(user_path, "r", encoding="utf-8") as f:
         users = json.load(f)
 
@@ -322,47 +324,48 @@ def seed_database(db):
             db.add(CorporateAction(**ca))
     db.commit()
 
-    # 5. Seed Users
-    for u in users_data:
-        email = u["email"].lower()
-        existing_user = db.query(User).filter(User.email == email).first()
-        if not existing_user:
-            user = User(
-                email=email,
-                name=u["name"],
-                bo_id=u.get("bo_id", f"12081600{random.randint(10000000, 99999999)}"),
-                masked_pan=u.get("masked_pan", "ABCXX1234X"),
-                dob=u.get("dob", "15081992"),
-                mobile=u.get("mobile", "+91 9876543210")
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
+    # 5. Seed Users (Only when DEMO_MODE is True)
+    if settings.DEMO_MODE:
+        for u in users_data:
+            email = u["email"].lower()
+            existing_user = db.query(User).filter(User.email == email).first()
+            if not existing_user:
+                user = User(
+                    email=email,
+                    name=u["name"],
+                    bo_id=u.get("bo_id", f"12081600{random.randint(10000000, 99999999)}"),
+                    masked_pan=u.get("masked_pan", "ABCXX1234X"),
+                    dob=u.get("dob", "15081992"),
+                    mobile=u.get("mobile", "+91 9876543210")
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
 
-            # Add default auth methods
-            db.add(AuthMethod(user_id=user.id, provider="email", email=email))
-            db.add(AuthMethod(user_id=user.id, provider="google", provider_sub=f"google_{user.id}", email=email))
+                # Add default auth methods
+                db.add(AuthMethod(user_id=user.id, provider="email", email=email))
+                db.add(AuthMethod(user_id=user.id, provider="google", provider_sub=f"google_{user.id}", email=email))
 
-            # Add default Nominee
-            db.add(Nominee(
-                user_id=user.id,
-                name="Ananya Mehta" if "aarav" in email else "Karthik Nair",
-                relationship_type="SPOUSE",
-                percentage=100,
-                dob="1994-06-15"
-            ))
-            db.commit()
+                # Add default Nominee
+                db.add(Nominee(
+                    user_id=user.id,
+                    name="Ananya Mehta" if "aarav" in email else "Karthik Nair",
+                    relationship_type="SPOUSE",
+                    percentage=100,
+                    dob="1994-06-15"
+                ))
+                db.commit()
 
-            # Seed Accounts & Holdings
-            if email == "aarav.mehta@example.com":
-                seed_aarav_accounts(db, user)
-            elif email == "priya.nair@example.com":
-                seed_priya_accounts(db, user)
+                # Seed Accounts & Holdings
+                if email == "aarav.mehta@example.com":
+                    seed_aarav_accounts(db, user)
+                elif email == "priya.nair@example.com":
+                    seed_priya_accounts(db, user)
 
 def seed_aarav_accounts(db, user: User):
     """Aarav Mehta: 3 demat accounts, overlapping stocks (RELIANCE in 2), REIT, Bond, 6mo history."""
     now = datetime.now(timezone.utc)
-    
+
     # Account 1: NiftyTrade Securities
     acc1 = DematAccount(
         id="da_5521",
@@ -597,34 +600,29 @@ def seed_priya_accounts(db, user: User):
     db.commit()
 
 def provision_new_user(db, email: str, name: Optional[str] = None, provider: str = "email") -> User:
-    """Auto-provision a new user on first login."""
-    email = email.lower().strip()
+    """Auto-provision a new user with deterministic identity and starter portfolio."""
+    email = normalize_email(email)
     user = db.query(User).filter(User.email == email).first()
     if user:
         return user
 
-    # Generate 16-digit BO ID
-    bo_id = f"12081600{random.randint(10000000, 99999999)}"
-    # Generate fake masked PAN: e.g. "ABCXX4589X"
-    letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"
-    prefix = "".join(random.choices(letters, k=3))
-    digits = f"{random.randint(1000, 9999)}"
-    suffix = random.choice(letters)
-    masked_pan = f"{prefix}XX{digits}{suffix}"
-    
-    # Fake mobile
-    mobile = f"+91 98{random.randint(10000000, 99999999)}"
-    
-    if not name:
-        name = email.split("@")[0].replace(".", " ").title()
+    identity = generate_identity(email)
+
+    # Deterministic 16-digit BO ID
+    mobile_int = int(identity["mobile"]) % 100000000
+    bo_id = f"12081600{mobile_int:08d}"
+
+    # Use name claim (e.g., from Google OAuth) if provided, else shared identity fallback
+    user_name = name.strip() if name and name.strip() else identity["full_name_fallback"]
 
     user = User(
         email=email,
-        name=name,
+        name=user_name,
         bo_id=bo_id,
-        masked_pan=masked_pan,
-        dob="15081992",
-        mobile=mobile
+        masked_pan=identity["masked_pan"],
+        dob=f"{identity['dob']}1992",
+        mobile=identity["mobile"],
+        wallet_balance=settings.STARTING_FUNDS
     )
     db.add(user)
     db.commit()
@@ -633,48 +631,94 @@ def provision_new_user(db, email: str, name: Optional[str] = None, provider: str
     # Auth method
     db.add(AuthMethod(user_id=user.id, provider=provider, email=email))
     # Nominee
-    db.add(Nominee(user_id=user.id, name="Family Nominee", relationship_type="SPOUSE", percentage=100))
+    db.add(Nominee(
+        user_id=user.id,
+        name=identity["nominee_name"],
+        relationship_type="SPOUSE",
+        percentage=100
+    ))
     db.commit()
 
-    if settings.SEED_STARTER_ACCOUNTS:
-        # Give starter accounts at the same three DPs
+    # Empty demat accounts for internal/non-google users; fake portfolio holdings strictly require DEMO_MODE
+    if provider != "google" and (settings.SEED_STARTER_ACCOUNTS or provider == "internal"):
         seed_starter_accounts_for_user(db, user)
 
     return user
 
 def seed_starter_accounts_for_user(db, user: User):
-    """Provide realistic starter accounts if SEED_STARTER_ACCOUNTS=true."""
-    acc_id = f"da_{random.randint(1000, 9999)}"
-    acc_num = f"12081600{random.randint(10000000, 99999999)}"
-    masked = f"XXXX{acc_num[-4:]}"
-    acc = DematAccount(
-        id=acc_id,
-        user_id=user.id,
-        dp_name="NiftyTrade Securities",
-        dp_id="IN300001",
-        account_number=acc_num,
-        masked_account_number=masked,
-        account_type="INDIVIDUAL",
-        status="ACTIVE",
-        opened_date=datetime.now().strftime("%Y-%m-%d"),
-        nominee_status="REGISTERED"
-    )
-    db.add(acc)
-    db.commit()
+    """Provide deterministic starter accounts and holdings if enabled."""
+    identity = generate_identity(user.email)
+    p_code = settings.PROVIDER_CODE.lower()
 
-    # Give a couple of starter holdings
-    db.add(Holding(demat_account_id=acc.id, isin="INE002A01018", free_units=5.0, avg_price=2750.00))
-    db.add(Holding(demat_account_id=acc.id, isin="INF204KB14I2", free_units=20.0, avg_price=270.00))
-    db.commit()
+    broker_configs = []
+    if p_code in ("b", "bharatinvest"):
+        broker_configs.append(("b", settings.DP_NAME if settings.DP_NAME != "TradeOne Depository" else "BharatInvest Securities", settings.DP_ID if settings.DP_ID != "IN300000" else "IN300002"))
+    elif p_code in ("a", "niftytrade"):
+        broker_configs.append(("a", settings.DP_NAME if settings.DP_NAME != "TradeOne Depository" else "NiftyTrade Securities", settings.DP_ID if settings.DP_ID != "IN300000" else "IN300001"))
+    elif p_code in ("c", "bondbazaar"):
+        broker_configs.append(("c", settings.DP_NAME if settings.DP_NAME != "TradeOne Depository" else "BondBazaar Depository Services", settings.DP_ID if settings.DP_ID != "IN300000" else "IN300003"))
+    else:
+        # Hub mode: provide accounts across all 3 brokers to showcase consolidation & ISIN merge
+        broker_configs = [
+            ("b", "BharatInvest Securities", "IN300002"),
+            ("a", "NiftyTrade Securities", "IN300001"),
+            ("c", "BondBazaar Depository Services", "IN300003")
+        ]
 
-    db.add(Transaction(
-        demat_account_id=acc.id,
-        isin="INE002A01018",
-        trans_date=datetime.now(timezone.utc) - timedelta(days=14),
-        quantity=5.0,
-        price=2750.00,
-        trans_type="BUY_SETTLEMENT",
-        reference_id=f"TXN-START-{random.randint(1000, 9999)}",
-        description="NSE Settlement Buy 5 units RELIANCE"
-    ))
-    db.commit()
+    for code, dp_name, dp_id in broker_configs:
+        acc_id = f"da_{code}_{identity['client_code_suffix'].lower()}"
+        existing_acc = db.query(DematAccount).filter(DematAccount.id == acc_id).first()
+        if existing_acc:
+            continue
+
+        dp_num_offset = {"a": "100", "b": "200", "c": "300"}.get(code, "900")
+        acc_num = f"12081600{dp_num_offset}{str(int(identity['mobile']) % 100000).zfill(5)}"
+        masked = f"XXXX{acc_num[-4:]}"
+
+        acc = DematAccount(
+            id=acc_id,
+            user_id=user.id,
+            dp_name=dp_name,
+            dp_id=dp_id,
+            account_number=acc_num,
+            masked_account_number=masked,
+            account_type="INDIVIDUAL",
+            status="ACTIVE",
+            opened_date=datetime.now().strftime("%Y-%m-%d"),
+            nominee_status="REGISTERED"
+        )
+        db.add(acc)
+        db.commit()
+        db.refresh(acc)
+
+        # Seed starter holdings strictly when DEMO_MODE is True
+        if settings.DEMO_MODE and settings.SEED_STARTER_PORTFOLIO:
+            starter_holdings = generate_starter_portfolio(user.email, provider_code=code)
+            for sh in starter_holdings:
+                existing_h = db.query(Holding).filter(
+                    Holding.demat_account_id == acc.id,
+                    Holding.isin == sh["isin"]
+                ).first()
+                if not existing_h:
+                    holding = Holding(
+                        demat_account_id=acc.id,
+                        isin=sh["isin"],
+                        free_units=sh["free_units"],
+                        pledged_units=0.0,
+                        locked_units=0.0,
+                        avg_price=sh["avg_price"]
+                    )
+                    db.add(holding)
+
+                    # Transaction
+                    db.add(Transaction(
+                        demat_account_id=acc.id,
+                        isin=sh["isin"],
+                        trans_date=datetime.now(timezone.utc) - timedelta(days=7),
+                        quantity=sh["free_units"],
+                        price=sh["avg_price"],
+                        trans_type="BUY_SETTLEMENT",
+                        reference_id=f"TXN-STARTER-{code.upper()}-{sh['symbol'][:6]}",
+                        description=f"Starter portfolio allocation: {sh['symbol']} ({dp_name})"
+                    ))
+            db.commit()

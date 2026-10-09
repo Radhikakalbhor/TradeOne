@@ -1,8 +1,10 @@
 import io
+import os
 import pytest
 from pypdf import PdfReader
 from app.database import SessionLocal, Base, engine
-from app.models import User, DematAccount, Holding, Instrument
+from app.config import settings
+from app.models import User, DematAccount, Holding, Instrument, Transaction
 from app.services.seed_service import seed_database
 from app.services.depository_service import get_portfolio_summary, get_user_holdings
 from app.services.cas_pdf_service import generate_cas_pdf
@@ -11,8 +13,24 @@ from app.services.cas_pdf_service import generate_cas_pdf
 def setup_seed():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
-    seed_database(db)
-    db.close()
+    orig_demo = os.environ.get("DEMO_MODE")
+    os.environ["DEMO_MODE"] = "true"
+    try:
+        user = db.query(User).filter(User.email == "aarav.mehta@example.com").first()
+        if user:
+            for acc in user.demat_accounts:
+                db.query(Holding).filter(Holding.demat_account_id == acc.id).delete()
+                db.query(Transaction).filter(Transaction.demat_account_id == acc.id).delete()
+            db.query(DematAccount).filter(DematAccount.user_id == user.id).delete()
+            db.query(User).filter(User.id == user.id).delete()
+            db.commit()
+        seed_database(db)
+    finally:
+        if orig_demo is not None:
+            os.environ["DEMO_MODE"] = orig_demo
+        else:
+            os.environ.pop("DEMO_MODE", None)
+        db.close()
 
 def test_aarav_portfolio_and_holdings():
     db = SessionLocal()

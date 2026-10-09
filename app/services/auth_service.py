@@ -11,15 +11,42 @@ from app.security import (
     generate_otp_code, serializer
 )
 from app.services.seed_service import provision_new_user
+from app.shared_identity import normalize_email, generate_identity
 
-def send_otp_email(to_email: str, code: str):
-    """Send clean HTML email with OTP if SMTP configured, else log."""
+# In-memory testing cache only accessible in OTP_DEV_MODE via dedicated test endpoint
+_dev_otp_store = {}
+
+def get_dev_test_otp(email: str) -> Optional[str]:
+    """Retrieve last generated OTP code for test automation only when OTP_DEV_MODE is enabled."""
+    if not settings.OTP_DEV_MODE:
+        return None
+    return _dev_otp_store.get(normalize_email(email))
+
+def is_smtp_configured() -> bool:
+    """Check if SMTP credentials are configured in the environment."""
+    return bool(
+        settings.SMTP_HOST and settings.SMTP_HOST.strip()
+        and settings.SMTP_USER and settings.SMTP_USER.strip()
+        and settings.SMTP_PASSWORD and settings.SMTP_PASSWORD.strip()
+    )
+
+def send_otp_email(to_email: str, code: str) -> Tuple[bool, str]:
+    """Send clean HTML email with OTP using configured SMTP provider.
+    Returns (success, status_or_error_message).
+    """
+    if not is_smtp_configured():
+        return False, (
+            "Email delivery is not configured. Missing required SMTP configuration: "
+            "SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM. "
+            "Please configure your email provider credentials in .env to receive verification codes."
+        )
+
     subject = f"{code} is your TradeOne verification code"
     html_content = f"""
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
         <div style="margin-bottom: 20px;">
-            <span style="font-size: 20px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px;">National<span style="color: #f59e0b;">Depo</span></span>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-top: 2px;">Simulated Depository Platform</div>
+            <span style="font-size: 20px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px;">Trade<span style="color: #f59e0b;">One</span></span>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-top: 2px;">Unified Depository &amp; Portfolio Platform</div>
         </div>
         <p style="color: #334155; font-size: 15px; line-height: 1.5;">Hello,</p>
         <p style="color: #334155; font-size: 15px; line-height: 1.5;">Use the one-time verification code below to sign in to your TradeOne account. This code is valid for {settings.OTP_EXPIRY_MINUTES} minutes.</p>
@@ -28,34 +55,39 @@ def send_otp_email(to_email: str, code: str):
         </div>
         <p style="color: #64748b; font-size: 13px; line-height: 1.4;">If you did not request this code, you can safely ignore this email.</p>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-        <p style="color: #94a3b8; font-size: 11px; text-align: center;">Simulated Depository Sandbox &bull; For integration testing only</p>
+        <p style="color: #94a3b8; font-size: 11px; text-align: center;">TradeOne Depository Platform &bull; Security Verification</p>
     </div>
     """
 
-    if settings.SMTP_HOST and settings.SMTP_USER:
-        try:
-            msg = MIMEMultipart("alternative")
-            msg["Subject"] = subject
-            msg["From"] = settings.SMTP_FROM
-            msg["To"] = to_email
-            msg.attach(MIMEText(html_content, "html"))
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = settings.SMTP_FROM
+        msg["To"] = to_email
+        msg.attach(MIMEText(html_content, "html"))
 
-            with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-                server.starttls()
-                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+        port = settings.SMTP_PORT
+        if port == 465:
+            with smtplib.SMTP_SSL(settings.SMTP_HOST, port, timeout=10) as server:
+                if settings.SMTP_USER and settings.SMTP_PASSWORD:
+                    server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
                 server.sendmail(settings.SMTP_FROM, [to_email], msg.as_string())
-        except Exception as e:
-            print(f"[TradeOne SMTP ERROR] Failed to send email: {e}")
+        else:
+            with smtplib.SMTP(settings.SMTP_HOST, port, timeout=10) as server:
+                server.starttls()
+                if settings.SMTP_USER and settings.SMTP_PASSWORD:
+                    server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+                server.sendmail(settings.SMTP_FROM, [to_email], msg.as_string())
 
-    if settings.OTP_DEV_MODE:
-        print(f"\n==========================================")
-        print(f"[TradeOne DEV OTP] To: {to_email}")
-        print(f"[TradeOne DEV OTP] CODE: {code}")
-        print(f"==========================================\n")
+        return True, "Verification code sent to your email."
+    except Exception as e:
+        return False, f"Failed to deliver verification email: {str(e)}"
 
-def request_email_otp(db, email: str) -> Tuple[bool, str, Optional[str]]:
-    """Generate and record OTP. Returns (success, message, dev_code_if_dev_mode)."""
-    email = email.strip().lower()
+def request_email_otp(db, email: str, send_email: bool = True) -> Tuple[bool, str, Optional[str]]:
+    """Generate and record OTP. Invalidate previous OTPs.
+    Returns (success, message, dev_code_for_testing).
+    """
+    email = normalize_email(email)
     allowed, err_msg = is_email_allowed(email)
     if not allowed:
         return False, err_msg, None
@@ -63,6 +95,13 @@ def request_email_otp(db, email: str) -> Tuple[bool, str, Optional[str]]:
     # Rate limit: max 5 OTP requests per email per hour (3600 seconds)
     if not check_rate_limit(db, f"otp:{email}", "request_otp", max_requests=5, window_seconds=3600):
         return False, "Too many OTP requests. Please try again after 1 hour.", None
+
+    # Requirement 7: Invalidate any existing unused OTPs for this email before generating a new one
+    db.query(EmailOtp).filter(
+        EmailOtp.email == email,
+        EmailOtp.used == False
+    ).update({"used": True})
+    db.commit()
 
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(minutes=settings.OTP_EXPIRY_MINUTES)
@@ -80,17 +119,26 @@ def request_email_otp(db, email: str) -> Tuple[bool, str, Optional[str]]:
     db.add(otp_record)
     db.commit()
 
-    send_otp_email(email, code)
+    if settings.OTP_DEV_MODE:
+        _dev_otp_store[email] = code
 
-    dev_hint = code if settings.OTP_DEV_MODE else None
-    return True, "One-time code sent successfully.", dev_hint
+    if send_email:
+        email_sent, email_msg = send_otp_email(email, code)
+        if not email_sent:
+            return False, email_msg, None
+
+    return True, "One-time code sent successfully.", code
 
 def verify_email_otp(db, email: str, code: str) -> Tuple[bool, str, Optional[User]]:
-    """Verify submitted OTP code with lockout enforcement."""
-    email = email.strip().lower()
+    """Verify submitted OTP code with lockout enforcement and clear error messaging."""
+    email = normalize_email(email)
     allowed, err_msg = is_email_allowed(email)
     if not allowed:
         return False, err_msg, None
+
+    code = (code or "").strip()
+    if not code or len(code) != 6 or not code.isdigit():
+        return False, "Please enter a valid 6-digit verification code.", None
 
     now = datetime.now(timezone.utc)
     
@@ -98,21 +146,34 @@ def verify_email_otp(db, email: str, code: str) -> Tuple[bool, str, Optional[Use
     lockout_cutoff = now - timedelta(minutes=15)
     recent_failed_attempts = db.query(EmailOtp).filter(
         EmailOtp.email == email,
-        EmailOtp.created_at >= lockout_cutoff,
         EmailOtp.attempts >= 5
-    ).first()
-    if recent_failed_attempts:
-        return False, "Account locked out due to too many failed attempts. Please try again in 15 minutes.", None
+    ).order_by(EmailOtp.id.desc()).first()
 
-    # Find the latest unused, unexpired OTP for this email
+    if recent_failed_attempts:
+        failed_time = recent_failed_attempts.created_at
+        if failed_time.tzinfo is None:
+            failed_time = failed_time.replace(tzinfo=timezone.utc)
+        if failed_time >= lockout_cutoff:
+            return False, "Account locked out due to too many failed attempts. Please try again in 15 minutes.", None
+
+    # Find the latest unused OTP for this email
     otp = db.query(EmailOtp).filter(
         EmailOtp.email == email,
-        EmailOtp.used == False,
-        EmailOtp.expires_at >= now
-    ).order_by(EmailOtp.created_at.desc()).first()
+        EmailOtp.used == False
+    ).order_by(EmailOtp.id.desc()).first()
 
     if not otp:
-        return False, "Code has expired or is invalid. Please request a new code.", None
+        return False, "No active verification code found. Please request a new code.", None
+
+    # Check expiration with timezone normalization
+    otp_expires_at = otp.expires_at
+    if otp_expires_at.tzinfo is None:
+        otp_expires_at = otp_expires_at.replace(tzinfo=timezone.utc)
+
+    if now > otp_expires_at:
+        otp.used = True
+        db.commit()
+        return False, "The verification code has expired. Please request a new code.", None
 
     if otp.attempts >= 5:
         return False, "Maximum attempts exceeded for this code. Please request a new code.", None
@@ -130,6 +191,9 @@ def verify_email_otp(db, email: str, code: str) -> Tuple[bool, str, Optional[Use
     otp.used = True
     db.commit()
 
+    if email in _dev_otp_store:
+        _dev_otp_store.pop(email, None)
+
     # Find or provision user
     user = match_or_create_user(db, email=email, provider="email")
     return True, "Verification successful.", user
@@ -146,7 +210,7 @@ def match_or_create_user(
     2. Else by lowercase email (link provider)
     3. Else auto-provision new user
     """
-    email = email.strip().lower()
+    email = normalize_email(email)
 
     # 1. Match by provider subject
     if provider_sub:
@@ -173,6 +237,12 @@ def match_or_create_user(
                 email=email
             ))
             db.commit()
+        # If user was provisioned with fallback name, and Google name claim is available, update name
+        if name and name.strip():
+            identity = generate_identity(email)
+            if user.name == identity["full_name_fallback"]:
+                user.name = name.strip()
+                db.commit()
         return user
 
     # 3. Provision new user

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio Consistency Verification - TradeOne{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Cross-Broker Portfolio Consistency Check</h1>
+    <p class="page-subtitle">Live reconciliation between TradeOne's stored snapshots and external broker systems</p>
+  </div>
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <a href="/dashboard" class="btn btn-outline">&larr; Back to Dashboard</a>
+    <form method="POST" action="/admin/consistency/resync" style="margin: 0;">
+      <input type="hidden" name="provider" value="all">
+      <button type="submit" class="btn btn-primary">
+        ↻ Re-sync All Brokers
+      </button>
+    </form>
+  </div>
+</div>
+
+{% if synced %}
+<div style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success); color: var(--success); padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+  <span>✓ Fresh synchronization completed for <strong>{% if provider and provider != 'all' %}Provider {{ provider|upper }}{% else %}all providers{% endif %}</strong>. Data re-evaluated below.</span>
+</div>
+{% endif %}
+
+<!-- Overall Status Banner -->
+<div class="card" style="margin-bottom: 24px; border-left: 5px solid {% if consistency.overall_in_sync %}var(--success){% else %}var(--danger){% endif %};">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700;">Reconciliation Status</div>
+      <h2 style="margin: 4px 0;">
+        {% if consistency.overall_in_sync %}
+        <span style="color: var(--success);">✓ In Sync</span> &mdash; All Provider Snapshots Reconciled
+        {% else %}
+        <span style="color: var(--danger);">✗ Out of Sync</span> &mdash; {{ consistency.total_differences }} Difference(s) Detected
+        {% endif %}
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+        Live check against NiftyTrade (IN300001), BharatInvest (IN300002), and BondBazaar (IN300003) for <strong>{{ user.email }}</strong>.
+      </p>
+    </div>
+    <div style="text-align: right;">
+      <span class="badge {% if consistency.overall_in_sync %}badge-success{% else %}badge-danger{% endif %}" style="font-size: 0.95rem; padding: 6px 14px;">
+        {% if consistency.overall_in_sync %}100% Consistent{% else %}{{ consistency.total_differences }} Differences Found{% endif %}
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Three Broker Provider Cards -->
+<div style="display: flex; flex-direction: column; gap: 24px; margin-bottom: 30px;">
+  {% for code, p in consistency.providers.items() %}
+  <div class="card" style="padding: 20px;">
+    <!-- Provider Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <h3 style="margin: 0;">{{ p.broker_name }}</h3>
+          <span style="font-family: monospace; font-size: 0.78rem; color: var(--text-muted);">({{ p.dp_id }})</span>
+          <span class="badge badge-info" style="font-size: 0.72rem;">Provider {{ code|upper }}</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+          Endpoint: <span style="font-family: monospace;">{{ p.url }}</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: center;">
+        {% if p.in_sync %}
+        <span class="badge badge-success" style="font-size: 0.85rem; padding: 4px 10px;">✓ In Sync</span>
+        {% else %}
+        <span class="badge badge-danger" style="font-size: 0.85rem; padding: 4px 10px;">✗ {{ p.differences|length }} Difference(s)</span>
+        {% endif %}
+
+        <form method="POST" action="/admin/consistency/resync" style="margin: 0;">
+          <input type="hidden" name="provider" value="{{ code }}">
+          <button type="submit" class="btn btn-outline btn-sm">
+            Re-sync {{ p.broker_name }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Identity Consistency Pill -->
+    <div style="background: var(--bg-muted); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <strong style="font-size: 0.85rem;">Identity Reconciliation:</strong>
+        <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">
+          Name: {{ user.name }} &bull; PAN: {{ user.masked_pan }} &bull; Mobile: {{ user.mobile }}
+        </span>
+      </div>
+      <div>
+        {% if p.identity.status == 'match' %}
+        <span class="badge badge-success">✓ Identity Matches</span>
+        {% elif p.identity.status == 'mismatch' %}
+        <span class="badge badge-danger">✗ Identity Mismatch</span>
+        {% else %}
+        <span class="badge badge-warning">▲ Profile Unreachable</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Summary Valuation Compare -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 18px;">
+      <div style="padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+        <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Broker Live Valuation</span>
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 2px;">
+          {{ format_inr(p.broker_total_val) }}
+        </div>
+      </div>
+      <div style="padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+        <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">TradeOne Snapshot Valuation</span>
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 2px;">
+          {{ format_inr(p.tradeone_total_val) }}
+        </div>
+      </div>
+      <div style="padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+        <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Valuation Difference</span>
+        <div style="font-size: 1.1rem; font-weight: 700; color: {% if (p.broker_total_val - p.tradeone_total_val)|abs < 1.0 %}var(--success){% else %}var(--danger){% endif %}; margin-top: 2px;">
+          {{ format_inr(p.broker_total_val - p.tradeone_total_val) }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Holdings Reconciliation Details -->
+    {% if p.differences %}
+    <h4 style="margin: 14px 0 8px 0; color: var(--danger);">Discrepancies Detected:</h4>
+    <div class="table-container" style="margin-bottom: 12px;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Security / ISIN</th>
+            <th class="text-right">Broker Qty</th>
+            <th class="text-right">TradeOne Qty</th>
+            <th class="text-right">Qty Diff</th>
+            <th class="text-right">Val Diff</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in p.differences %}
+          <tr>
+            <td>
+              <strong>{{ d.name }}</strong>
+              <span style="display: block; font-size: 0.75rem; font-family: monospace; color: var(--text-muted);">{{ d.isin }}</span>
+            </td>
+            <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(d.broker_qty) }}</td>
+            <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(d.tradeone_qty) }}</td>
+            <td class="text-right" style="font-family: monospace; font-weight: 700; color: var(--danger);">
+              {% if d.qty_diff > 0 %}+{% endif %}{{ "%.3f"|format(d.qty_diff) }}
+            </td>
+            <td class="text-right" style="font-weight: 600; color: var(--danger);">
+              {{ format_inr(d.val_diff) }}
+            </td>
+            <td>
+              <span class="badge badge-danger">{{ d.type }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="padding: 12px; background: rgba(16, 185, 129, 0.08); border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.2); font-size: 0.85rem; color: var(--success); display: flex; align-items: center; gap: 8px;">
+      <span>✓ All {{ p.in_sync_positions|length }} positions matching exactly between {{ p.broker_name }} and TradeOne snapshot.</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
