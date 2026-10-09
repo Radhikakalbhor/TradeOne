@@ -54,6 +54,7 @@
       </button>
     </form>
 
+    {% if has_google %}
     <div class="auth-divider">Or continue with</div>
 
     <!-- OAuth Options -->
@@ -68,6 +69,7 @@
         Continue with Google
       </a>
     </div>
+    {% endif %}
 
     <!-- Demo Accounts Section (Shown when OTP_DEV_MODE is true) -->
     {% if otp_dev_mode %}

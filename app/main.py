@@ -16,6 +16,9 @@ from app.routers import auth, depository, aa_api, internal, admin, health
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Validate production configuration if running in production
+    settings.validate_production_configuration()
+
     # Create DB tables
     Base.metadata.create_all(bind=engine)
     # Ensure columns exist on existing DBs

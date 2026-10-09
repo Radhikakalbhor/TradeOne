@@ -13,13 +13,20 @@ from app.models import (
 )
 from app.services.seed_service import seed_database
 from app.services.webhook_service import trigger_webhook_event
+from app.security import serializer, is_request_secure
 
 router = APIRouter(prefix="/admin", tags=["Admin Controls"])
 templates = Jinja2Templates(directory="app/templates")
 
 def verify_admin_auth(request: Request) -> bool:
     admin_auth = request.cookies.get("nd_admin_auth")
-    return admin_auth == "authenticated"
+    if not admin_auth:
+        return False
+    try:
+        data = serializer.loads(admin_auth, max_age=3600)
+        return data.get("admin") is True
+    except Exception:
+        return False
 
 @router.get("", response_class=HTMLResponse)
 def admin_dashboard(request: Request, db: Session = Depends(get_db)):
@@ -72,7 +79,16 @@ def admin_dashboard(request: Request, db: Session = Depends(get_db)):
 def admin_login(request: Request, password: str = Form(...)):
     if password == settings.ADMIN_PASSWORD:
         resp = RedirectResponse(url="/admin", status_code=303)
-        resp.set_cookie("nd_admin_auth", "authenticated", httponly=True, max_age=3600)
+        token = serializer.dumps({"admin": True})
+        secure = is_request_secure(request) or settings.IS_PRODUCTION
+        resp.set_cookie(
+            "nd_admin_auth",
+            token,
+            httponly=True,
+            samesite="lax",
+            secure=secure,
+            max_age=3600
+        )
         return resp
     return templates.TemplateResponse(request=request, name="admin_login.html", context={
         "error": "Invalid admin password."

@@ -84,7 +84,7 @@ def create_consent(
     db.commit()
 
     # Form approval URL
-    base = settings.BASE_URL.rstrip("/")
+    base = settings.PUBLIC_BASE_URL.rstrip("/")
     approval_url = f"{base}/consent/approve?handle={consent_handle}"
 
     return ConsentCreateResponse(

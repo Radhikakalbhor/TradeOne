@@ -13,6 +13,14 @@ class Settings:
             load_dotenv(dotenv_path=ENV_FILE, override=True)
 
     @property
+    def ENVIRONMENT(self) -> str:
+        return os.getenv("ENVIRONMENT", os.getenv("APP_ENV", "development")).strip().lower()
+
+    @property
+    def IS_PRODUCTION(self) -> bool:
+        return self.ENVIRONMENT in ("production", "prod")
+
+    @property
     def SECRET_KEY(self) -> str:
         return os.getenv("SECRET_KEY", "nationaldepo-super-secure-secret-key-change-in-prod-2026").strip()
 
@@ -23,19 +31,11 @@ class Settings:
     # Google OAuth
     @property
     def GOOGLE_CLIENT_ID(self) -> str:
-        val = os.getenv("GOOGLE_CLIENT_ID", "").strip().strip('"').strip("'")
-        if not val and ENV_FILE.exists():
-            self.reload()
-            val = os.getenv("GOOGLE_CLIENT_ID", "").strip().strip('"').strip("'")
-        return val
+        return os.getenv("GOOGLE_CLIENT_ID", "").strip().strip('"').strip("'")
 
     @property
     def GOOGLE_CLIENT_SECRET(self) -> str:
-        val = os.getenv("GOOGLE_CLIENT_SECRET", "").strip().strip('"').strip("'")
-        if not val and ENV_FILE.exists():
-            self.reload()
-            val = os.getenv("GOOGLE_CLIENT_SECRET", "").strip().strip('"').strip("'")
-        return val
+        return os.getenv("GOOGLE_CLIENT_SECRET", "").strip().strip('"').strip("'")
 
     @property
     def GOOGLE_REDIRECT_URI(self) -> str:
@@ -69,6 +69,8 @@ class Settings:
     # Depository Settings
     @property
     def OTP_DEV_MODE(self) -> bool:
+        if self.IS_PRODUCTION:
+            return False
         return os.getenv("OTP_DEV_MODE", "true").lower() in ("true", "1", "yes")
 
     @property
@@ -253,7 +255,13 @@ class Settings:
 
     @property
     def PUBLIC_BASE_URL(self) -> str:
-        return os.getenv("PUBLIC_BASE_URL", self.BASE_URL).strip().rstrip("/")
+        val = os.getenv("PUBLIC_BASE_URL", "").strip().rstrip("/")
+        if val:
+            return val
+        tradeone = os.getenv("TRADEONE_URL", "").strip().rstrip("/")
+        if tradeone:
+            return tradeone
+        return self.BASE_URL.strip().rstrip("/")
 
     @property
     def ALLOWED_EMAILS(self) -> Set[str]:
@@ -270,5 +278,51 @@ class Settings:
     @property
     def CORS_ORIGINS(self) -> List[str]:
         return [o.strip() for o in self.CORS_ORIGINS_RAW.split(",") if o.strip()]
+
+    def validate_production_configuration(self) -> List[str]:
+        """Validates that production environment has secure keys and non-placeholder values.
+        Raises RuntimeError in production if insecure placeholders or missing secrets are detected.
+        """
+        if not self.IS_PRODUCTION:
+            return []
+
+        errors = []
+        secret_checks = {
+            "SECRET_KEY": (self.SECRET_KEY, 32, ["nationaldepo-super-secure-secret-key-change-in-prod-2026"]),
+            "SESSION_SECRET": (self.SESSION_SECRET, 32, ["nationaldepo-session-encryption-key-32-chars-long!"]),
+            "ADMIN_PASSWORD": (self.ADMIN_PASSWORD, 8, ["adminsecret123", "password", "admin"]),
+            "INGEST_API_KEY": (self.INGEST_API_KEY, 16, ["nd-ingest-secret-key-2026"]),
+            "SHARED_IDENTITY_SALT": (self.SHARED_IDENTITY_SALT, 16, ["tradeone-shared-identity-salt-2026"]),
+            "INTERNAL_API_KEY": (self.INTERNAL_API_KEY, 16, ["tradeone-internal-key-2026"]),
+        }
+
+        for name, (val, min_len, defaults) in secret_checks.items():
+            if not val or not val.strip():
+                errors.append(f"{name} must not be empty in production.")
+            elif val in defaults:
+                errors.append(f"{name} is using a default insecure placeholder in production.")
+            elif val.lower().startswith("change-me") or val.lower().startswith("your-"):
+                errors.append(f"{name} contains template placeholder text in production.")
+            elif len(val) < min_len:
+                errors.append(f"{name} must be at least {min_len} characters in production.")
+
+        # OTP_DEV_MODE must be False in production
+        if os.getenv("OTP_DEV_MODE", "false").lower() in ("true", "1", "yes"):
+            errors.append("OTP_DEV_MODE cannot be enabled in production.")
+
+        # DEMO_MODE must be False in production
+        if self.DEMO_MODE:
+            errors.append("DEMO_MODE must be false in production to prevent simulated portfolio data.")
+
+        # SMTP configuration required when Email OTP is used in production
+        if not (self.SMTP_HOST and self.SMTP_USER and self.SMTP_PASSWORD):
+            errors.append("SMTP configuration (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD) is required in production for Email OTP delivery.")
+        elif self.SMTP_PASSWORD.lower().startswith("change-me") or self.SMTP_PASSWORD.lower().startswith("your-"):
+            errors.append("SMTP_PASSWORD contains placeholder text in production.")
+
+        if errors:
+            raise RuntimeError("Production configuration security violation:\n - " + "\n - ".join(errors))
+
+        return errors
 
 settings = Settings()

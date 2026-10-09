@@ -65,7 +65,7 @@ def login_page(
         "error": error,
         "next": next or "",
         "otp_dev_mode": settings.OTP_DEV_MODE,
-        "has_google": bool(settings.GOOGLE_CLIENT_ID)
+        "has_google": bool(settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET)
     })
 
 @router.post("/email/request-otp")
