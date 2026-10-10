@@ -1,5 +1,7 @@
 import smtplib
 import logging
+import base64
+import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime, timezone, timedelta
@@ -19,6 +21,9 @@ logger = logging.getLogger("app.services.auth_service")
 # In-memory testing cache only accessible in OTP_DEV_MODE via dedicated test endpoint
 _dev_otp_store = {}
 
+# In-memory cache for Gmail access token to prevent redundant OAuth token refreshes
+_gmail_token_cache = {"token": "", "expires_at": 0.0}
+
 def get_dev_test_otp(email: str) -> Optional[str]:
     """Retrieve last generated OTP code for test automation only when OTP_DEV_MODE is enabled."""
     if not settings.OTP_DEV_MODE:
@@ -36,6 +41,116 @@ def is_smtp_configured() -> bool:
 def is_resend_configured() -> bool:
     """Check if Resend HTTPS API key is configured in the environment."""
     return bool(settings.RESEND_API_KEY and settings.RESEND_API_KEY.strip())
+
+def is_gmail_configured() -> bool:
+    """Check if Gmail API credentials (Client ID, Client Secret, Refresh Token) are configured."""
+    return bool(
+        settings.GMAIL_REFRESH_TOKEN and settings.GMAIL_REFRESH_TOKEN.strip()
+        and settings.GMAIL_CLIENT_ID and settings.GMAIL_CLIENT_ID.strip()
+        and settings.GMAIL_CLIENT_SECRET and settings.GMAIL_CLIENT_SECRET.strip()
+    )
+
+def get_gmail_access_token() -> Tuple[bool, str]:
+    """Acquire a valid Gmail access token using the stored refresh token.
+    Uses in-memory cache to avoid refreshing on every request.
+    Returns (success, token_or_error_message).
+    """
+    now = time.time()
+    if _gmail_token_cache["token"] and _gmail_token_cache["expires_at"] > now + 60:
+        return True, _gmail_token_cache["token"]
+
+    token_url = "https://oauth2.googleapis.com/token"
+    payload = {
+        "client_id": settings.GMAIL_CLIENT_ID,
+        "client_secret": settings.GMAIL_CLIENT_SECRET,
+        "refresh_token": settings.GMAIL_REFRESH_TOKEN,
+        "grant_type": "refresh_token",
+    }
+
+    try:
+        import httpx
+        with httpx.Client(timeout=10.0) as client:
+            resp = client.post(token_url, data=payload)
+            if resp.status_code != 200:
+                try:
+                    err_json = resp.json()
+                    err_code = err_json.get("error")
+                    err_desc = err_json.get("error_description")
+                    if err_code and err_desc:
+                        details = f"{err_code}: {err_desc}"
+                    else:
+                        details = err_desc or err_code or resp.text
+                except Exception:
+                    details = resp.text
+                return False, f"Google token refresh failed (HTTP {resp.status_code}): {details}"
+
+            data = resp.json()
+            access_token = data.get("access_token")
+            expires_in = data.get("expires_in", 3600)
+
+            if not access_token:
+                return False, "Google token response did not contain access_token."
+
+            _gmail_token_cache["token"] = access_token
+            _gmail_token_cache["expires_at"] = now + float(expires_in)
+            return True, access_token
+    except (httpx.TimeoutException, httpx.ConnectTimeout):
+        return False, "Google token refresh timed out."
+    except Exception as exc:
+        return False, f"Failed to acquire Google access token: {type(exc).__name__}: {str(exc)}"
+
+def send_email_via_gmail_api(to_email: str, subject: str, html_content: str) -> Tuple[bool, str]:
+    """Deliver email via official Gmail API users.messages.send over HTTPS (port 443).
+    Bypasses cloud datacenter outbound SMTP port blocks (Errno 101 Network unreachable).
+    Never logs or exposes access/refresh tokens or OTP verification codes.
+    """
+    if not is_gmail_configured():
+        return False, "Gmail API is not fully configured (missing GMAIL_REFRESH_TOKEN, GMAIL_CLIENT_ID, or GMAIL_CLIENT_SECRET)."
+
+    token_ok, token_val = get_gmail_access_token()
+    if not token_ok:
+        return False, token_val
+
+    sender = settings.GMAIL_SENDER or "hacksmiths360@gmail.com"
+
+    # Construct standard RFC 2822 MIME message
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = f"TradeOne <{sender}>"
+    msg["To"] = to_email
+    msg.attach(MIMEText(html_content, "html"))
+
+    # Encode RFC 2822 payload as base64url string per Gmail API specification
+    raw_b64 = base64.urlsafe_b64encode(msg.as_bytes()).decode("ascii")
+
+    headers = {
+        "Authorization": f"Bearer {token_val}",
+        "Content-Type": "application/json",
+        "User-Agent": "TradeOne-Depository/1.0"
+    }
+    payload = {"raw": raw_b64}
+
+    try:
+        import httpx
+        with httpx.Client(timeout=12.0) as client:
+            resp = client.post(
+                "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+                json=payload,
+                headers=headers
+            )
+            if 200 <= resp.status_code < 300:
+                return True, "Verification code sent to your email."
+
+            try:
+                err_data = resp.json()
+                err_msg = err_data.get("error", {}).get("message") or resp.text
+            except Exception:
+                err_msg = resp.text
+            return False, f"Gmail API delivery error (HTTP {resp.status_code}): {err_msg}"
+    except (httpx.TimeoutException, httpx.ConnectTimeout):
+        return False, "Gmail API delivery timed out."
+    except Exception as exc:
+        return False, f"Failed to deliver email via Gmail API: {type(exc).__name__}: {str(exc)}"
 
 def send_email_via_resend(to_email: str, subject: str, html_content: str) -> Tuple[bool, str]:
     """Deliver email via Resend HTTPS API over port 443.
@@ -126,9 +241,20 @@ def send_otp_email(to_email: str, code: str) -> Tuple[bool, str]:
     </div>
     """
 
-    # Priority 1: HTTPS Email API (Resend) - immune to outbound SMTP network restrictions
-    if is_resend_configured():
-        logger.info("Selected email provider: Resend (HTTPS API over port 443). Recipient: %s, Sender: %s", to_email, settings.RESEND_FROM)
+    provider = settings.EMAIL_PROVIDER.lower()
+
+    # Explicit provider selection via EMAIL_PROVIDER
+    if provider == "gmail":
+        logger.info("Selected email provider: Gmail API (explicit EMAIL_PROVIDER=gmail). Recipient: %s, Sender: %s", to_email, settings.GMAIL_SENDER)
+        success, msg = send_email_via_gmail_api(to_email, subject, html_content)
+        if success:
+            logger.info("Gmail API email successfully dispatched for %s", to_email)
+        else:
+            logger.warning("Gmail API email dispatch failed for %s: %s", to_email, msg)
+        return success, msg
+
+    if provider == "resend":
+        logger.info("Selected email provider: Resend (explicit EMAIL_PROVIDER=resend). Recipient: %s, Sender: %s", to_email, settings.RESEND_FROM)
         success, msg = send_email_via_resend(to_email, subject, html_content)
         if success:
             logger.info("Resend HTTPS API email successfully dispatched for %s", to_email)
@@ -136,7 +262,37 @@ def send_otp_email(to_email: str, code: str) -> Tuple[bool, str]:
             logger.warning("Resend HTTPS API email dispatch failed for %s: %s", to_email, msg)
         return success, msg
 
-    # Priority 2: SMTP fallback (when explicitly configured and Resend is not set)
+    if provider == "smtp":
+        logger.info("Selected email provider: SMTP (explicit EMAIL_PROVIDER=smtp). Recipient: %s, Host: %s", to_email, settings.SMTP_HOST)
+        success, msg = send_email_via_smtp(to_email, subject, html_content)
+        if success:
+            logger.info("SMTP email successfully dispatched for %s", to_email)
+        else:
+            logger.warning("SMTP email dispatch failed for %s: %s", to_email, msg)
+        return success, msg
+
+    # Auto-detection hierarchy when EMAIL_PROVIDER is not explicitly specified:
+    # Priority 1: Gmail API (Official HTTPS API over port 443 — sends to any recipient)
+    if is_gmail_configured():
+        logger.info("Selected email provider: Gmail API (auto-detected). Recipient: %s, Sender: %s", to_email, settings.GMAIL_SENDER)
+        success, msg = send_email_via_gmail_api(to_email, subject, html_content)
+        if success:
+            logger.info("Gmail API email successfully dispatched for %s", to_email)
+        else:
+            logger.warning("Gmail API email dispatch failed for %s: %s", to_email, msg)
+        return success, msg
+
+    # Priority 2: Resend HTTPS API (over port 443)
+    if is_resend_configured():
+        logger.info("Selected email provider: Resend (auto-detected). Recipient: %s, Sender: %s", to_email, settings.RESEND_FROM)
+        success, msg = send_email_via_resend(to_email, subject, html_content)
+        if success:
+            logger.info("Resend HTTPS API email successfully dispatched for %s", to_email)
+        else:
+            logger.warning("Resend HTTPS API email dispatch failed for %s: %s", to_email, msg)
+        return success, msg
+
+    # Priority 3: SMTP fallback (when explicitly configured and HTTPS providers not set)
     if is_smtp_configured():
         logger.info("Selected email provider: SMTP fallback (Host: %s, Port: %s). Recipient: %s", settings.SMTP_HOST, settings.SMTP_PORT, to_email)
         success, msg = send_email_via_smtp(to_email, subject, html_content)
@@ -146,10 +302,10 @@ def send_otp_email(to_email: str, code: str) -> Tuple[bool, str]:
             logger.warning("SMTP email dispatch failed for %s: %s", to_email, msg)
         return success, msg
 
-    logger.warning("No email provider configured. RESEND_API_KEY is unset and SMTP credentials are not configured.")
+    logger.warning("No email provider configured in environment.")
     return False, (
-        "Email delivery is not configured. Please configure RESEND_API_KEY (recommended for cloud/Render) "
-        "or SMTP credentials (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD) in your environment."
+        "Email delivery is not configured. Please configure GMAIL_REFRESH_TOKEN (recommended for arbitrary recipients on Render), "
+        "RESEND_API_KEY, or SMTP credentials (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD) in your environment."
     )
 
 def request_email_otp(db, email: str, send_email: bool = True) -> Tuple[bool, str, Optional[str]]:

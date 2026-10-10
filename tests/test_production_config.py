@@ -247,3 +247,89 @@ def test_production_rejects_placeholder_resend_key():
             s.validate_production_configuration()
         assert "RESEND_API_KEY" in str(excinfo.value)
 
+
+def test_production_passes_with_gmail_api_without_resend_or_smtp():
+    """Verify that in production, configuring GMAIL_REFRESH_TOKEN satisfies email delivery."""
+    s = Settings()
+    prod_env = {
+        "ENVIRONMENT": "production",
+        "SECRET_KEY": "valid_secret_key_long_enough_32_chars!",
+        "SESSION_SECRET": "valid_session_secret_long_enough_32!",
+        "ADMIN_PASSWORD": "ValidProdPassword99!",
+        "INGEST_API_KEY": "valid_ingest_key_32_chars_long!!",
+        "SHARED_IDENTITY_SALT": "valid_shared_salt_32_chars_long!",
+        "INTERNAL_API_KEY": "valid_internal_key_32_chars_long!",
+        "OTP_DEV_MODE": "false",
+        "DEMO_MODE": "false",
+        "EMAIL_PROVIDER": "gmail",
+        "GMAIL_CLIENT_ID": "valid_gmail_client_id.apps.googleusercontent.com",
+        "GMAIL_CLIENT_SECRET": "valid_gmail_client_secret_xyz",
+        "GMAIL_REFRESH_TOKEN": "1//04valid_refresh_token_abc_123",
+        "GMAIL_SENDER": "hacksmiths360@gmail.com",
+        "RESEND_API_KEY": "",
+        "SMTP_HOST": "",
+        "SMTP_PORT": "587",
+        "SMTP_USER": "",
+        "SMTP_PASSWORD": ""
+    }
+    with patch.dict(os.environ, prod_env, clear=True):
+        errors = s.validate_production_configuration()
+        assert errors == []
+        assert s.IS_PRODUCTION is True
+        assert s.GMAIL_REFRESH_TOKEN == "1//04valid_refresh_token_abc_123"
+
+
+def test_production_rejects_placeholder_gmail_refresh_token():
+    """Verify that placeholder GMAIL_REFRESH_TOKEN is rejected in production."""
+    s = Settings()
+    prod_env = {
+        "ENVIRONMENT": "production",
+        "SECRET_KEY": "valid_secret_key_long_enough_32_chars!",
+        "SESSION_SECRET": "valid_session_secret_long_enough_32!",
+        "ADMIN_PASSWORD": "ValidProdPassword99!",
+        "INGEST_API_KEY": "valid_ingest_key_32_chars_long!!",
+        "SHARED_IDENTITY_SALT": "valid_shared_salt_32_chars_long!",
+        "INTERNAL_API_KEY": "valid_internal_key_32_chars_long!",
+        "OTP_DEV_MODE": "false",
+        "DEMO_MODE": "false",
+        "GMAIL_CLIENT_ID": "valid_client_id",
+        "GMAIL_CLIENT_SECRET": "valid_client_secret",
+        "GMAIL_REFRESH_TOKEN": "change-me-refresh-token",
+        "RESEND_API_KEY": "",
+        "SMTP_HOST": "",
+        "SMTP_PORT": "587",
+        "SMTP_USER": "",
+        "SMTP_PASSWORD": ""
+    }
+    with patch.dict(os.environ, prod_env, clear=True):
+        with pytest.raises(RuntimeError) as excinfo:
+            s.validate_production_configuration()
+        assert "GMAIL_REFRESH_TOKEN" in str(excinfo.value)
+
+
+def test_production_rejects_missing_gmail_when_explicitly_selected():
+    """Verify that if EMAIL_PROVIDER=gmail, missing refresh token raises RuntimeError."""
+    s = Settings()
+    prod_env = {
+        "ENVIRONMENT": "production",
+        "SECRET_KEY": "valid_secret_key_long_enough_32_chars!",
+        "SESSION_SECRET": "valid_session_secret_long_enough_32!",
+        "ADMIN_PASSWORD": "ValidProdPassword99!",
+        "INGEST_API_KEY": "valid_ingest_key_32_chars_long!!",
+        "SHARED_IDENTITY_SALT": "valid_shared_salt_32_chars_long!",
+        "INTERNAL_API_KEY": "valid_internal_key_32_chars_long!",
+        "OTP_DEV_MODE": "false",
+        "DEMO_MODE": "false",
+        "EMAIL_PROVIDER": "gmail",
+        "GMAIL_REFRESH_TOKEN": "",
+        "RESEND_API_KEY": "re_valid_key_present_but_not_selected",
+        "SMTP_HOST": "",
+        "SMTP_PORT": "587",
+        "SMTP_USER": "",
+        "SMTP_PASSWORD": ""
+    }
+    with patch.dict(os.environ, prod_env, clear=True):
+        with pytest.raises(RuntimeError) as excinfo:
+            s.validate_production_configuration()
+        assert "EMAIL_PROVIDER is set to 'gmail'" in str(excinfo.value)
+

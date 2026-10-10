@@ -14,7 +14,8 @@ from app.main import app
 from app.services.auth_service import (
     request_email_otp, verify_email_otp, match_or_create_user,
     send_otp_email, is_smtp_configured, is_resend_configured,
-    send_email_via_resend
+    send_email_via_resend, is_gmail_configured, get_gmail_access_token,
+    send_email_via_gmail_api, _gmail_token_cache
 )
 
 @pytest.fixture(scope="module", autouse=True)
@@ -433,6 +434,243 @@ def test_otp_request_and_verification_via_resend(monkeypatch):
             call_kwargs = mock_client.post.call_args[1]
             import re
             match = re.search(r'([0-9]{6})</span>', call_kwargs["json"]["html"])
+            assert match is not None
+            code = match.group(1)
+
+            # Verify OTP
+            verified, vmsg, user = verify_email_otp(db, email, code)
+            assert verified is True
+            assert user is not None
+            assert user.email == email
+
+            # One-time use: re-verification must fail
+            verified2, vmsg2, _ = verify_email_otp(db, email, code)
+            assert verified2 is False
+    finally:
+        db.close()
+
+
+def test_is_gmail_configured(monkeypatch):
+    """Verify is_gmail_configured requires all three credentials."""
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "test_id")
+    monkeypatch.setenv("GMAIL_CLIENT_SECRET", "test_secret")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "test_refresh")
+    assert is_gmail_configured() is True
+
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "")
+    assert is_gmail_configured() is False
+
+
+def test_gmail_token_refresh_and_caching(monkeypatch):
+    """Verify OAuth access token acquisition and in-memory caching."""
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "test_client_id")
+    monkeypatch.setenv("GMAIL_CLIENT_SECRET", "test_client_secret")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "test_refresh_token")
+
+    # Clear cache
+    _gmail_token_cache["token"] = ""
+    _gmail_token_cache["expires_at"] = 0.0
+
+    fake_resp = MagicMock()
+    fake_resp.status_code = 200
+    fake_resp.json.return_value = {
+        "access_token": "ya29.test_cached_access_token",
+        "expires_in": 3600
+    }
+
+    with patch("httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.post.return_value = fake_resp
+        mock_client_cls.return_value = mock_client
+
+        # Call 1: Fetches token via POST
+        ok, token = get_gmail_access_token()
+        assert ok is True
+        assert token == "ya29.test_cached_access_token"
+        assert mock_client.post.call_count == 1
+
+        # Call 2: Uses cached token without additional HTTP call
+        ok2, token2 = get_gmail_access_token()
+        assert ok2 is True
+        assert token2 == "ya29.test_cached_access_token"
+        assert mock_client.post.call_count == 1
+
+
+def test_gmail_token_refresh_failure(monkeypatch):
+    """Verify graceful error reporting when token refresh fails."""
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "test_client_id")
+    monkeypatch.setenv("GMAIL_CLIENT_SECRET", "test_client_secret")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "invalid_refresh_token")
+
+    _gmail_token_cache["token"] = ""
+    _gmail_token_cache["expires_at"] = 0.0
+
+    fake_resp = MagicMock()
+    fake_resp.status_code = 400
+    fake_resp.json.return_value = {
+        "error": "invalid_grant",
+        "error_description": "Token has been expired or revoked."
+    }
+
+    with patch("httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.post.return_value = fake_resp
+        mock_client_cls.return_value = mock_client
+
+        ok, err_msg = get_gmail_access_token()
+        assert ok is False
+        assert "400" in err_msg
+        assert "invalid_grant" in err_msg
+
+
+def test_send_email_via_gmail_api_success(monkeypatch):
+    """Verify Gmail API message payload encoding and HTTP dispatch."""
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "test_client_id")
+    monkeypatch.setenv("GMAIL_CLIENT_SECRET", "test_client_secret")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "test_refresh_token")
+    monkeypatch.setenv("GMAIL_SENDER", "hacksmiths360@gmail.com")
+
+    # Set active token in cache
+    import time
+    _gmail_token_cache["token"] = "ya29.mock_token_for_send"
+    _gmail_token_cache["expires_at"] = time.time() + 3000
+
+    fake_resp = MagicMock()
+    fake_resp.status_code = 200
+    fake_resp.json.return_value = {"id": "18e123456789abcd"}
+
+    with patch("httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.post.return_value = fake_resp
+        mock_client_cls.return_value = mock_client
+
+        sent, msg = send_email_via_gmail_api("recipient@domain.com", "Your OTP Code", "<p>Code 987654</p>")
+        assert sent is True
+        assert "sent" in msg.lower()
+
+        # Check call arguments
+        mock_client.post.assert_called_once()
+        args, kwargs = mock_client.post.call_args
+        assert args[0] == "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
+        assert kwargs["headers"]["Authorization"] == "Bearer ya29.mock_token_for_send"
+        # Validate base64url payload
+        import base64
+        decoded_raw = base64.urlsafe_b64decode(kwargs["json"]["raw"]).decode("utf-8")
+        assert "hacksmiths360@gmail.com" in decoded_raw
+        assert "recipient@domain.com" in decoded_raw
+        assert "Your OTP Code" in decoded_raw
+        assert "987654" in decoded_raw
+
+
+def test_send_email_via_gmail_api_error(monkeypatch):
+    """Verify Gmail API HTTP error handling without crashing."""
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "test_client_id")
+    monkeypatch.setenv("GMAIL_CLIENT_SECRET", "test_client_secret")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "test_refresh_token")
+
+    import time
+    _gmail_token_cache["token"] = "ya29.mock_token"
+    _gmail_token_cache["expires_at"] = time.time() + 3000
+
+    fake_resp = MagicMock()
+    fake_resp.status_code = 403
+    fake_resp.json.return_value = {"error": {"message": "Daily sending quota exceeded."}}
+
+    with patch("httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.post.return_value = fake_resp
+        mock_client_cls.return_value = mock_client
+
+        sent, msg = send_email_via_gmail_api("user@test.com", "Subject", "<p>Body</p>")
+        assert sent is False
+        assert "403" in msg
+        assert "Daily sending quota exceeded" in msg
+
+
+def test_explicit_email_provider_selection(monkeypatch):
+    """Verify explicit EMAIL_PROVIDER overrides auto-detection."""
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "test_client_id")
+    monkeypatch.setenv("GMAIL_CLIENT_SECRET", "test_client_secret")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "test_refresh_token")
+    monkeypatch.setenv("RESEND_API_KEY", "re_test_key")
+
+    with patch("app.services.auth_service.send_email_via_gmail_api", return_value=(True, "Gmail ok")) as mock_gmail, \
+         patch("app.services.auth_service.send_email_via_resend", return_value=(True, "Resend ok")) as mock_resend:
+
+        # 1. EMAIL_PROVIDER=gmail explicitly calls Gmail API
+        monkeypatch.setenv("EMAIL_PROVIDER", "gmail")
+        ok1, msg1 = send_otp_email("user@test.com", "111111")
+        assert ok1 is True
+        mock_gmail.assert_called_once()
+        mock_resend.assert_not_called()
+
+        mock_gmail.reset_mock()
+        mock_resend.reset_mock()
+
+        # 2. EMAIL_PROVIDER=resend explicitly calls Resend API
+        monkeypatch.setenv("EMAIL_PROVIDER", "resend")
+        ok2, msg2 = send_otp_email("user@test.com", "222222")
+        assert ok2 is True
+        mock_resend.assert_called_once()
+        mock_gmail.assert_not_called()
+
+        mock_gmail.reset_mock()
+        mock_resend.reset_mock()
+
+        # 3. Unset EMAIL_PROVIDER auto-detects Gmail API as Priority 1
+        monkeypatch.setenv("EMAIL_PROVIDER", "")
+        ok3, msg3 = send_otp_email("user@test.com", "333333")
+        assert ok3 is True
+        mock_gmail.assert_called_once()
+        mock_resend.assert_not_called()
+
+
+def test_otp_request_and_verification_via_gmail_api(monkeypatch):
+    """Full end-to-end OTP cycle using Gmail API mock."""
+    monkeypatch.setenv("EMAIL_PROVIDER", "gmail")
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "test_client_id")
+    monkeypatch.setenv("GMAIL_CLIENT_SECRET", "test_client_secret")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "test_refresh_token")
+    monkeypatch.setenv("GMAIL_SENDER", "hacksmiths360@gmail.com")
+
+    import time
+    _gmail_token_cache["token"] = "ya29.mock_token_e2e"
+    _gmail_token_cache["expires_at"] = time.time() + 3000
+
+    db = SessionLocal()
+    try:
+        email = f"test.gmail.e2e.{int(time.time()*1000)}@externaldomain.in"
+
+        fake_resp = MagicMock()
+        fake_resp.status_code = 200
+        fake_resp.json.return_value = {"id": "msg_gmail_e2e"}
+
+        with patch("httpx.Client") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.__enter__.return_value = mock_client
+            mock_client.post.return_value = fake_resp
+            mock_client_cls.return_value = mock_client
+
+            # Request OTP with send_email=True (triggers Gmail API)
+            success, msg, _ = request_email_otp(db, email, send_email=True)
+            assert success is True
+            assert "sent" in msg.lower()
+
+            # Retrieve active OTP from DB
+            otp = db.query(EmailOtp).filter(EmailOtp.email == email, EmailOtp.used == False).first()
+            assert otp is not None
+            exp_time = otp.expires_at if otp.expires_at.tzinfo else otp.expires_at.replace(tzinfo=timezone.utc)
+            assert exp_time > datetime.now(timezone.utc)
+
+            # Retrieve code from encoded email body
+            call_kwargs = mock_client.post.call_args[1]
+            import base64, re
+            decoded = base64.urlsafe_b64decode(call_kwargs["json"]["raw"]).decode("utf-8")
+            match = re.search(r'([0-9]{6})</span>', decoded)
             assert match is not None
             code = match.group(1)
 

@@ -66,6 +66,32 @@ class Settings:
         from_val = os.getenv("SMTP_FROM", "").strip()
         return from_val if from_val else self.SMTP_USER
 
+    # Email Delivery Provider Selection
+    @property
+    def EMAIL_PROVIDER(self) -> str:
+        """Explicit email provider selection: 'gmail', 'resend', or 'smtp'. Defaults to empty (auto-detect)."""
+        return os.getenv("EMAIL_PROVIDER", "").strip().strip('"').strip("'").lower()
+
+    # Gmail API over HTTPS (Official users.messages.send) Settings
+    @property
+    def GMAIL_CLIENT_ID(self) -> str:
+        val = os.getenv("GMAIL_CLIENT_ID") or self.GOOGLE_CLIENT_ID or ""
+        return val.strip().strip('"').strip("'")
+
+    @property
+    def GMAIL_CLIENT_SECRET(self) -> str:
+        val = os.getenv("GMAIL_CLIENT_SECRET") or self.GOOGLE_CLIENT_SECRET or ""
+        return val.strip().strip('"').strip("'")
+
+    @property
+    def GMAIL_REFRESH_TOKEN(self) -> str:
+        return os.getenv("GMAIL_REFRESH_TOKEN", "").strip().strip('"').strip("'")
+
+    @property
+    def GMAIL_SENDER(self) -> str:
+        val = os.getenv("GMAIL_SENDER", "hacksmiths360@gmail.com")
+        return val.strip().strip('"').strip("'")
+
     # HTTPS Email API (Resend) Settings
     @property
     def RESEND_API_KEY(self) -> str:
@@ -330,11 +356,23 @@ class Settings:
         if self.DEMO_MODE:
             errors.append("DEMO_MODE must be false in production to prevent simulated portfolio data.")
 
-        # Email OTP delivery configuration required in production (RESEND_API_KEY or SMTP)
+        # Email OTP delivery configuration required in production (Gmail API, Resend, or SMTP)
+        has_gmail = bool(self.GMAIL_REFRESH_TOKEN and self.GMAIL_CLIENT_ID and self.GMAIL_CLIENT_SECRET)
         has_resend = bool(self.RESEND_API_KEY and self.RESEND_API_KEY.strip())
         has_smtp = bool(self.SMTP_HOST and self.SMTP_USER and self.SMTP_PASSWORD)
-        if not (has_resend or has_smtp):
-            errors.append("Email delivery configuration (RESEND_API_KEY or SMTP_HOST/SMTP_USER/SMTP_PASSWORD) is required in production for Email OTP delivery.")
+
+        provider = self.EMAIL_PROVIDER
+        if provider == "gmail" and not has_gmail:
+            errors.append("EMAIL_PROVIDER is set to 'gmail' but GMAIL_REFRESH_TOKEN, GMAIL_CLIENT_ID, or GMAIL_CLIENT_SECRET is missing.")
+        elif provider == "resend" and not has_resend:
+            errors.append("EMAIL_PROVIDER is set to 'resend' but RESEND_API_KEY is missing.")
+        elif provider == "smtp" and not has_smtp:
+            errors.append("EMAIL_PROVIDER is set to 'smtp' but SMTP_HOST, SMTP_USER, or SMTP_PASSWORD is missing.")
+        elif not provider and not (has_gmail or has_resend or has_smtp):
+            errors.append("Email delivery configuration (GMAIL_REFRESH_TOKEN, RESEND_API_KEY, or SMTP_HOST/SMTP_USER/SMTP_PASSWORD) is required in production for Email OTP delivery.")
+
+        if has_gmail and (self.GMAIL_REFRESH_TOKEN.lower().startswith("change-me") or self.GMAIL_REFRESH_TOKEN.lower().startswith("your-")):
+            errors.append("GMAIL_REFRESH_TOKEN contains placeholder text in production.")
         if has_resend and (self.RESEND_API_KEY.lower().startswith("change-me") or self.RESEND_API_KEY.lower().startswith("your-")):
             errors.append("RESEND_API_KEY contains placeholder text in production.")
         if has_smtp and (self.SMTP_PASSWORD.lower().startswith("change-me") or self.SMTP_PASSWORD.lower().startswith("your-")):

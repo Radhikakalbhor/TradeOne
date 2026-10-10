@@ -386,6 +386,13 @@ BHARATINVEST_URL=https://bharatinvest.onrender.com
 BONDBAZAAR_URL=https://bondbazaar-1.onrender.com
 
 # Email Delivery (HTTPS API recommended for Render to bypass outbound SMTP socket restriction)
+EMAIL_PROVIDER=gmail
+GMAIL_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
+GMAIL_CLIENT_SECRET=your-google-oauth-client-secret
+GMAIL_REFRESH_TOKEN=your-gmail-refresh-token
+GMAIL_SENDER=hacksmiths360@gmail.com
+
+# Alternative HTTPS Provider (Resend)
 RESEND_API_KEY=your-resend-api-key
 RESEND_FROM=TradeOne <onboarding@resend.dev>
 

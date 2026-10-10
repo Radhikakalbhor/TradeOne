@@ -112,16 +112,36 @@ Create a `.env` file in the project root:
    ```
 
 ### Email Delivery Configuration (OTP Verification)
-For cloud platforms such as Render where outbound SMTP ports (25, 465, 587) are restricted or block TCP sockets with `[Errno 101] Network is unreachable`, use an HTTPS Email API provider (Resend):
+For cloud platforms such as Render where outbound SMTP ports (25, 465, 587) are blocked with `[Errno 101] Network is unreachable`, use an HTTPS API provider over port 443:
+
+#### 1. Official Gmail API (Recommended — Zero Cost, Arbitrary Recipients)
+Sends verification codes directly through `hacksmiths360@gmail.com` using Google's official Gmail API (`users.messages.send`) over HTTPS:
 
 ```env
-# Resend HTTPS API (Recommended for Render & cloud platforms — port 443 HTTPS)
+EMAIL_PROVIDER=gmail
+GMAIL_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
+GMAIL_CLIENT_SECRET=your-google-oauth-client-secret
+GMAIL_REFRESH_TOKEN=your-gmail-refresh-token
+GMAIL_SENDER=hacksmiths360@gmail.com
+```
+
+> **Acquiring `GMAIL_REFRESH_TOKEN`:**
+> Run the standalone helper utility:
+> ```bash
+> python scripts/get_gmail_refresh_token.py
+> ```
+> Follow the terminal prompt to authenticate once with `hacksmiths360@gmail.com` and obtain your refresh token.
+
+#### 2. Resend HTTPS API (Alternative HTTPS Provider)
+```env
+EMAIL_PROVIDER=resend
 RESEND_API_KEY=your-resend-api-key
 RESEND_FROM=TradeOne <onboarding@resend.dev>
 ```
 
-#### SMTP Email Configuration (Optional fallback for local / non-restricted environments)
+#### 3. SMTP Email Configuration (Optional fallback for local / non-restricted environments)
 ```env
+EMAIL_PROVIDER=smtp
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=your-email@example.com

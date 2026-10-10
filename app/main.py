@@ -23,12 +23,15 @@ async def lifespan(app: FastAPI):
     settings.validate_production_configuration()
 
     # Diagnostic email provider logging on startup (safe, no secrets)
-    if settings.RESEND_API_KEY:
+    provider_pref = settings.EMAIL_PROVIDER
+    if provider_pref == "gmail" or (not provider_pref and settings.GMAIL_REFRESH_TOKEN and settings.GMAIL_CLIENT_ID):
+        logger.info("Email OTP provider: Gmail API HTTPS (sender: %s)", settings.GMAIL_SENDER)
+    elif provider_pref == "resend" or (not provider_pref and settings.RESEND_API_KEY):
         logger.info("Email OTP provider: Resend HTTPS API (sender: %s)", settings.RESEND_FROM)
     elif settings.SMTP_HOST and settings.SMTP_USER and settings.SMTP_PASSWORD:
         logger.info("Email OTP provider: SMTP fallback (host: %s, port: %s)", settings.SMTP_HOST, settings.SMTP_PORT)
     else:
-        logger.warning("Email OTP provider: Neither Resend nor SMTP is configured.")
+        logger.warning("Email OTP provider: No email delivery provider fully configured.")
 
     # Create DB tables
     Base.metadata.create_all(bind=engine)
