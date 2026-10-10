@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% block title %}Quiz: {{ lesson_label }} | TradeOne Learn{% endblock %}
+
+{% block content %}
+<style>
+.quiz-container {
+  max-width: 760px;
+  margin: 0 auto 40px auto;
+}
+.quiz-header {
+  background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 24px;
+}
+.quiz-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+.quiz-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 8px 0;
+}
+.quiz-subtitle {
+  color: #94a3b8;
+  font-size: 0.92rem;
+  margin: 0;
+  line-height: 1.5;
+}
+.disclaimer-banner {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  color: #fde68a;
+  margin-top: 14px;
+  line-height: 1.4;
+}
+.q-card {
+  background: #131b2e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 18px;
+  transition: border-color 0.2s ease;
+}
+.q-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #818cf8;
+  margin-bottom: 8px;
+}
+.q-text {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 16px;
+  line-height: 1.45;
+}
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.opt-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.opt-label:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+.opt-label input[type="radio"] {
+  margin-top: 3px;
+  accent-color: #8b5cf6;
+}
+.opt-text {
+  color: #cbd5e1;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+.opt-label.selected {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: #8b5cf6;
+}
+.opt-label.correct {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: #10b981 !important;
+}
+.opt-label.wrong {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: #ef4444 !important;
+}
+.explanation-box {
+  display: none;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.6);
+  border-left: 3px solid #8b5cf6;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+.explanation-box.show {
+  display: block;
+}
+.quiz-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.result-card {
+  display: none;
+  background: linear-gradient(135deg, #1e1b4b 0%, #064e3b 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.result-score {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #10b981;
+  margin: 10px 0 6px 0;
+}
+.result-note {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  max-width: 500px;
+  margin: 0 auto 16px auto;
+}
+</style>
+
+<div class="quiz-container">
+  <div class="quiz-header">
+    <div class="quiz-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      {{ "Pre-Lesson Assessment" if mode == "pre" else "Post-Lesson Quiz" }}
+    </div>
+    <h1 class="quiz-title">{{ lesson_label }} Checkpoint</h1>
+    <p class="quiz-subtitle">
+      {% if mode == "pre" %}
+      Check your current understanding before taking the lesson. No pressure — this helps gauge your learning progress!
+      {% else %}
+      5 quick questions to consolidate what you learned about {{ lesson_label }}. Every question has an educational explanation.
+      {% endif %}
+    </p>
+    <div class="disclaimer-banner">
+      <strong>Educational Notice:</strong> {{ disclaimer }}
+    </div>
+  </div>
+
+  <div id="resultCard" class="result-card">
+    <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: #a7f3d0; font-weight: 700;">Quiz Completed</div>
+    <div id="resultScore" class="result-score">0 / {{ quiz.questions|length }}</div>
+    <p id="resultMsg" class="result-note"></p>
+    <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+      <a href="/learn/lesson/{{ topic }}" class="btn btn-primary">Return to Lesson</a>
+      <a href="/learn" class="btn btn-secondary">Learning Hub</a>
+    </div>
+  </div>
+
+  <form id="quizForm" onsubmit="handleQuizSubmit(event)">
+    {% for q in quiz.questions %}
+    <div class="q-card" id="qcard-{{ loop.index0 }}">
+      <div class="q-num">Question {{ loop.index }} of {{ quiz.questions|length }}</div>
+      <div class="q-text">{{ q.question }}</div>
+      <div class="options-list">
+        {% for opt in q.options %}
+        <label class="opt-label" id="opt-{{ loop.parent.loop.index0 }}-{{ loop.index0 }}">
+          <input type="radio" name="q_{{ loop.parent.loop.index0 }}" value="{{ loop.index0 }}" required onchange="handleOptSelect({{ loop.parent.loop.index0 }}, {{ loop.index0 }})">
+          <span class="opt-text">{{ opt }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      <div class="explanation-box" id="exp-{{ loop.index0 }}"></div>
+    </div>
+    {% endfor %}
+
+    <div class="quiz-actions" id="quizActions">
+      <a href="/learn/lesson/{{ topic }}" class="btn btn-secondary">&larr; Back to Lesson</a>
+      <button type="submit" id="submitBtn" class="btn btn-primary" style="padding: 10px 28px; font-weight: 600;">Submit Answers</button>
+    </div>
+  </form>
+</div>
+
+<script>
+const TOTAL_QUESTIONS = {{ quiz.questions|length }};
+const TOPIC = "{{ topic }}";
+const MODE = "{{ mode }}";
+
+function handleOptSelect(qIdx, optIdx) {
+  const card = document.getElementById('qcard-' + qIdx);
+  card.querySelectorAll('.opt-label').forEach(lbl => lbl.classList.remove('selected'));
+  const target = document.getElementById('opt-' + qIdx + '-' + optIdx);
+  if (target) target.classList.add('selected');
+}
+
+async function handleQuizSubmit(e) {
+  e.preventDefault();
+  const form = document.getElementById('quizForm');
+  const answers = [];
+  for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+    const checked = form.querySelector(`input[name="q_${i}"]:checked`);
+    answers.push(checked ? parseInt(checked.value) : -1);
+  }
+
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Grading...';
+
+  try {
+    const res = await fetch(`/learn/quiz/${TOPIC}/submit?mode=${MODE}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers })
+    });
+    const data = await res.json();
+
+    // Mark options correct / wrong and show explanations
+    data.breakdown.forEach((item, idx) => {
+      const userAns = item.user_answer;
+      const correctAns = item.correct_index;
+
+      if (userAns !== null && userAns !== undefined) {
+        const userLabel = document.getElementById(`opt-${idx}-${userAns}`);
+        if (userLabel) {
+          if (item.correct) {
+            userLabel.classList.add('correct');
+          } else {
+            userLabel.classList.add('wrong');
+          }
+        }
+      }
+      const correctLabel = document.getElementById(`opt-${idx}-${correctAns}`);
+      if (correctLabel) {
+        correctLabel.classList.add('correct');
+      }
+
+      const expBox = document.getElementById(`exp-${idx}`);
+      if (expBox) {
+        expBox.innerHTML = `<strong>${item.correct ? '✓ Correct!' : '✗ Explanation:'}</strong> ${item.explanation}`;
+        expBox.classList.add('show');
+      }
+    });
+
+    // Disable all radio buttons
+    form.querySelectorAll('input[type="radio"]').forEach(r => r.disabled = true);
+
+    // Show result card
+    const resultCard = document.getElementById('resultCard');
+    const resultScore = document.getElementById('resultScore');
+    const resultMsg = document.getElementById('resultMsg');
+    resultScore.textContent = `${data.score} / ${data.total}`;
+
+    if (data.score === data.total) {
+      resultMsg.textContent = 'Perfect score! You have a solid grasp of this topic.';
+    } else if (data.score >= 3) {
+      resultMsg.textContent = 'Good effort! Review the explanations above to strengthen your understanding.';
+    } else {
+      resultMsg.textContent = 'Keep exploring! Reviewing the lesson sections will help clarify these concepts.';
+    }
+
+    resultCard.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('quizActions').style.display = 'none';
+
+  } catch (err) {
+    console.error(err);
+    alert('Failed to submit quiz. Please try again.');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Answers';
+  }
+}
+</script>
+{% endblock %}

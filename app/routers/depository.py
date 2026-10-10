@@ -72,12 +72,17 @@ def dashboard(
         Consent.status == "ACTIVE"
     ).count()
 
+    from app.services.learn_service import compute_diversification, LEARN_DISCLAIMER
+    div_data = compute_diversification(db, user)
+
     return templates.TemplateResponse(request=request, name="dashboard.html", context={
         "user": user,
         "summary": summary,
         "top_holdings": holdings,
         "active_consents_count": active_consents_count,
-        "format_inr": format_inr
+        "format_inr": format_inr,
+        "div_data": div_data,
+        "learn_disclaimer": LEARN_DISCLAIMER,
     })
 
 @router.get("/accounts", response_class=HTMLResponse)

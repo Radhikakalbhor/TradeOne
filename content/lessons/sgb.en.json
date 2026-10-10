@@ -1,0 +1,107 @@
+{
+  "id": "sgb",
+  "topic": "sgb",
+  "lang": "en",
+  "title": "Sovereign Gold Bonds (SGB)",
+  "subtitle": "Paper gold issued by the Reserve Bank of India with 2.50% annual interest",
+  "summary": "Sovereign Gold Bonds are government securities denominated in grams of gold, offering pure gold price exposure, an additional 2.50% annual coupon, and full capital gains tax exemption at maturity.",
+  "last_reviewed": "2026-04-01",
+  "needs_verification": true,
+  "reading_time": "5 min read",
+  "sources": [
+    {
+      "name": "Reserve Bank of India - SGB Operational Framework",
+      "url": "https://www.rbi.org.in"
+    },
+    {
+      "name": "Income Tax Act, 1961 - Section 47(viic)",
+      "url": "https://incometaxindia.gov.in"
+    }
+  ],
+  "disclaimer": "Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser. Rules, taxes and yields change; verify with official sources.",
+  "sections": [
+    {
+      "id": "what_is_it",
+      "title": "What are Sovereign Gold Bonds?",
+      "content": "Sovereign Gold Bonds (SGBs) are government-backed securities denominated in grams of gold. Each bond unit represents the market price of 1 gram of 999-purity physical gold. Instead of storing physical coins or jewellery in bank lockers and paying making charges or locker fees, investors hold gold in dematerialized format backed by the sovereign.",
+      "analogy": "Think of SGB as a digital receipt for 24-karat gold stored by the Reserve Bank of India, which also pays you 2.5% rent every year just for holding it, and gives you cash for the exact price of gold when you redeem it."
+    },
+    {
+      "id": "how_you_earn",
+      "title": "How Investors Earn from SGBs",
+      "content": "SGB returns have two components:",
+      "points": [
+        "Fixed Coupon Income: The government pays 2.50% per annum on the original nominal issue price, credited semi-annually directly into your bank account.",
+        "Gold Capital Appreciation: Upon redemption after 8 years, the investor receives the prevailing simple average closing price of 999 purity gold over the preceding 3 business days as reported by IBJA."
+      ]
+    },
+    {
+      "id": "risks",
+      "title": "What are the Risks?",
+      "content": "Key considerations before investing:",
+      "points": [
+        "Gold Price Volatility: If global gold prices drop over the holding period, the principal redemption amount drops accordingly. SGB guarantees the quantity of gold, not a fixed rupee return.",
+        "Tenor & Secondary Market Liquidity: SGBs have an 8-year tenor (with early RBI exit windows after year 5). While listed on stock exchanges, secondary market trading volume for specific bond series can be thin, causing discounts or premiums to fair gold price.",
+        "Issuance Calendar Availability: Fresh primary tranches have not been issued recently; secondary market purchase requires careful comparison against spot gold prices."
+      ]
+    },
+    {
+      "id": "who_considers",
+      "title": "Who Often Considers SGBs?",
+      "content": "Long-term investors wanting physical gold allocation as an inflation or geopolitical hedge without incurring jewellery making charges (10-25%), purity deductions, or annual storage locker costs."
+    },
+    {
+      "id": "worked_example",
+      "title": "Worked Example (Sample Illustration)",
+      "badge": "Illustration with sample assumptions",
+      "content": "Suppose an investor acquired 20 units (20 grams) of SGB at an issue price of ₹5,000 per gram (total investment: ₹1,00,000).",
+      "details": [
+        "Annual interest: 2.50% of ₹1,00,000 = ₹2,500 per year (₹1,250 every 6 months).",
+        "Over 8 years, total coupon interest received = ₹20,000.",
+        "If gold price increases to ₹8,500 per gram after 8 years, the maturity payout is 20 × ₹8,500 = ₹1,70,000.",
+        "Total return = ₹1,70,000 + ₹20,000 = ₹1,90,000. Under Section 47(viic), the ₹70,000 capital gain upon maturity is 100% tax-free for individual investors."
+      ]
+    },
+    {
+      "id": "tax_overview",
+      "title": "Tax Overview in Plain English",
+      "content": "Taxation details for SGB unitholders:",
+      "points": [
+        "Maturity Redemption (8 Years): Entire capital gain is exempt from income tax under Section 47(viic) for individual investors.",
+        "Semi-Annual 2.50% Interest: Added to gross total income and taxed at marginal income tax slab rates (no TDS).",
+        "Secondary Market Sale: If sold on stock exchanges before 8 years: LTCG taxed at 12.5% without indexation if held > 12 months (Finance Act 2024); STCG at slab rates if held <= 12 months."
+      ]
+    },
+    {
+      "id": "how_to_buy",
+      "title": "How to Buy SGBs",
+      "steps": [
+        "Secondary Exchange Trading: Search for listed SGB ticker symbols on NSE/BSE (e.g., SGBNOV31, SGBMAY29, SGBFEB32).",
+        "Compare Market Price to Spot Gold: Verify whether the market ask price is trading at a discount or premium to current 24k IBJA spot gold rates.",
+        "Buy via your normal Demat account like any share. Units settle in T+1."
+      ]
+    },
+    {
+      "id": "myths_vs_facts",
+      "title": "Myths vs Facts",
+      "items": [
+        {
+          "myth": "SGB guarantees that gold price will never decrease.",
+          "fact": "The government guarantees the redemption value equal to prevailing gold market prices. If gold prices decline globally, the redemption value declines."
+        },
+        {
+          "myth": "Capital gains are tax-free even if you sell on stock exchanges after 2 years.",
+          "fact": "The complete tax exemption under Section 47(viic) applies only on redemption through the RBI at maturity (or premature RBI exit windows after year 5). Secondary market exchange sales incur standard capital gains tax."
+        }
+      ]
+    },
+    {
+      "id": "key_terms",
+      "title": "Key Terms to Know",
+      "terms": [
+        {"term": "IBJA", "definition": "India Bullion and Jewellers Association - benchmark pricing agency used by RBI to determine SGB issue and redemption prices."},
+        {"term": "Section 47(viic)", "definition": "Provision in Indian Income Tax Act granting complete capital gains tax exemption on redemption of Sovereign Gold Bonds by individuals."}
+      ]
+    }
+  ]
+}

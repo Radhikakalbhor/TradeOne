@@ -25,8 +25,11 @@
 </div>
 {% endif %}
 
-<!-- Overall Status Banner -->
-<div class="card" style="margin-bottom: 24px; border-left: 5px solid {% if consistency.overall_in_sync %}var(--success){% else %}var(--danger){% endif %};">
+{% if consistency.overall_in_sync %}
+<div class="card" style="margin-bottom: 24px; border-left: 5px solid var(--success);">
+{% else %}
+<div class="card" style="margin-bottom: 24px; border-left: 5px solid var(--danger);">
+{% endif %}
   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
     <div>
       <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700;">Reconciliation Status</div>
@@ -117,7 +120,11 @@
       </div>
       <div style="padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
         <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Valuation Difference</span>
-        <div style="font-size: 1.1rem; font-weight: 700; color: {% if (p.broker_total_val - p.tradeone_total_val)|abs < 1.0 %}var(--success){% else %}var(--danger){% endif %}; margin-top: 2px;">
+        {% if (p.broker_total_val - p.tradeone_total_val)|abs < 1.0 %}
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--success); margin-top: 2px;">
+        {% else %}
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--danger); margin-top: 2px;">
+        {% endif %}
           {{ format_inr(p.broker_total_val - p.tradeone_total_val) }}
         </div>
       </div>

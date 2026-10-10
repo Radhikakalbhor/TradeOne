@@ -1,0 +1,46 @@
+{
+  "topic": "taxes",
+  "title": "Securities Taxation Quiz",
+  "questions": [
+    {
+      "id": "tax_q1",
+      "question": "What is the holding period threshold for listed equities, REITs, and InvITs to qualify for Long-Term Capital Gains (LTCG)?",
+      "options": ["More than 6 months", "More than 12 months", "More than 36 months", "More than 5 years"],
+      "correct_index": 1,
+      "explanation": "For listed securities, holding periods exceeding 12 months qualify as Long-Term Capital Gains (LTCG)."
+    },
+    {
+      "id": "tax_q2",
+      "question": "Under Finance Act 2024, what is the Long-Term Capital Gains (LTCG) tax rate for listed equity and units above the ₹1.25 lakh annual exemption?",
+      "options": ["10%", "12.5%", "15%", "20%"],
+      "correct_index": 1,
+      "explanation": "Finance Act 2024 revised the LTCG tax rate on listed equity and eligible trust units from 10% to 12.5% on gains over ₹1.25 lakh."
+    },
+    {
+      "id": "tax_q3",
+      "question": "What is the Short-Term Capital Gains (STCG) tax rate on listed equities and REIT units held for 12 months or less?",
+      "options": ["15%", "20%", "25%", "30%"],
+      "correct_index": 1,
+      "explanation": "Finance Act 2024 revised STCG under Section 111A from 15% to 20% on listed equities and units."
+    },
+    {
+      "id": "tax_q4",
+      "question": "How is regular coupon interest received from standard Government Securities (G-Secs) taxed?",
+      "options": [
+        "100% tax-free under Section 10",
+        "Added to total income and taxed at the investor's marginal slab rate",
+        "Flat 10% without slab benefit",
+        "Taxed at 12.5% as long-term gain"
+      ],
+      "correct_index": 1,
+      "explanation": "Interest from government bonds is taxed as income from other sources at the unitholder's personal income tax slab rate."
+    },
+    {
+      "id": "tax_q5",
+      "question": "What form can an individual with income below taxable limits submit to a depository/bank to prevent TDS deduction on bond interest?",
+      "options": ["Form 16", "Form 15G (or 15H for senior citizens)", "Form 26AS", "Form 10E"],
+      "correct_index": 1,
+      "explanation": "Form 15G (for individuals below 60) and Form 15H (for senior citizens) are declarations certifying that total estimated income is below taxable limits."
+    }
+  ]
+}

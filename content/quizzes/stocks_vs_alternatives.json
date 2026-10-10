@@ -1,0 +1,66 @@
+{
+  "topic": "stocks_vs_alternatives",
+  "title": "Stocks vs Alternatives Quiz",
+  "questions": [
+    {
+      "id": "sva_q1",
+      "question": "Which asset class historically exhibits the highest annual price volatility and drawdown risk?",
+      "options": [
+        "Treasury Bills",
+        "Equity Shares (Stocks)",
+        "Sovereign Gold Bonds",
+        "Dated Government Bonds"
+      ],
+      "correct_index": 1,
+      "explanation": "Equity shares represent residual business claims and historically experience higher annual price fluctuations and drawdown cycles."
+    },
+    {
+      "id": "sva_q2",
+      "question": "Why might an investor with a 100% stock portfolio consider adding REITs, InvITs, or Bonds?",
+      "options": [
+        "To eliminate all taxes completely",
+        "To introduce predictable cash distributions and reduce total portfolio drawdown during stock market downswings",
+        "Because SEBI makes holding other assets mandatory",
+        "To guarantee 50% compounding every year"
+      ],
+      "correct_index": 1,
+      "explanation": "Diversification across uncorrelated income-generating assets provides recurring cash flows and reduces overall portfolio volatility."
+    },
+    {
+      "id": "sva_q3",
+      "question": "Can you hold stocks, REITs, G-Secs, and corporate bonds in the same single Demat account?",
+      "options": [
+        "No, every asset class requires a completely separate demat account",
+        "Yes, an NSDL or CDSL Demat account holds all eligible electronic securities under a single BO ID",
+        "Only if your net worth exceeds ₹10 crore",
+        "Only during trading festival hours"
+      ],
+      "correct_index": 1,
+      "explanation": "Indian central depositories (NSDL and CDSL) hold all asset classes in one consolidated 16-digit Beneficiary Owner ID."
+    },
+    {
+      "id": "sva_q4",
+      "question": "What is 'Yield to Maturity' (YTM) and why is it not applicable to common equity shares?",
+      "options": [
+        "YTM applies only to gold",
+        "YTM calculates the annualized return of a debt bond with fixed maturity and coupons; equities have no fixed maturity date or fixed contractual payouts",
+        "Equities have a negative YTM by law",
+        "YTM is a trading fee charged by stockbrokers"
+      ],
+      "correct_index": 1,
+      "explanation": "YTM requires fixed contractual future cash flows and an explicit maturity date, which equities do not possess."
+    },
+    {
+      "id": "sva_q5",
+      "question": "What is the primary difference between REIT cash distributions and corporate stock dividends?",
+      "options": [
+        "REITs are legally required to distribute at least 90% of NDCF; equity companies pay dividends entirely at management discretion",
+        "REITs pay interest in cash, while stocks only pay bonus shares",
+        "Stock dividends are completely tax-free up to ₹1 crore",
+        "There is no difference"
+      ],
+      "correct_index": 0,
+      "explanation": "SEBI mandates REITs distribute 90%+ of net distributable cash, whereas standard corporations can retain 100% of profits without paying dividends."
+    }
+  ]
+}

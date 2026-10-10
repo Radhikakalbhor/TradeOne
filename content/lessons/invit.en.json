@@ -1,0 +1,111 @@
+{
+  "id": "invit",
+  "topic": "invit",
+  "lang": "en",
+  "title": "Infrastructure Investment Trusts (InvITs)",
+  "subtitle": "Fractional unitholding in highways, power transmission grids, and telecom towers",
+  "summary": "InvITs aggregate long-term income-generating infrastructure assets like toll roads and electrical transmission lines, distributing long-duration cash flows to unitholders.",
+  "last_reviewed": "2026-04-01",
+  "needs_verification": false,
+  "reading_time": "6 min read",
+  "sources": [
+    {
+      "name": "SEBI (Infrastructure Investment Trusts) Regulations, 2014",
+      "url": "https://www.sebi.gov.in"
+    },
+    {
+      "name": "Income Tax Department of India (Sections 10(23FD), 115UA)",
+      "url": "https://incometaxindia.gov.in"
+    },
+    {
+      "name": "National Stock Exchange of India - InvIT Category Overview",
+      "url": "https://www.nseindia.com"
+    }
+  ],
+  "disclaimer": "Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser. Rules, taxes and yields change; verify with official sources.",
+  "sections": [
+    {
+      "id": "what_is_it",
+      "title": "What is an InvIT?",
+      "content": "An Infrastructure Investment Trust (InvIT) is an investment vehicle that pools money from investors to own and operate completed or revenue-generating national infrastructure assets. In India, public InvITs primarily own assets like power transmission lines, operational toll highways, and gas pipelines with contractual or toll-based cash inflows.",
+      "analogy": "Think of an InvIT like a community toll booth or power line. Every time vehicles travel on the expressway or electricity flows through the transmission network, a tariff or toll is paid. After maintenance costs, the surplus cash is distributed to the unitholders."
+    },
+    {
+      "id": "how_you_earn",
+      "title": "How Investors Earn from InvITs",
+      "content": "Unitholders receive returns through regular cash flows and unit price movements:",
+      "points": [
+        "Cash Distributions: SEBI mandates that at least 90% of Net Distributable Cash Flows (NDCF) must be paid out to unitholders periodically (semi-annually or quarterly).",
+        "Unit Market Price: As traffic counts rise, tariff rates adjust with inflation indices, or debt is paid down, unit values on exchanges can fluctuate."
+      ]
+    },
+    {
+      "id": "risks",
+      "title": "What are the Risks?",
+      "content": "Infrastructure assets have long life cycles but face distinct operational risks:",
+      "points": [
+        "Traffic or Volume Risk: For toll roads, alternate highway routes or fuel price spikes can reduce vehicular volume.",
+        "Concession Life Expiry: Many toll roads are held under Concession Agreements with NHAI for 20-30 years, after which ownership reverts to the government. Terminal value amortizes over time.",
+        "Regulatory & Tariff Risks: Changes in state electricity tariffs or interstate wheeling charges can influence cash flow margins.",
+        "Interest Rate Risk: High capital expenditure requires debt servicing; higher interest rates increase borrowing costs."
+      ]
+    },
+    {
+      "id": "who_considers",
+      "title": "Who Often Considers InvITs?",
+      "content": "Investors seeking higher cash yield profiles (often 7% to 8.5% historically) with long-term sovereign or public utility counterparties such as NHAI or state power transmission utilities."
+    },
+    {
+      "id": "worked_example",
+      "title": "Worked Example (Sample Illustration)",
+      "badge": "Illustration with sample assumptions",
+      "content": "Suppose an investor purchases 1,000 units of a public InvIT at ₹100 per unit (total investment: ₹1,00,000).",
+      "details": [
+        "Annual distribution per unit: ₹7.80 (paid across the financial year).",
+        "Total cash distributions received: 1,000 × ₹7.80 = ₹7,800 (sample yield: 7.8%).",
+        "Distribution split may include interest, return of capital, and dividend as specified on the credit statement."
+      ]
+    },
+    {
+      "id": "tax_overview",
+      "title": "Tax Overview in Plain English",
+      "content": "Similar to REITs, distributions arrive categorized into interest, dividend, and capital repayment components:",
+      "points": [
+        "Interest component is taxed at the investor's marginal slab rate.",
+        "Dividend component is tax-exempt if the SPV opted for the Section 115BAA concessional corporate tax scheme, or taxed at slab rate otherwise.",
+        "Capital gains on exchange transfer: LTCG at 12.5% for holding periods over 12 months (on gains above ₹1.25 lakh total across eligible equity/units); STCG at 20% for holding periods of 12 months or less."
+      ]
+    },
+    {
+      "id": "how_to_buy",
+      "title": "How to Buy InvIT Units",
+      "steps": [
+        "Search for public InvIT tickers on NSE/BSE using your regular stockbroker terminal (e.g., PGINVIT for PowerGrid InvIT, IRBInvIT).",
+        "Enter quantity (minimum lot size is 1 unit for publicly traded InvITs).",
+        "Execute transaction at prevailing market price. Units credit to your Demat account under T+1 settlement."
+      ]
+    },
+    {
+      "id": "myths_vs_facts",
+      "title": "Myths vs Facts",
+      "items": [
+        {
+          "myth": "InvIT units are identical to ordinary equity shares of construction firms.",
+          "fact": "Construction firms take on execution and raw material risks. InvITs typically hold finished, operational assets that already collect revenue."
+        },
+        {
+          "myth": "The unit price of an InvIT will grow indefinitely like a fast-growing tech stock.",
+          "fact": "Because concession agreements for roads have finite durations, capital amortizes. InvIT returns are predominantly driven by cash payouts rather than rapid capital growth."
+        }
+      ]
+    },
+    {
+      "id": "key_terms",
+      "title": "Key Terms to Know",
+      "terms": [
+        {"term": "Concession Period", "definition": "The contractual duration granted by a government authority to operate the asset and collect tolls."},
+        {"term": "Availability-based Asset", "definition": "Assets like power grids that receive revenue as long as lines are kept active, regardless of power throughput."}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "id": "taxes",
+  "topic": "taxes",
+  "lang": "en",
+  "title": "Taxes in Simple Words",
+  "subtitle": "Navigating STCG, LTCG, TDS, and slab rates across Indian securities",
+  "summary": "A simplified plain-language overview of how profits, dividends, and interest payouts are taxed across stocks, REITs, InvITs, and bonds following recent Finance Act changes.",
+  "last_reviewed": "2026-04-01",
+  "needs_verification": false,
+  "reading_time": "5 min read",
+  "sources": [
+    {
+      "name": "Income Tax Department of India (Finance Act 2024 provisions)",
+      "url": "https://incometaxindia.gov.in"
+    },
+    {
+      "name": "Central Board of Direct Taxes (CBDT) Circulars",
+      "url": "https://incometaxindia.gov.in"
+    }
+  ],
+  "disclaimer": "Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser. Rules, taxes and yields change; verify with official sources.",
+  "sections": [
+    {
+      "id": "what_is_it",
+      "title": "How Securities Taxation Works in India",
+      "content": "Every rupee earned from financial securities falls into one of two fundamental buckets: Capital Gains (profits when you sell an asset for more than you paid) or Periodic Income (dividends, interest, rental distributions). The tax treatment differs significantly between these two buckets.",
+      "analogy": "Think of periodic income like apples picked from your orchard each month (taxed as regular income at your tax slab), while selling the entire orchard land for a profit is a capital gain (taxed at special capital gain rates depending on how long you owned it)."
+    },
+    {
+      "id": "how_you_earn",
+      "title": "Capital Gains: The 12-Month Rule",
+      "content": "For listed Indian securities (Stocks, Equity ETFs, REITs, InvITs, and listed bonds):",
+      "points": [
+        "Short-Term Capital Gains (STCG): If you hold the listed asset for 12 months or less before selling. For listed equities and REIT/InvIT units, STCG is taxed at 20% (post Finance Act 2024). For unlisted debt or short-term bonds, gains are taxed at your income slab.",
+        "Long-Term Capital Gains (LTCG): If you hold the listed asset for more than 12 months. For listed equities and REIT/InvIT units, LTCG is taxed at 12.5% on cumulative gains exceeding ₹1.25 lakh in a financial year. For listed debt bonds, LTCG is 12.5% without indexation benefit."
+      ]
+    },
+    {
+      "id": "risks",
+      "title": "Understanding Periodic Cash Flow Taxation",
+      "content": "Tax treatment on cash that enters your bank account before you sell:",
+      "points": [
+        "Dividends from Stocks: Added to your gross total income and taxed at your personal slab rate (TDS applies at 10% if dividend exceeds ₹5,000 from a single company).",
+        "Bond Coupon Interest: Added to total income and taxed at slab rate.",
+        "REIT & InvIT Distributions: Split into interest (slab rate), dividend (exempt if SPV under 115BAA, else slab rate), and repayment of capital (subject to Section 56(2)(xii) rules)."
+      ]
+    },
+    {
+      "id": "who_considers",
+      "title": "Special Tax-Exempt Instruments",
+      "content": "Certain debt and precious metal securities offer specialized tax benefits:",
+      "points": [
+        "Sovereign Gold Bonds (SGB): 100% exempt from capital gains tax upon redemption through RBI at 8-year maturity for individuals under Section 47(viic).",
+        "Tax-Free Infrastructure Bonds: Bonds issued earlier by NHAI, REC, PFC, and IRFC provide 100% tax-free coupon interest under Section 10(15)(iv)(h)."
+      ]
+    },
+    {
+      "id": "worked_example",
+      "title": "Worked Example: Capital Gains Calculation",
+      "badge": "Illustration with sample assumptions",
+      "content": "Suppose an investor sells listed REIT units after 18 months, realizing a profit of ₹1,75,000, and has no other capital gains.",
+      "details": [
+        "Holding period: > 12 months (qualifies as LTCG).",
+        "Annual exemption limit under Section 112A: ₹1,25,000.",
+        "Taxable capital gain: ₹1,75,000 - ₹1,25,000 = ₹50,000.",
+        "LTCG tax payable: 12.5% of ₹50,000 = ₹6,250 (plus applicable 4% health & education cess)."
+      ]
+    },
+    {
+      "id": "tax_overview",
+      "title": "TDS and Advance Tax Readiness",
+      "content": "Points to keep in mind when filing ITR:",
+      "points": [
+        "Always verify Form 26AS and AIS (Annual Information Statement) before filing returns. High-value transactions and bond TDS are automatically matched by the IT Department.",
+        "Submit Form 15G (for individuals below 60) or Form 15H (for senior citizens) to your broker/DP if your total taxable income is below the exemption threshold to avoid TDS deduction."
+      ]
+    },
+    {
+      "id": "how_to_buy",
+      "title": "Tracking Taxes in TradeOne",
+      "steps": [
+        "Go to the Statement and CAS section on TradeOne to review your consolidated transaction dates.",
+        "Use the holding period indicators to check whether positions have crossed the 12-month long-term holding threshold."
+      ]
+    },
+    {
+      "id": "myths_vs_facts",
+      "title": "Myths vs Facts",
+      "items": [
+        {
+          "myth": "All income from government bonds is tax-free.",
+          "fact": "Regular semi-annual interest from standard G-Secs is fully taxable at your income tax slab rate. Only designated tax-free PSU bonds or SGB maturity capital gains are exempt."
+        },
+        {
+          "myth": "Indexation benefit is still available on all debt bonds.",
+          "fact": "Recent Finance Acts have removed indexation benefits across listed and unlisted debt investments; listed bonds are now subject to a flat 12.5% LTCG rate without indexation."
+        }
+      ]
+    },
+    {
+      "id": "key_terms",
+      "title": "Key Terms to Know",
+      "terms": [
+        {"term": "STCG", "definition": "Short-Term Capital Gain - profit from selling an asset held for a short period (12 months or less for listed securities)."},
+        {"term": "LTCG", "definition": "Long-Term Capital Gain - profit from selling an asset held for a longer duration."},
+        {"term": "TDS", "definition": "Tax Deducted at Source - tax collected upfront by the payer and credited to your PAN with the tax department."}
+      ]
+    }
+  ]
+}

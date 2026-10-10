@@ -1,0 +1,115 @@
+{
+  "id": "how_to_buy",
+  "topic": "how_to_buy",
+  "lang": "en",
+  "title": "How to Buy Alternative Securities",
+  "subtitle": "Step-by-step avenues for purchasing REITs, InvITs, G-Secs, and Corporate Bonds",
+  "summary": "A comprehensive practical guide to investing in alternative assets using standard stockbroker apps, RBI Retail Direct, and SEBI-regulated Online Bond Platforms.",
+  "last_reviewed": "2026-04-01",
+  "needs_verification": false,
+  "reading_time": "5 min read",
+  "sources": [
+    {
+      "name": "SEBI Guidelines for Online Bond Platform Providers (OBPP)",
+      "url": "https://www.sebi.gov.in"
+    },
+    {
+      "name": "RBI Retail Direct Onboarding Portal",
+      "url": "https://rbiretaildirect.org.in"
+    }
+  ],
+  "disclaimer": "Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser. Rules, taxes and yields change; verify with official sources.",
+  "sections": [
+    {
+      "id": "what_is_it",
+      "title": "The Modern Indian Investment Landscape",
+      "content": "A few years ago, buying government bonds or commercial properties required institutional relationships or millions of rupees. Today, digital infrastructure, SEBI regulatory reforms, and RBI Retail Direct have democratized access so retail investors can purchase these securities in under two minutes from a smartphone.",
+      "analogy": "Buying alternative securities today is as simple as ordering groceries online: you select your product on an exchange or platform, verify with UPI or net banking, and the digital asset lands directly in your Demat account."
+    },
+    {
+      "id": "how_you_earn",
+      "title": "Channel 1: Your Existing Stockbroker (NSE & BSE)",
+      "content": "For REITs, InvITs, SGBs, and listed bonds:",
+      "points": [
+        "Login to any broker app (e.g. Zerodha, Groww, Angel One, ICICI Direct).",
+        "Type the scrip ticker: 'EMBASSY' or 'MINDSPACE' for REITs, 'PGINVIT' for InvITs, 'GS2033' for Government Bonds, 'SGB...' for gold bonds.",
+        "Select Market or Limit order and enter the quantity (minimum 1 unit).",
+        "Confirm purchase. Units settle directly into your CDSL/NSDL Demat account via T+1 settlement."
+      ]
+    },
+    {
+      "id": "risks",
+      "title": "Channel 2: RBI Retail Direct (Zero Brokerage G-Secs)",
+      "content": "Specifically for direct sovereign debt from the central bank:",
+      "points": [
+        "Visit rbiretaildirect.org.in and complete paperless Aadhaar KYC.",
+        "Link your savings bank account.",
+        "Participate in weekly non-competitive auctions on Wednesdays (T-Bills) and Thursdays/Fridays (G-Secs and State Development Loans).",
+        "Funds are debited through UPI or ASBA; interest and principal are credited directly to your bank account with zero platform fees."
+      ]
+    },
+    {
+      "id": "who_considers",
+      "title": "Channel 3: Online Bond Platforms (OBPPs)",
+      "content": "For discovered corporate debentures and curated debt:",
+      "points": [
+        "SEBI-regulated Online Bond Platform Providers (such as BondBazaar, Wint Wealth, GoldenPi, Grip Invest) allow retail users to browse corporate bonds by credit rating, yield (YTM), and maturity date.",
+        "Following SEBI's July 2024 circular, ticket sizes for privately placed bonds have dropped to ₹10,000.",
+        "Payments settle through BSE Star / NSE clearing corporations, crediting bonds to your Demat."
+      ]
+    },
+    {
+      "id": "worked_example",
+      "title": "Worked Example: Account Setup Checklist",
+      "badge": "Illustration with sample assumptions",
+      "content": "What an investor needs to transact across all channels:",
+      "details": [
+        "1. Active PAN card linked with Aadhaar.",
+        "2. An active Demat account with any depository participant (CDSL or NSDL).",
+        "3. Bank account enabled for UPI / Net Banking for instant fund transfer.",
+        "4. That is all—no special accreditation or high net worth certification is required."
+      ]
+    },
+    {
+      "id": "tax_overview",
+      "title": "Checking Charges and Hidden Costs",
+      "content": "Cost considerations across purchase channels:",
+      "points": [
+        "Brokerage: Generally 0% to ₹20 per trade on discount brokers.",
+        "STT (Securities Transaction Tax): Applies to equity trades and REIT/InvIT transactions, but is generally exempt on debt securities and government bonds.",
+        "Depository DP charges: Standard ₹10-₹15 per debit instruction when selling from your Demat."
+      ]
+    },
+    {
+      "id": "how_to_buy",
+      "title": "Safety Verification Before You Transact",
+      "steps": [
+        "Ensure the platform or broker is officially registered with SEBI or RBI.",
+        "Check that bonds settle directly into your own Demat account, never in a pooled third-party wallet.",
+        "Verify your holdings in the central depository (NSDL/CDSL) or on TradeOne's unified ledger."
+      ]
+    },
+    {
+      "id": "myths_vs_facts",
+      "title": "Myths vs Facts",
+      "items": [
+        {
+          "myth": "You need a specialized bond broker to buy government debt.",
+          "fact": "Regular stockbroker apps support G-Sec purchases, and RBI Retail Direct is available to all Indian residents directly."
+        },
+        {
+          "myth": "Corporate bonds are traded over physical paper certificates.",
+          "fact": "All modern corporate bond trading in India happens electronically in dematerialized form."
+        }
+      ]
+    },
+    {
+      "id": "key_terms",
+      "title": "Key Terms to Know",
+      "terms": [
+        {"term": "OBPP", "definition": "Online Bond Platform Provider - a SEBI-registered fintech intermediary allowing retail discovery and settlement of debt securities."},
+        {"term": "ASBA", "definition": "Application Supported by Blocked Amount - a mechanism where funds remain in your bank account until bond allotment is finalized."}
+      ]
+    }
+  ]
+}

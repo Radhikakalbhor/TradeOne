@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% block title %}Income Simulator | TradeOne Learn{% endblock %}
+{% block content %}
+<style>
+.sim-hero { background: linear-gradient(135deg, #0d1f3c, #0f172a); border-radius: 14px; padding: 32px; margin-bottom: 24px; }
+.sim-hero h1 { font-size: 1.7rem; font-weight: 800; color: #f8fafc; margin: 0 0 8px 0; }
+.sim-hero p { color: #94a3b8; margin: 0; }
+
+.sim-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 800px) { .sim-layout { grid-template-columns: 1fr; } }
+
+.sim-inputs { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; position: sticky; top: 80px; }
+.sim-inputs h3 { font-size: 1rem; font-weight: 700; color: var(--text-main); margin: 0 0 20px 0; }
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: block; }
+.form-input {
+  width: 100%;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.form-input:focus { outline: none; border-color: #7c3aed; }
+.form-select { appearance: none; cursor: pointer; }
+
+.sim-results { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; }
+.sim-empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+
+.result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 24px; }
+@media (max-width: 500px) { .result-grid { grid-template-columns: 1fr; } }
+.result-card { background: var(--bg-muted); border-radius: 10px; padding: 16px; }
+.result-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.result-value { font-size: 1.4rem; font-weight: 800; color: #a78bfa; }
+.result-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+.notice-box {
+  background: rgba(6,182,212,0.08);
+  border: 1px solid rgba(6,182,212,0.25);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  color: #06b6d4;
+  margin-bottom: 20px;
+}
+.learn-disclaimer-bar { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:12px 16px; font-size:0.8rem; color:#d97706; margin-bottom:20px; display:flex; align-items:flex-start; gap:10px; }
+
+.chart-label {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.assumption-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
+.assumption-table th { background: var(--bg-muted); padding: 8px 10px; text-align: left; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+.assumption-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-color); color: var(--text-muted); }
+</style>
+
+<div class="sim-hero">
+  <h1>🧮 Income Simulator</h1>
+  <p>Estimate potential income from different investment products. All outputs use sample assumptions and are illustrative only.</p>
+</div>
+
+<div class="learn-disclaimer-bar"><span>⚠️</span><span>{{ disclaimer }}</span></div>
+
+<div class="sim-layout">
+  <!-- Inputs -->
+  <div class="sim-inputs">
+    <h3>⚙️ Simulation Inputs</h3>
+    <div class="form-group">
+      <label class="form-label" for="sim-product">Product Type</label>
+      <select class="form-input form-select" id="sim-product" onchange="updateDefaults()">
+        {% for key, ac in assumptions.asset_classes.items() %}
+        <option value="{{ key }}">{{ ac.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="sim-amount">Amount to Invest (₹)</label>
+      <input type="number" class="form-input" id="sim-amount" value="100000" min="1000" step="1000" placeholder="e.g. 1,00,000">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="sim-yield">Expected Yield / Coupon % p.a. <span style="color:#a78bfa; font-size:0.72rem;">(sample default shown; you can change)</span></label>
+      <input type="number" class="form-input" id="sim-yield" value="6.8" min="0.1" max="30" step="0.05">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="sim-years">Time Period (years)</label>
+      <input type="number" class="form-input" id="sim-years" value="5" min="1" max="30">
+    </div>
+    <button class="btn btn-primary" style="width: 100%;" onclick="runSimulation()">▶ Calculate</button>
+
+    <!-- Sample assumptions table -->
+    <div style="margin-top: 20px; font-size: 0.78rem; color: var(--text-muted);">
+      <div style="font-weight: 700; margin-bottom: 6px; color: var(--text-main);">📊 Sample Defaults Used</div>
+      <table class="assumption-table">
+        <thead><tr><th>Product</th><th>Yield %</th><th>Volatility %</th></tr></thead>
+        <tbody>
+          {% for key, ac in assumptions.asset_classes.items() %}
+          <tr>
+            <td>{{ ac.name.split('(')[0].strip() }}</td>
+            <td>{{ ac.sample_yield_pct }}%</td>
+            <td>{{ ac.sample_annual_volatility_pct }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="margin-top: 6px; color: var(--text-muted);">{{ assumptions.notice }}</div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="sim-results">
+    <div id="sim-empty" class="sim-empty">
+      <div style="font-size: 3rem; margin-bottom: 12px;">🧮</div>
+      <div style="font-weight: 600; margin-bottom: 6px;">Enter values and click Calculate</div>
+      <div style="font-size: 0.83rem;">Results will appear here with a chart.</div>
+    </div>
+    <div id="sim-output" style="display: none;">
+      <div class="notice-box" id="sim-notice"></div>
+      <div class="result-grid">
+        <div class="result-card">
+          <div class="result-label">Annual Income</div>
+          <div class="result-value" id="res-annual">—</div>
+          <div class="result-sub">Per year (before tax)</div>
+        </div>
+        <div class="result-card">
+          <div class="result-label">Monthly (avg)</div>
+          <div class="result-value" id="res-monthly">—</div>
+          <div class="result-sub">Distributed as per product</div>
+        </div>
+        <div class="result-card">
+          <div class="result-label">Total over Period</div>
+          <div class="result-value" id="res-total">—</div>
+          <div class="result-sub" id="res-period-label">Over N years</div>
+        </div>
+        <div class="result-card" id="res-maturity-card" style="display:none;">
+          <div class="result-label">Principal at Maturity</div>
+          <div class="result-value" id="res-maturity">—</div>
+          <div class="result-sub">Assuming full face value return</div>
+        </div>
+      </div>
+
+      <div id="res-chart-section">
+        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main); margin-bottom: 12px;">📈 Income Distribution Timeline</div>
+        <div style="height: 260px; position: relative;">
+          <canvas id="sim-chart"></canvas>
+        </div>
+        <div class="chart-label">⚠ Sample assumptions — not a prediction. Actual returns depend on market conditions, product performance, and tax.</div>
+      </div>
+
+      <div id="res-reit-note" style="display:none; margin-top: 14px; background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b; border-radius: 4px; padding: 12px; font-size: 0.83rem; color: var(--text-muted);">
+        <strong>Note for REITs/InvITs:</strong> Distributions can vary each quarter depending on occupancy, project revenues, and management decisions. Unit prices also fluctuate on the exchange. This illustration assumes a constant sample yield.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const assumptionsData = {{ assumptions | tojson }};
+let simChart = null;
+
+function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+
+function updateDefaults() {
+  const product = document.getElementById('sim-product').value;
+  const ac = assumptionsData.asset_classes[product];
+  if (ac) {
+    document.getElementById('sim-yield').value = ac.sample_yield_pct;
+  }
+}
+
+async function runSimulation() {
+  const product = document.getElementById('sim-product').value;
+  const amount = document.getElementById('sim-amount').value;
+  const yieldPct = document.getElementById('sim-yield').value;
+  const years = document.getElementById('sim-years').value;
+
+  const res = await fetch('/learn/simulator/run', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({product, amount, yield_pct: yieldPct, years: parseInt(years)})
+  });
+  const data = await res.json();
+
+  document.getElementById('sim-empty').style.display = 'none';
+  document.getElementById('sim-output').style.display = 'block';
+
+  document.getElementById('sim-notice').textContent = '📊 ' + data.notice;
+  document.getElementById('res-annual').textContent = fmt(data.annual_income);
+  document.getElementById('res-monthly').textContent = fmt(data.monthly_income);
+  document.getElementById('res-total').textContent = fmt(data.income_over_period);
+  document.getElementById('res-period-label').textContent = `Over ${years} year${years == 1 ? '' : 's'}`;
+
+  if (data.maturity_amount !== undefined) {
+    document.getElementById('res-maturity-card').style.display = 'block';
+    document.getElementById('res-maturity').textContent = fmt(data.maturity_amount);
+  }
+
+  // REIT/InvIT note
+  document.getElementById('res-reit-note').style.display = ['reit', 'invit'].includes(product) ? 'block' : 'none';
+
+  // Build chart data
+  const periods = data.coupon_schedule || data.periods || [];
+  const labels = periods.map(p => p.date.slice(0, 7));
+  const values = periods.map(p => p.amount);
+
+  if (simChart) { simChart.destroy(); }
+  const ctx = document.getElementById('sim-chart').getContext('2d');
+  simChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Income per Payment',
+        data: values,
+        backgroundColor: 'rgba(124,58,237,0.6)',
+        borderColor: '#7c3aed',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {display: false},
+        tooltip: { callbacks: { label: ctx => fmt(ctx.raw) }}
+      },
+      scales: {
+        x: { ticks: { color: '#64748b', maxTicksLimit: 12, font: {size: 10} }, grid: {color: 'rgba(255,255,255,0.05)'} },
+        y: { ticks: { color: '#64748b', callback: v => '₹' + Number(v).toLocaleString('en-IN') }, grid: {color: 'rgba(255,255,255,0.05)'} }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

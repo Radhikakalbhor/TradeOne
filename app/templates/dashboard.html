@@ -8,34 +8,6 @@
     <h1>Consolidated Demat Portfolio</h1>
     <p class="page-subtitle">Central depository registry across all linked Depository Participants (Brokers)</p>
   </div>
-  <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-    <a href="/verify" class="btn btn-secondary" id="btn-verify-brokers">
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-      </svg>
-      Verify with Brokers
-    </a>
-    <form method="POST" action="/accounts/sync-all" style="margin: 0;" id="form-refresh-now">
-      <button type="submit" class="btn btn-primary" id="btn-refresh-now">
-        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="refresh-spinner-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-        </svg>
-        <span id="refresh-button-text">Refresh Now</span>
-      </button>
-    </form>
-    <a href="/cas" class="btn btn-secondary">
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-      </svg>
-      Download CAS PDF
-    </a>
-    <a href="/consents" class="btn btn-secondary">
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-      </svg>
-      Data Consents ({{ active_consents_count }})
-    </a>
-  </div>
 </div>
 
 <!-- Warning banner if any data is STALE -->
@@ -80,33 +52,113 @@
 </div>
 {% else %}
 
-<!-- 60% Left Graphs / 40% Right Shrunken Cards Layout -->
+{% if div_data and summary.total_value > 0 %}
+<!-- Learn Diversification Check Card -->
+<div class="card" style="background: linear-gradient(135deg, #131b2e 0%, #1e1b4b 100%); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 14px; padding: 22px; margin-bottom: 24px; position: relative;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(139, 92, 246, 0.2); display: flex; align-items: center; justify-content: center; color: #c4b5fd;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+      </div>
+      <div>
+        <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #f8fafc;">Portfolio Diversification Check</h3>
+        <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: #94a3b8;">
+          Your holdings are {{ div_data.equity_pct }}% in equities across {{ div_data.num_brokers }} broker{% if div_data.num_brokers != 1 %}s{% endif %}. REITs, InvITs and bonds make up {{ (div_data.reit_pct + div_data.invit_pct + div_data.bond_pct) | round(1) }}%.
+        </p>
+      </div>
+    </div>
+    <a href="/learn" class="badge" style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.4); text-decoration: none; padding: 5px 12px; font-weight: 600; font-size: 0.76rem;">
+      TradeOne Learn &rarr;
+    </a>
+  </div>
+
+  <!-- Stacked Bar -->
+  <div style="height: 14px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden; display: flex; margin-bottom: 12px;">
+    {% if div_data.equity_pct > 0 %}
+    <div {{ 'style="width: ' ~ div_data.equity_pct ~ '%; background: #3b82f6;"' }} title="Equity: {{ div_data.equity_pct }}%"></div>
+    {% endif %}
+    {% if div_data.reit_pct > 0 %}
+    <div {{ 'style="width: ' ~ div_data.reit_pct ~ '%; background: #8b5cf6;"' }} title="REITs: {{ div_data.reit_pct }}%"></div>
+    {% endif %}
+    {% if div_data.invit_pct > 0 %}
+    <div {{ 'style="width: ' ~ div_data.invit_pct ~ '%; background: #06b6d4;"' }} title="InvITs: {{ div_data.invit_pct }}%"></div>
+    {% endif %}
+    {% if div_data.bond_pct > 0 %}
+    <div {{ 'style="width: ' ~ div_data.bond_pct ~ '%; background: #10b981;"' }} title="Bonds: {{ div_data.bond_pct }}%"></div>
+    {% endif %}
+  </div>
+
+  <!-- Legend -->
+  <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.78rem; color: #cbd5e1; margin-bottom: 14px;">
+    <span style="display: inline-flex; align-items: center; gap: 6px;">
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;"></span>
+      Equities &amp; ETFs: <strong>{{ div_data.equity_pct }}%</strong>
+    </span>
+    <span style="display: inline-flex; align-items: center; gap: 6px;">
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #8b5cf6;"></span>
+      REITs: <strong>{{ div_data.reit_pct }}%</strong>
+    </span>
+    <span style="display: inline-flex; align-items: center; gap: 6px;">
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #06b6d4;"></span>
+      InvITs: <strong>{{ div_data.invit_pct }}%</strong>
+    </span>
+    <span style="display: inline-flex; align-items: center; gap: 6px;">
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
+      Bonds: <strong>{{ div_data.bond_pct }}%</strong>
+    </span>
+  </div>
+
+  {% if div_data.observations and div_data.observations|length > 0 %}
+  <!-- Factual Observations -->
+  <div style="background: rgba(15, 23, 42, 0.6); border-left: 3px solid #8b5cf6; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.8rem; color: #94a3b8; line-height: 1.45;">
+    {% for obs in div_data.observations %}
+    <div {% if not loop.last %}style="margin-bottom: 4px;"{% endif %}>&bull; {{ obs }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Quick Explore Buttons -->
+  <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+    <span style="font-size: 0.75rem; color: #94a3b8;">Explore alternatives:</span>
+    <a href="/learn/lesson/reit?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are REITs?</a>
+    <a href="/learn/lesson/invit?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are InvITs?</a>
+    <a href="/learn/lesson/corpbond?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are Bonds?</a>
+    <a href="/learn/compare" class="btn btn-sm btn-outline" style="font-size: 0.76rem; padding: 4px 10px;">Compare Options</a>
+  </div>
+
+  <div style="margin-top: 10px; font-size: 0.7rem; color: #64748b;">
+    Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser.
+  </div>
+</div>
+{% endif %}
+
+<!-- Dashboard Split Layout: Expanded Graphs (Majority) & Compact 4 Stacked Boxes -->
 <div class="dashboard-split-layout">
   
-  <!-- LEFT/MIDDLE COLUMN (60%): Interactive Portfolio Allocation Graphs -->
+  <!-- LEFT COLUMN: Simplified, Expanded Portfolio Allocation Graphs -->
   <div class="dashboard-graphs-col">
     {% if summary.asset_allocation or summary.dp_allocation or summary.sector_allocation %}
     <div class="dashboard-graphs-wrapper">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
         <div>
-          <h2 style="font-size: 1.15rem; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px;">
+          <h2 style="font-size: 1.18rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--saffron-main);">
               <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
               <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
             </svg>
-            <span>Portfolio Allocation Graphs</span>
+            <span>Portfolio Allocation & Exposure</span>
           </h2>
-          <p style="font-size: 0.78rem; color: var(--text-muted); margin: 3px 0 0 0;">Visual distribution across Asset Classes, Broker Demats, and Sectors</p>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0 0;">Clear breakdown across Asset Classes, Broker Demats, and Industry Sectors</p>
         </div>
-        <div class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--saffron-main); border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.75rem; padding: 4px 10px;">
-          60% Visual Hub
+        <div class="badge" style="background: rgba(245, 158, 11, 0.14); color: var(--saffron-main); border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.74rem; padding: 4px 10px;">
+          Live Distribution
         </div>
       </div>
 
       <!-- Graph View Switcher Tabs -->
       <div class="graph-nav-tabs">
         <button type="button" class="graph-tab-btn active" data-tab="all" onclick="switchGraphTab('all')">
-          All Graphs (Grid)
+          Overview (All)
         </button>
         <button type="button" class="graph-tab-btn" data-tab="asset" onclick="switchGraphTab('asset')">
           Asset Class
@@ -115,78 +167,103 @@
           Broker (DP)
         </button>
         <button type="button" class="graph-tab-btn" data-tab="sector" onclick="switchGraphTab('sector')">
-          Sector Allocation
+          Sector Distribution
         </button>
       </div>
 
-      <!-- Combined Grid Panel -->
+      <!-- Combined Overview Panel -->
       <div class="graph-panel active" data-panel="all">
         <div class="graphs-grid-combined">
+          
+          <!-- Asset Class Breakdown -->
           <div class="graph-card-inner">
-            <div style="font-weight: 600; font-size: 0.88rem; margin-bottom: 8px; display: flex; justify-content: space-between;">
+            <div style="font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
               <span>Asset Class</span>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">By Class</span>
+              <span class="badge" style="font-size: 0.7rem; background: var(--bg-surface); color: var(--text-muted);">By Class</span>
             </div>
-            <div style="height: 240px; position: relative;">
-              <canvas id="assetChart"></canvas>
+            <div class="graph-split-content">
+              <div class="graph-canvas-box">
+                <canvas id="assetChart"></canvas>
+              </div>
+              <div id="assetBreakdownList" class="graph-breakdown-box"></div>
             </div>
           </div>
 
+          <!-- Broker Allocation Breakdown -->
           <div class="graph-card-inner">
-            <div style="font-weight: 600; font-size: 0.88rem; margin-bottom: 8px; display: flex; justify-content: space-between;">
-              <span>Broker (DP)</span>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">By Provider</span>
+            <div style="font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <span>Broker (DP) Source</span>
+              <span class="badge" style="font-size: 0.7rem; background: var(--bg-surface); color: var(--text-muted);">By Provider</span>
             </div>
-            <div style="height: 240px; position: relative;">
-              <canvas id="dpChart"></canvas>
+            <div class="graph-split-content">
+              <div class="graph-canvas-box">
+                <canvas id="dpChart"></canvas>
+              </div>
+              <div id="dpBreakdownList" class="graph-breakdown-box"></div>
             </div>
           </div>
+
         </div>
 
+        <!-- Industry Sector Distribution -->
         <div class="graph-card-inner" style="margin-top: 16px;">
-          <div style="font-weight: 600; font-size: 0.88rem; margin-bottom: 8px; display: flex; justify-content: space-between;">
-            <span>Sector Allocation</span>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">By Industry Sector</span>
+          <div style="font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Industry Sector Exposure</span>
+            <span class="badge" style="font-size: 0.7rem; background: var(--bg-surface); color: var(--text-muted);">By Industry</span>
           </div>
-          <div style="height: 260px; position: relative;">
-            <canvas id="sectorChart"></canvas>
+          <div class="graph-split-content">
+            <div class="graph-canvas-box">
+              <canvas id="sectorChart"></canvas>
+            </div>
+            <div id="sectorBreakdownList" class="graph-breakdown-box"></div>
           </div>
         </div>
       </div>
 
-      <!-- Single View Panels -->
+      <!-- Single Focus: Asset Class -->
       <div class="graph-panel" data-panel="asset">
         <div class="graph-card-inner">
-          <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; display: flex; justify-content: space-between;">
-            <span>Asset Class Allocation</span>
-            <span style="font-size: 0.78rem; color: var(--text-muted);">Full Focus View</span>
+          <div style="font-weight: 600; font-size: 0.98rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Asset Class Allocation &bull; Deep Dive</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Complete breakdown by security class</span>
           </div>
-          <div style="height: 380px; position: relative;">
-            <canvas id="assetChartSingle"></canvas>
+          <div class="graph-split-content" style="grid-template-columns: 240px 1fr; min-height: 280px;">
+            <div class="graph-canvas-box" style="height: 260px;">
+              <canvas id="assetChartSingle"></canvas>
+            </div>
+            <div id="assetBreakdownListSingle" class="graph-breakdown-box" style="max-height: 280px;"></div>
           </div>
         </div>
       </div>
 
+      <!-- Single Focus: Broker DP -->
       <div class="graph-panel" data-panel="dp">
         <div class="graph-card-inner">
-          <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; display: flex; justify-content: space-between;">
-            <span>Depository Participant (Broker) Allocation</span>
-            <span style="font-size: 0.78rem; color: var(--text-muted);">Full Focus View</span>
+          <div style="font-weight: 600; font-size: 0.98rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Depository Participant (Broker) &bull; Deep Dive</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Holdings spread across demats</span>
           </div>
-          <div style="height: 380px; position: relative;">
-            <canvas id="dpChartSingle"></canvas>
+          <div class="graph-split-content" style="grid-template-columns: 240px 1fr; min-height: 280px;">
+            <div class="graph-canvas-box" style="height: 260px;">
+              <canvas id="dpChartSingle"></canvas>
+            </div>
+            <div id="dpBreakdownListSingle" class="graph-breakdown-box" style="max-height: 280px;"></div>
           </div>
         </div>
       </div>
 
+      <!-- Single Focus: Sector -->
       <div class="graph-panel" data-panel="sector">
         <div class="graph-card-inner">
-          <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; display: flex; justify-content: space-between;">
-            <span>Sector Distribution</span>
-            <span style="font-size: 0.78rem; color: var(--text-muted);">Full Focus View</span>
+          <div style="font-weight: 600; font-size: 0.98rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Sector Distribution &bull; Deep Dive</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Market sector diversification</span>
           </div>
-          <div style="height: 380px; position: relative;">
-            <canvas id="sectorChartSingle"></canvas>
+          <div class="graph-split-content" style="grid-template-columns: 240px 1fr; min-height: 280px;">
+            <div class="graph-canvas-box" style="height: 260px;">
+              <canvas id="sectorChartSingle"></canvas>
+            </div>
+            <div id="sectorBreakdownListSingle" class="graph-breakdown-box" style="max-height: 280px;"></div>
           </div>
         </div>
       </div>
@@ -195,84 +272,88 @@
     {% endif %}
   </div>
 
-  <!-- RIGHT COLUMN (40%): Shrunken Tap-To-Expand Cards -->
+  <!-- RIGHT COLUMN: Compact Stack of 4 Boxes (Small & Sleek) -->
   <div class="dashboard-cards-col">
     
-    <!-- Shrunk Card 1: Key Valuation & Primary Stats -->
-    <div class="shrunk-card" id="card-stats-summary">
-      <div class="shrunk-card-header" onclick="toggleShrunkCard('card-stats-summary')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); toggleShrunkCard('card-stats-summary');}" role="button" tabindex="0" aria-expanded="false">
-        <div class="shrunk-card-lead">
-          <div class="shrunk-card-icon">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <h3 style="font-size: 0.9rem; font-weight: 600; margin: 0; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+        Modules
+      </h3>
+      <span class="badge" style="font-size: 0.68rem; background: rgba(245, 158, 11, 0.12); color: var(--saffron-main);">4</span>
+    </div>
+
+    <!-- 4 Small Boxes Stacked Vertically (One Below Another) -->
+    <div class="compact-module-col">
+      
+      <!-- Small Box 1: Key Valuation & Stats -->
+      <div class="compact-module-card" data-card-id="card-stats-summary" onclick="openExpandableCard('card-stats-summary')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); openExpandableCard('card-stats-summary');}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Key Valuation & Stats - Tap to expand">
+        <div class="compact-module-lead">
+          <div class="compact-module-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="1" x2="12" y2="23"></line>
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
             </svg>
           </div>
-          <div class="shrunk-card-info">
-            <div class="shrunk-card-title">
-              <span>Key Valuation & Stats</span>
-              <span class="badge badge-success" style="font-size: 0.72rem; padding: 2px 7px;">{{ format_inr(summary.total_value) }}</span>
-            </div>
-            <div class="shrunk-card-subtitle">
-              {{ summary.num_accounts }} Demats &bull; {{ summary.num_securities }} Securities &bull; P&L: {{ format_inr(summary.total_pnl) }}
-            </div>
-          </div>
+          <div class="compact-module-title">Key Valuation &amp; Stats</div>
         </div>
-        <div class="shrunk-card-trail">
-          <span class="shrunk-card-tap-badge">Tap to expand</span>
-          <svg class="shrunk-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        <div class="compact-module-expand">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
         </div>
-      </div>
 
-      <div class="shrunk-card-body">
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-          <div class="stat-card" style="padding: 14px;">
-            <div class="stat-label" style="font-size: 0.75rem;">Total Portfolio Valuation</div>
-            <div class="stat-value" style="font-size: 1.25rem;">{{ format_inr(summary.total_value) }}</div>
-            <div class="stat-subtext" style="font-size: 0.72rem;">
-              {% if summary.day_change >= 0 %}
-              <span class="badge badge-success" style="font-size: 0.7rem;">▲ {{ format_inr(summary.day_change) }}</span>
+        <div class="compact-module-content" style="display: none;">
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;">
+            <div class="stat-card" style="padding: 16px;">
+              <div class="stat-label" style="font-size: 0.78rem;">Total Portfolio Valuation</div>
+              <div class="stat-value" style="font-size: 1.35rem; margin: 4px 0;">{{ format_inr(summary.total_value) }}</div>
+              <div class="stat-subtext" style="font-size: 0.75rem;">
+                {% if summary.day_change >= 0 %}
+                <span class="badge badge-success" style="font-size: 0.72rem;">▲ {{ format_inr(summary.day_change) }}</span>
+                {% else %}
+                <span class="badge badge-danger" style="font-size: 0.72rem;">▼ {{ format_inr(summary.day_change) }}</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="stat-card" style="padding: 16px;">
+              <div class="stat-label" style="font-size: 0.78rem;">Active Demat Accounts</div>
+              <div class="stat-value" style="font-size: 1.35rem; margin: 4px 0;">{{ summary.num_accounts }}</div>
+              <div class="stat-subtext" style="font-size: 0.75rem;">
+                <a href="/accounts" style="color: var(--saffron-main); text-decoration: none; font-weight: 500;">Across {{ summary.num_dps }} Brokers &rarr;</a>
+              </div>
+            </div>
+
+            <div class="stat-card" style="padding: 16px;">
+              <div class="stat-label" style="font-size: 0.78rem;">Distinct Securities</div>
+              <div class="stat-value" style="font-size: 1.35rem; margin: 4px 0;">{{ summary.num_securities }}</div>
+              <div class="stat-subtext" style="font-size: 0.75rem; color: var(--text-muted);">Equities, Bonds, ETFs</div>
+            </div>
+
+            <div class="stat-card" style="padding: 16px;">
+              <div class="stat-label" style="font-size: 0.78rem;">Unrealized P&L</div>
+              {% if summary.total_pnl >= 0 %}
+              <div class="stat-value" style="font-size: 1.35rem; margin: 4px 0; color: var(--success);">
+                {{ format_inr(summary.total_pnl) }}
+              </div>
               {% else %}
-              <span class="badge badge-danger" style="font-size: 0.7rem;">▼ {{ format_inr(summary.day_change) }}</span>
+              <div class="stat-value" style="font-size: 1.35rem; margin: 4px 0; color: var(--danger);">
+                {{ format_inr(summary.total_pnl) }}
+              </div>
               {% endif %}
-            </div>
-          </div>
-
-          <div class="stat-card" style="padding: 14px;">
-            <div class="stat-label" style="font-size: 0.75rem;">Active Demat Accounts</div>
-            <div class="stat-value" style="font-size: 1.25rem;">{{ summary.num_accounts }}</div>
-            <div class="stat-subtext" style="font-size: 0.72rem;">
-              <a href="/accounts" style="color: var(--saffron-main); text-decoration: none;">Across {{ summary.num_dps }} Brokers &rarr;</a>
-            </div>
-          </div>
-
-          <div class="stat-card" style="padding: 14px;">
-            <div class="stat-label" style="font-size: 0.75rem;">Distinct Securities</div>
-            <div class="stat-value" style="font-size: 1.25rem;">{{ summary.num_securities }}</div>
-            <div class="stat-subtext" style="font-size: 0.72rem; color: var(--text-muted);">Equities, Bonds, ETFs</div>
-          </div>
-
-          <div class="stat-card" style="padding: 14px;">
-            <div class="stat-label" style="font-size: 0.75rem;">Unrealized P&L</div>
-            <div class="stat-value" style="font-size: 1.25rem; color: {% if summary.total_pnl >= 0 %}var(--success){% else %}var(--danger){% endif %};">
-              {{ format_inr(summary.total_pnl) }}
-            </div>
-            <div class="stat-subtext" style="font-size: 0.72rem;">
-              <span class="badge {% if summary.total_pnl >= 0 %}badge-success{% else %}badge-danger{% endif %}" style="font-size: 0.7rem;">
-                {% if summary.total_pnl >= 0 %}+{% endif %}{{ "%.2f"|format(summary.total_pnl_pct) }}%
-              </span>
+              <div class="stat-subtext" style="font-size: 0.75rem;">
+                <span class="badge {% if summary.total_pnl >= 0 %}badge-success{% else %}badge-danger{% endif %}" style="font-size: 0.72rem;">
+                  {% if summary.total_pnl >= 0 %}+{% endif %}{{ "%.2f"|format(summary.total_pnl_pct) }}%
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Shrunk Card 2: Connected Broker Sources of Truth -->
-    {% if summary.provider_statuses %}
-    <div class="shrunk-card" id="card-broker-hub">
-      <div class="shrunk-card-header" onclick="toggleShrunkCard('card-broker-hub')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); toggleShrunkCard('card-broker-hub');}" role="button" tabindex="0" aria-expanded="false">
-        <div class="shrunk-card-lead">
-          <div class="shrunk-card-icon">
+      <!-- Small Box 2: Connected Broker Sources -->
+      {% if summary.provider_statuses %}
+      <div class="compact-module-card" data-card-id="card-broker-hub" onclick="openExpandableCard('card-broker-hub')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); openExpandableCard('card-broker-hub');}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Connected Broker Sources - Tap to expand">
+        <div class="compact-module-lead">
+          <div class="compact-module-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
               <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
@@ -280,64 +361,53 @@
               <line x1="6" y1="18" x2="6.01" y2="18"></line>
             </svg>
           </div>
-          <div class="shrunk-card-info">
-            <div class="shrunk-card-title">
-              <span>Connected Broker Sources</span>
-              <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">{{ summary.provider_statuses|length }} Brokers</span>
+          <div class="compact-module-title">Connected Broker Sources</div>
+        </div>
+        <div class="compact-module-expand">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </div>
+
+        <div class="compact-module-content" style="display: none;">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for code, p in summary.provider_statuses.items() %}
+            {% set sub = summary.broker_subtotals[code] if summary.broker_subtotals and code in summary.broker_subtotals else None %}
+            <div style="padding: 12px 14px; background: var(--bg-muted); border: 1px solid var(--border-color); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <strong style="font-size: 0.92rem;">{{ p.broker_name }}</strong>
+                  <span style="font-family: monospace; font-size: 0.74rem; color: var(--text-muted);">({{ p.dp_id }})</span>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                  Synced: {{ p.last_synced_human }}
+                  {% if sub %} &bull; <strong>{{ sub.holdings_count }} holding{% if sub.holdings_count != 1 %}s{% endif %}</strong>{% endif %}
+                </div>
+              </div>
+              <div>
+                {% if p.status == 'connected' %}
+                <span class="badge badge-success" style="font-size: 0.75rem;">✓ Synced</span>
+                {% elif p.status == 'no_account' %}
+                <span class="badge" style="font-size: 0.75rem; background: var(--border-color); color: var(--text-muted);">0 holdings</span>
+                {% elif p.status == 'stale' %}
+                <span class="badge badge-warning" style="font-size: 0.75rem;">▲ Stale</span>
+                {% else %}
+                <span class="badge badge-danger" style="font-size: 0.75rem;">⚠ Error</span>
+                {% endif %}
+              </div>
             </div>
-            <div class="shrunk-card-subtitle">
-              NiftyTrade, BharatInvest & BondBazaar live sync status
-            </div>
+            {% endfor %}
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+            <a href="/verify" class="btn btn-outline btn-sm" style="font-size: 0.8rem;">🔍 Verify with Brokers</a>
           </div>
         </div>
-        <div class="shrunk-card-trail">
-          <span class="shrunk-card-tap-badge">Tap to expand</span>
-          <svg class="shrunk-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </div>
       </div>
+      {% endif %}
 
-      <div class="shrunk-card-body">
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          {% for code, p in summary.provider_statuses.items() %}
-          {% set sub = summary.broker_subtotals[code] if summary.broker_subtotals and code in summary.broker_subtotals else None %}
-          <div style="padding: 10px 12px; background: var(--bg-muted); border: 1px solid var(--border-color); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <strong style="font-size: 0.88rem;">{{ p.broker_name }}</strong>
-                <span style="font-family: monospace; font-size: 0.72rem; color: var(--text-muted);">({{ p.dp_id }})</span>
-              </div>
-              <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                Synced: {{ p.last_synced_human }}
-                {% if sub %} &bull; <strong>{{ sub.holdings_count }} holding{% if sub.holdings_count != 1 %}s{% endif %}</strong>{% endif %}
-              </div>
-            </div>
-            <div>
-              {% if p.status == 'connected' %}
-              <span class="badge badge-success" style="font-size: 0.72rem;">✓ Synced</span>
-              {% elif p.status == 'no_account' %}
-              <span class="badge" style="font-size: 0.72rem; background: var(--border-color); color: var(--text-muted);">0 holdings</span>
-              {% elif p.status == 'stale' %}
-              <span class="badge badge-warning" style="font-size: 0.72rem;">▲ Stale</span>
-              {% else %}
-              <span class="badge badge-danger" style="font-size: 0.72rem;">⚠ Error</span>
-              {% endif %}
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
-          <a href="/verify" class="btn btn-outline btn-sm" style="font-size: 0.78rem;">🔍 Verify with Brokers</a>
-        </div>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- Shrunk Card 3: Per-Broker Holdings & Valuation Subtotals -->
-    {% if summary.broker_subtotals %}
-    <div class="shrunk-card" id="card-broker-subtotals">
-      <div class="shrunk-card-header" onclick="toggleShrunkCard('card-broker-subtotals')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); toggleShrunkCard('card-broker-subtotals');}" role="button" tabindex="0" aria-expanded="false">
-        <div class="shrunk-card-lead">
-          <div class="shrunk-card-icon">
+      <!-- Small Box 3: Per-Broker Subtotals -->
+      {% if summary.broker_subtotals %}
+      <div class="compact-module-card" data-card-id="card-broker-subtotals" onclick="openExpandableCard('card-broker-subtotals')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); openExpandableCard('card-broker-subtotals');}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Per-Broker Subtotals - Tap to expand">
+        <div class="compact-module-lead">
+          <div class="compact-module-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
               <polyline points="14 2 14 8 20 8"></polyline>
@@ -346,105 +416,134 @@
               <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
           </div>
-          <div class="shrunk-card-info">
-            <div class="shrunk-card-title">
-              <span>Per-Broker Subtotals</span>
-              <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--saffron-main); border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.72rem; padding: 2px 7px;">Full Table</span>
-            </div>
-            <div class="shrunk-card-subtitle">
-              Mathematical verification across demats
-            </div>
+          <div class="compact-module-title">Per-Broker Subtotals</div>
+        </div>
+        <div class="compact-module-expand">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </div>
+
+        <div class="compact-module-content" style="display: none;">
+          <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+            <table class="data-table" id="table-broker-subtotals" style="font-size: 0.82rem;">
+              <thead>
+                <tr>
+                  <th>Broker</th>
+                  <th class="text-right">Holdings</th>
+                  <th class="text-right">Valuation</th>
+                  <th class="text-right">P&L</th>
+                  <th class="text-right">% of Portfolio</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for code, sub in summary.broker_subtotals.items() %}
+                {% set pct = sub.pct if sub.pct is defined else ((sub.current_value / summary.total_value * 100) if summary.total_value > 0 else 0.0) %}
+                <tr>
+                  <td><strong>{{ sub.broker_name }}</strong></td>
+                  <td class="text-right">{{ sub.holdings_count }}</td>
+                  <td class="text-right" style="font-weight: 600;">{{ format_inr(sub.current_value) }}</td>
+                  <td class="text-right">
+                    {% if sub.pnl >= 0 %}
+                    <span style="color: var(--success); font-weight: 600;">+{{ format_inr(sub.pnl) }}</span>
+                    {% else %}
+                    <span style="color: var(--danger); font-weight: 600;">{{ format_inr(sub.pnl) }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-right">{{ "%.1f"|format(pct) }}%</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr style="font-weight: 700; border-top: 2px solid var(--border-color); background: rgba(255, 255, 255, 0.03);">
+                  <td>Grand Total Consolidated</td>
+                  <td class="text-right">{{ summary.num_securities }}</td>
+                  <td class="text-right" style="font-weight: 700;">{{ format_inr(summary.total_value) }}</td>
+                  <td class="text-right">
+                    {% if summary.total_pnl >= 0 %}
+                    <span style="color: var(--success);">+{{ format_inr(summary.total_pnl) }}</span>
+                    {% else %}
+                    <span style="color: var(--danger);">{{ format_inr(summary.total_pnl) }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-right">100.0%</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </div>
-        <div class="shrunk-card-trail">
-          <span class="shrunk-card-tap-badge">Tap to expand</span>
-          <svg class="shrunk-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </div>
       </div>
+      {% endif %}
 
-      <div class="shrunk-card-body">
-        <div class="table-container" style="max-height: 380px; overflow-y: auto;">
-          <table class="data-table" style="font-size: 0.8rem;">
-            <thead>
-              <tr>
-                <th>Broker</th>
-                <th class="text-right">Holdings</th>
-                <th class="text-right">Valuation</th>
-                <th class="text-right">P&L</th>
-                <th class="text-right">%</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for code, sub in summary.broker_subtotals.items() %}
-              {% set pct = sub.pct if sub.pct is defined else ((sub.current_value / summary.total_value * 100) if summary.total_value > 0 else 0.0) %}
-              <tr>
-                <td><strong>{{ sub.broker_name }}</strong></td>
-                <td class="text-right">{{ sub.holdings_count }}</td>
-                <td class="text-right" style="font-weight: 600;">{{ format_inr(sub.current_value) }}</td>
-                <td class="text-right">
-                  {% if sub.pnl >= 0 %}
-                  <span style="color: var(--success); font-weight: 600;">+{{ format_inr(sub.pnl) }}</span>
-                  {% else %}
-                  <span style="color: var(--danger); font-weight: 600;">{{ format_inr(sub.pnl) }}</span>
-                  {% endif %}
-                </td>
-                <td class="text-right">{{ "%.1f"|format(pct) }}%</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- Shrunk Card 4: Portfolio Analytics & Factual Insights -->
-    {% if summary.insights %}
-    <div class="shrunk-card" id="card-insights">
-      <div class="shrunk-card-header" onclick="toggleShrunkCard('card-insights')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); toggleShrunkCard('card-insights');}" role="button" tabindex="0" aria-expanded="false">
-        <div class="shrunk-card-lead">
-          <div class="shrunk-card-icon">
+      <!-- Small Box 4: Portfolio Analytics & Insights -->
+      {% if summary.insights %}
+      <div class="compact-module-card" data-card-id="card-insights" onclick="openExpandableCard('card-insights')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); openExpandableCard('card-insights');}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Portfolio Analytics & Insights - Tap to expand">
+        <div class="compact-module-lead">
+          <div class="compact-module-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
               <polyline points="15 3 21 3 21 9"></polyline>
               <line x1="10" y1="14" x2="21" y2="3"></line>
             </svg>
           </div>
-          <div class="shrunk-card-info">
-            <div class="shrunk-card-title">
-              <span>Portfolio Analytics & Insights</span>
-              <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); font-size: 0.72rem; padding: 2px 7px;">{{ summary.insights|length }} Insights</span>
-            </div>
-            <div class="shrunk-card-subtitle">
-              Derived risk warnings and allocation alerts
-            </div>
-          </div>
+          <div class="compact-module-title">Portfolio Analytics &amp; Insights</div>
         </div>
-        <div class="shrunk-card-trail">
-          <span class="shrunk-card-tap-badge">Tap to expand</span>
-          <svg class="shrunk-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        <div class="compact-module-expand">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
         </div>
-      </div>
 
-      <div class="shrunk-card-body">
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          {% for ins in summary.insights %}
-          <div style="padding: 10px 12px; background: var(--bg-muted); border-radius: 8px; border-left: 4px solid {% if ins.type == 'risk' %}var(--danger){% elif ins.type == 'absence' %}#8b5cf6{% else %}var(--saffron-main){% endif %};">
-            <div style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: var(--text-muted);">{{ ins.title }}</div>
-            <p style="margin: 3px 0 0 0; font-size: 0.82rem; color: var(--text-main);">{{ ins.message }}</p>
+        <div class="compact-module-content" style="display: none;">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for ins in summary.insights %}
+            {% if ins.type == 'risk' %}
+            <div style="padding: 12px 14px; background: var(--bg-muted); border-radius: 8px; border-left: 4px solid var(--danger);">
+            {% elif ins.type == 'absence' %}
+            <div style="padding: 12px 14px; background: var(--bg-muted); border-radius: 8px; border-left: 4px solid #8b5cf6;">
+            {% else %}
+            <div style="padding: 12px 14px; background: var(--bg-muted); border-radius: 8px; border-left: 4px solid var(--saffron-main);">
+            {% endif %}
+              <div style="font-size: 0.74rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: var(--text-muted);">{{ ins.title }}</div>
+              <p style="margin: 4px 0 0 0; font-size: 0.84rem; color: var(--text-main); line-height: 1.4;">{{ ins.message }}</p>
+            </div>
+            {% endfor %}
           </div>
-          {% endfor %}
         </div>
       </div>
+      {% endif %}
+
     </div>
-    {% endif %}
 
   </div>
 </div>
 {% endif %}
+
+<!-- Aceternity Expandable Card Modal Overlay -->
+<div id="aceternity-modal-backdrop" class="aceternity-backdrop" onclick="closeExpandableCard(event)" style="display: none;" aria-hidden="true">
+  <div class="aceternity-modal" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+    <!-- Aceternity Close Button -->
+    <button type="button" class="aceternity-close-btn" onclick="closeExpandableCard()" aria-label="Close modal">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="aceternity-modal-header">
+      <div id="aceternity-modal-icon" class="compact-module-icon"></div>
+      <h3 id="aceternity-modal-title" class="aceternity-modal-title"></h3>
+    </div>
+
+    <div id="aceternity-modal-body" class="aceternity-modal-body"></div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
+<script id="summary-allocation-data" type="application/json">
+{
+  "asset": {{ summary.asset_allocation | tojson }},
+  "dp": {{ summary.dp_allocation | tojson }},
+  "sector": {{ summary.sector_allocation | tojson }}
+}
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const formRefresh = document.getElementById('form-refresh-now');
@@ -461,43 +560,113 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  const assetData = {{ summary.asset_allocation | tojson }};
-  const dpData = {{ summary.dp_allocation | tojson }};
-  const sectorData = {{ summary.sector_allocation | tojson }};
+  const allocationEl = document.getElementById('summary-allocation-data');
+  const allocationPayload = allocationEl ? JSON.parse(allocationEl.textContent || '{}') : {};
+  const assetData = allocationPayload.asset || {};
+  const dpData = allocationPayload.dp || {};
+  const sectorData = allocationPayload.sector || {};
 
   const colors = [
     '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b', '#14b8a6', '#f97316'
   ];
 
-  // Donut chart generator helper
+  // Center Text Plugin for Chart.js Donuts
+  const centerTextPlugin = {
+    id: 'centerText',
+    beforeDraw: function(chart) {
+      if (chart.config.type !== 'doughnut') return;
+      const { ctx } = chart;
+      const dataset = chart.data.datasets[0];
+      if (!dataset || !dataset.data || dataset.data.length === 0) return;
+      const total = dataset.data.reduce((a, b) => a + Number(b), 0);
+      if (total <= 0) return;
+      
+      const formatted = '₹' + (total >= 100000 ? (total / 100000).toFixed(1) + 'L' : total >= 1000 ? (total / 1000).toFixed(1) + 'K' : total.toFixed(0));
+      
+      ctx.save();
+      const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+      const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+      
+      ctx.font = '700 13px Inter, sans-serif';
+      ctx.fillStyle = '#f8fafc';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(formatted, centerX, centerY);
+      ctx.restore();
+    }
+  };
+
+  // Helper to render high-clarity HTML breakdown lists
+  function renderBreakdownList(containerId, data, bgColors) {
+    const container = document.getElementById(containerId);
+    if (!container || !data) return;
+    const entries = Object.entries(data).filter(([_, val]) => Number(val) > 0).sort((a, b) => b[1] - a[1]);
+    const total = entries.reduce((sum, [_, v]) => sum + Number(v), 0);
+    if (total <= 0 || entries.length === 0) {
+      container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem; padding: 10px;">No allocation recorded</div>';
+      return;
+    }
+
+    let html = '<div class="allocation-breakdown-list">';
+    entries.forEach(([label, value], i) => {
+      const color = bgColors[i % bgColors.length];
+      const pct = ((value / total) * 100).toFixed(1);
+      const valFormatted = '₹' + Number(value).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      html += `
+        <div class="allocation-item">
+          <div class="allocation-item-top">
+            <div class="allocation-item-lead">
+              <span class="allocation-dot" style="background: ${color};"></span>
+              <span class="allocation-label" title="${label}">${label}</span>
+            </div>
+            <div class="allocation-item-values">
+              <span class="allocation-pct">${pct}%</span>
+              <span class="allocation-val">${valFormatted}</span>
+            </div>
+          </div>
+          <div class="allocation-bar-bg">
+            <div class="allocation-bar-fill" style="width: ${pct}%; background: ${color};"></div>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // Simplified Donut chart generator helper (clean ring with center total)
   function createDonut(canvasId, labels, values, bgColors) {
     const el = document.getElementById(canvasId);
     if (!el || !labels || labels.length === 0) return null;
     return new Chart(el, {
       type: 'doughnut',
+      plugins: [centerTextPlugin],
       data: {
         labels: labels,
         datasets: [{
           data: values,
           backgroundColor: bgColors.slice(0, labels.length),
           borderWidth: 2,
-          borderColor: '#1c2129'
+          borderColor: '#111827'
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Inter', size: 11 } } },
+          legend: { display: false },
           tooltip: {
             callbacks: {
               label: function(ctx) {
-                return ` ${ctx.label}: ₹${Number(ctx.raw).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                const total = ctx.dataset.data.reduce((a, b) => a + Number(b), 0);
+                const val = Number(ctx.raw);
+                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                return ` ${ctx.label}: ₹${val.toLocaleString('en-IN', {minimumFractionDigits: 2})} (${pct}%)`;
               }
             }
           }
         },
-        cutout: '64%'
+        cutout: '72%'
       }
     });
   }
@@ -508,15 +677,24 @@ document.addEventListener('DOMContentLoaded', function() {
   const dpValues = Object.values(dpData || {});
   const sectorLabels = Object.keys(sectorData || {});
   const sectorValues = Object.values(sectorData || {});
+  const dpColors = ['#d97706', '#2563eb', '#059669', '#7c3aed', '#db2777'];
 
-  // Primary Combined Grid Charts
+  // Render High-Clarity Breakdown Lists
+  renderBreakdownList('assetBreakdownList', assetData, colors);
+  renderBreakdownList('dpBreakdownList', dpData, dpColors);
+  renderBreakdownList('sectorBreakdownList', sectorData, colors);
+  renderBreakdownList('assetBreakdownListSingle', assetData, colors);
+  renderBreakdownList('dpBreakdownListSingle', dpData, dpColors);
+  renderBreakdownList('sectorBreakdownListSingle', sectorData, colors);
+
+  // Primary Overview Donut Charts
   createDonut('assetChart', assetLabels, assetValues, colors);
-  createDonut('dpChart', dpLabels, dpValues, ['#d97706', '#2563eb', '#059669', '#7c3aed', '#db2777']);
+  createDonut('dpChart', dpLabels, dpValues, dpColors);
   createDonut('sectorChart', sectorLabels, sectorValues, colors);
 
   // Dedicated Single Focus View Charts
   createDonut('assetChartSingle', assetLabels, assetValues, colors);
-  createDonut('dpChartSingle', dpLabels, dpValues, ['#d97706', '#2563eb', '#059669', '#7c3aed', '#db2777']);
+  createDonut('dpChartSingle', dpLabels, dpValues, dpColors);
   createDonut('sectorChartSingle', sectorLabels, sectorValues, colors);
 });
 </script>

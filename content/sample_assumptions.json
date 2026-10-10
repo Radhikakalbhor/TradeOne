@@ -1,0 +1,62 @@
+{
+  "notice": "Illustration with sample assumptions only. Not an investment prediction, guarantee, or financial advice.",
+  "asset_classes": {
+    "equity": {
+      "name": "Equities & Stock Index",
+      "sample_yield_pct": 1.2,
+      "sample_growth_pct": 11.0,
+      "sample_total_return_pct": 12.2,
+      "sample_annual_volatility_pct": 16.5,
+      "income_frequency": "Annually / Discretionary Dividend"
+    },
+    "reit": {
+      "name": "Real Estate Investment Trusts (REITs)",
+      "sample_yield_pct": 6.8,
+      "sample_growth_pct": 3.8,
+      "sample_total_return_pct": 10.6,
+      "sample_annual_volatility_pct": 10.0,
+      "income_frequency": "Quarterly"
+    },
+    "invit": {
+      "name": "Infrastructure Investment Trusts (InvITs)",
+      "sample_yield_pct": 7.5,
+      "sample_growth_pct": 3.2,
+      "sample_total_return_pct": 10.7,
+      "sample_annual_volatility_pct": 8.5,
+      "income_frequency": "Quarterly / Semi-Annually"
+    },
+    "gsec": {
+      "name": "Government Securities (G-Sec)",
+      "sample_yield_pct": 7.15,
+      "sample_growth_pct": 0.0,
+      "sample_total_return_pct": 7.15,
+      "sample_annual_volatility_pct": 4.0,
+      "income_frequency": "Semi-Annually"
+    },
+    "tbill": {
+      "name": "Treasury Bills (T-Bills, 364D)",
+      "sample_yield_pct": 6.75,
+      "sample_growth_pct": 0.0,
+      "sample_total_return_pct": 6.75,
+      "sample_annual_volatility_pct": 1.0,
+      "income_frequency": "At Maturity (Discounted par)"
+    },
+    "sgb": {
+      "name": "Sovereign Gold Bonds (SGB)",
+      "sample_yield_pct": 2.5,
+      "sample_growth_pct": 7.8,
+      "sample_total_return_pct": 10.3,
+      "sample_annual_volatility_pct": 12.0,
+      "income_frequency": "Semi-Annually"
+    },
+    "corpbond": {
+      "name": "Corporate Bonds (AA / AAA)",
+      "sample_yield_pct": 8.4,
+      "sample_growth_pct": 0.0,
+      "sample_total_return_pct": 8.4,
+      "sample_annual_volatility_pct": 5.2,
+      "income_frequency": "Annually / Semi-Annually"
+    }
+  },
+  "disclaimer": "Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser. Rules, taxes and yields change; verify with official sources."
+}

@@ -408,4 +408,16 @@ class Settings:
 
         return errors
 
+    @property
+    def ENABLE_ASSISTANT(self) -> bool:
+        return os.getenv("ENABLE_ASSISTANT", "false").strip().lower() in ("true", "1", "yes")
+
+    @property
+    def LLM_API_KEY(self) -> str:
+        return os.getenv("LLM_API_KEY", "").strip()
+
+    @property
+    def LLM_MODEL(self) -> str:
+        return os.getenv("LLM_MODEL", "gemini-1.5-flash").strip()
+
 settings = Settings()

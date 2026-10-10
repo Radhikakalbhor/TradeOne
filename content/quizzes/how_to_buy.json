@@ -1,0 +1,61 @@
+{
+  "topic": "how_to_buy",
+  "title": "How to Buy Securities Quiz",
+  "questions": [
+    {
+      "id": "htb_q1",
+      "question": "What primary requirement is needed for an Indian retail investor to buy listed REITs and InvITs?",
+      "options": [
+        "A special commercial real estate broker license",
+        "A standard SEBI-registered Demat & Trading account with a broker",
+        "A minimum net worth of ₹50 lakh",
+        "An RBI foreign exchange permit"
+      ],
+      "correct_index": 1,
+      "explanation": "Any standard Demat & Trading account can be used to purchase listed REITs, InvITs, and bonds on NSE/BSE."
+    },
+    {
+      "id": "htb_q2",
+      "question": "What is RBI Retail Direct?",
+      "options": [
+        "A credit card rewards program",
+        "A central bank portal allowing retail investors to bid directly in government security auctions with zero brokerage",
+        "A commercial retail supermarket chain",
+        "An insurance aggregation company"
+      ],
+      "correct_index": 1,
+      "explanation": "RBI Retail Direct gives retail citizens direct access to primary auctions of G-Secs, T-Bills, and SDLs without paying broker commissions."
+    },
+    {
+      "id": "htb_q3",
+      "question": "What does OBPP stand for in the context of retail debt investments?",
+      "options": [
+        "Online Bond Platform Provider",
+        "Official Bank Pension Portal",
+        "Overseas Bullion Purchasing Program",
+        "Open Business Processing Protocol"
+      ],
+      "correct_index": 0,
+      "explanation": "OBPP stands for Online Bond Platform Provider, a specialized SEBI-regulated category of fintech platforms offering retail bond discovery."
+    },
+    {
+      "id": "htb_q4",
+      "question": "What is the standard trade settlement cycle for electronic securities on Indian stock exchanges today?",
+      "options": ["T+5 (5 business days)", "T+1 (1 business day)", "T+30 (30 days)", "Instant T+0 only for all stocks"],
+      "correct_index": 1,
+      "explanation": "Indian stock exchanges operate predominantly on a T+1 settlement cycle, where trades settle one business day after execution."
+    },
+    {
+      "id": "htb_q5",
+      "question": "Before buying a corporate bond on an online platform, what should you verify to ensure security?",
+      "options": [
+        "That the platform promises 25% returns with zero risk",
+        "That the platform is a SEBI-registered OBPP and securities credit directly into your personal Demat account",
+        "That you pay into a private individual's personal UPI QR code",
+        "That the company has no balance sheet available"
+      ],
+      "correct_index": 1,
+      "explanation": "Always confirm the platform is SEBI-registered and ensure bonds are credited to your personal NSDL or CDSL Demat account."
+    }
+  ]
+}

@@ -1,0 +1,637 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title }} — Learn | TradeOne{% endblock %}
+
+{% block content %}
+<style>
+/* ─── Lesson Page ─── */
+.lesson-wrap { display: grid; grid-template-columns: 1fr 320px; gap: 28px; align-items: start; }
+@media (max-width: 900px) { .lesson-wrap { grid-template-columns: 1fr; } }
+
+.lesson-main {}
+
+.lesson-header {
+  background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+  border-radius: 14px;
+  padding: 32px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.lesson-header::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -5%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.lesson-breadcrumb { font-size: 0.8rem; color: #94a3b8; margin-bottom: 12px; }
+.lesson-breadcrumb a { color: #a78bfa; text-decoration: none; }
+.lesson-breadcrumb a:hover { text-decoration: underline; }
+.lesson-header h1 { font-size: 1.8rem; font-weight: 800; color: #f8fafc; margin: 0 0 8px 0; }
+.lesson-header-sub { color: #94a3b8; font-size: 0.95rem; margin-bottom: 16px; }
+.lesson-header-meta { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; font-size: 0.8rem; color: #64748b; }
+.lesson-header-meta a { color: #a78bfa; text-decoration: none; }
+
+.learn-disclaimer-bar {
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  color: #d97706;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.lesson-section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 18px;
+}
+.lesson-section h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lesson-section p, .lesson-section li {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+.lesson-section ul { padding-left: 20px; margin: 10px 0; }
+.lesson-section li { margin-bottom: 6px; }
+
+.analogy-box {
+  background: rgba(167,139,250,0.08);
+  border-left: 3px solid #7c3aed;
+  border-radius: 4px;
+  padding: 14px 16px;
+  margin-top: 12px;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  font-style: italic;
+}
+
+.worked-example-badge {
+  display: inline-block;
+  background: rgba(6,182,212,0.15);
+  border: 1px solid rgba(6,182,212,0.3);
+  color: #06b6d4;
+  border-radius: 20px;
+  padding: 2px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.myths-grid { display: flex; flex-direction: column; gap: 12px; }
+.myth-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 640px) { .myth-item { grid-template-columns: 1fr; } }
+.myth-col, .fact-col {
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+.myth-col { background: rgba(239,68,68,0.08); border-left: 3px solid #ef4444; color: var(--text-muted); }
+.fact-col { background: rgba(16,185,129,0.08); border-left: 3px solid #10b981; color: var(--text-main); }
+.myth-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.myth-label.red { color: #ef4444; }
+.myth-label.green { color: #10b981; }
+
+.terms-list { display: flex; flex-direction: column; gap: 10px; }
+.term-row { padding: 10px 14px; background: var(--bg-muted); border-radius: 8px; }
+.term-name { font-weight: 700; font-size: 0.88rem; color: #a78bfa; }
+.term-def { font-size: 0.83rem; color: var(--text-muted); margin-top: 2px; }
+
+.tax-fact {
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.2);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+.steps-list { counter-reset: step-counter; list-style: none; padding: 0; margin: 0; }
+.step-item {
+  counter-increment: step-counter;
+  display: flex;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(124,58,237,0.2);
+  color: #a78bfa;
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.step-text { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; padding-top: 4px; }
+
+/* Sidebar */
+.lesson-sidebar {}
+.sidebar-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: sticky;
+  top: 80px;
+}
+.sidebar-card h4 { font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin: 0 0 12px 0; }
+.progress-bar-outer { background: var(--bg-muted); border-radius: 6px; height: 8px; margin-bottom: 8px; }
+.progress-bar-inner { height: 8px; border-radius: 6px; background: linear-gradient(90deg, #7c3aed, #a78bfa); transition: width 0.3s; }
+.sidebar-lesson-link {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  text-decoration: none;
+  color: var(--text-muted);
+  transition: background 0.15s;
+  margin-bottom: 2px;
+}
+.sidebar-lesson-link:hover { background: var(--bg-muted); color: var(--text-main); }
+.sidebar-lesson-link.active { background: rgba(124,58,237,0.15); color: #a78bfa; font-weight: 600; }
+
+/* Personal holdings mini-card */
+.holding-mini {
+  background: rgba(16,185,129,0.08);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+/* Quiz section */
+.quiz-section {}
+.quiz-q { margin-bottom: 20px; }
+.quiz-q-text { font-weight: 600; font-size: 0.92rem; color: var(--text-main); margin-bottom: 10px; }
+.quiz-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 0.87rem;
+  color: var(--text-muted);
+}
+.quiz-option input[type=radio] { accent-color: #7c3aed; }
+.quiz-option:hover { border-color: #7c3aed; background: rgba(124,58,237,0.08); color: var(--text-main); }
+.quiz-option.correct { border-color: #10b981; background: rgba(16,185,129,0.1); color: #10b981; }
+.quiz-option.wrong { border-color: #ef4444; background: rgba(239,68,68,0.1); color: #ef4444; }
+.quiz-explanation {
+  background: rgba(167,139,250,0.1);
+  border-left: 3px solid #7c3aed;
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-top: 8px;
+  font-size: 0.83rem;
+  color: var(--text-main);
+  display: none;
+}
+</style>
+
+<!-- Breadcrumb & Header -->
+<div class="lesson-header">
+  <div class="lesson-breadcrumb">
+    <a href="/learn">Learn</a> › {{ lesson.title }}
+  </div>
+  <h1>{{ lesson.title }}</h1>
+  {% if lesson.subtitle %}
+  <div class="lesson-header-sub">{{ lesson.subtitle }}</div>
+  {% endif %}
+  <div class="lesson-header-meta">
+    {% if lesson.reading_time %}<span>⏱ {{ lesson.reading_time }}</span>{% endif %}
+    <span>Last reviewed: <strong>{{ lesson.last_reviewed }}</strong></span>
+    {% for src in lesson.sources %}
+    <a href="{{ src.url }}" target="_blank" rel="noopener noreferrer">📎 {{ src.name }}</a>
+    {% endfor %}
+    {% if lesson.needs_verification %}
+    <span style="color: #ef4444;">⚠ Some facts need verification — check official sources</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Disclaimer -->
+<div class="learn-disclaimer-bar">
+  <span>⚠️</span>
+  <span>{{ disclaimer }}</span>
+</div>
+
+<div class="lesson-wrap">
+  <!-- Left: Main Content -->
+  <div class="lesson-main">
+
+    <!-- Sections -->
+    {% for section in lesson.sections %}
+
+    {% if section.id == 'what_is_it' %}
+    <div class="lesson-section">
+      <h2>🏠 {{ section.title }}</h2>
+      <p>{{ section.content }}</p>
+      {% if section.analogy %}
+      <div class="analogy-box">🔍 <em>{{ section.analogy }}</em></div>
+      {% endif %}
+    </div>
+
+    {% elif section.id == 'how_you_earn' %}
+    <div class="lesson-section">
+      <h2>💰 {{ section.title }}</h2>
+      <p>{{ section.content }}</p>
+      {% if section.points %}
+      <ul>{% for pt in section.points %}<li>{{ pt }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+
+    {% elif section.id == 'risks' %}
+    <div class="lesson-section">
+      <h2>⚠️ {{ section.title }}</h2>
+      <p>{{ section.content }}</p>
+      {% if section.points %}
+      <ul>{% for pt in section.points %}<li>{{ pt }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+
+    {% elif section.id == 'who_considers' %}
+    <div class="lesson-section">
+      <h2>👤 {{ section.title }}</h2>
+      <p>{{ section.content }}</p>
+    </div>
+
+    {% elif section.id == 'worked_example' %}
+    <div class="lesson-section">
+      <h2>🔢 {{ section.title }}</h2>
+      {% if section.badge %}
+      <div><span class="worked-example-badge">{{ section.badge }}</span></div>
+      {% endif %}
+      <p>{{ section.content }}</p>
+      {% if section.details %}
+      <ul>{% for d in section.details %}<li>{{ d }}</li>{% endfor %}</ul>
+      {% endif %}
+      {% if section.table_rows %}
+      <div style="overflow-x: auto; margin-top: 12px;">
+        <table class="data-table" style="font-size: 0.83rem;">
+          <thead><tr>{% for h in section.table_headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+          <tbody>{% for row in section.table_rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+    {% elif section.id == 'tax_overview' %}
+    <div class="lesson-section">
+      <h2>🧾 {{ section.title }}</h2>
+      <p>{{ section.content }}</p>
+      {% if section.points %}
+      <ul>{% for pt in section.points %}<li>{{ pt }}</li>{% endfor %}</ul>
+      {% endif %}
+      {% if facts %}
+      <div class="tax-fact">
+        <strong>From our facts file (as of {{ facts.get('as_of', '') }}):</strong>
+        {% if facts.tax_interest %}<div>Interest income: {{ facts.tax_interest }}</div>{% endif %}
+        {% if facts.tax_stcg %}<div>STCG: {{ facts.tax_stcg }}</div>{% endif %}
+        {% if facts.tax_ltcg %}<div>LTCG: {{ facts.tax_ltcg }}</div>{% endif %}
+        {% if facts.needs_verification %}
+        <div style="color: #ef4444; margin-top: 6px;">⚠ Some tax rules need verification — check official sources</div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    {% elif section.id == 'how_to_buy' %}
+    <div class="lesson-section">
+      <h2>🛒 {{ section.title }}</h2>
+      {% if section.steps %}
+      <ol class="steps-list">
+        {% for step in section.steps %}
+        <li class="step-item">
+          <div class="step-num">{{ loop.index }}</div>
+          <div class="step-text">{{ step }}</div>
+        </li>
+        {% endfor %}
+      </ol>
+      {% endif %}
+      {% if section.content %}<p>{{ section.content }}</p>{% endif %}
+    </div>
+
+    {% elif section.id == 'myths_vs_facts' %}
+    <div class="lesson-section">
+      <h2>🔍 {{ section.title }}</h2>
+      <div class="myths-grid">
+        {% for item in section['items'] %}
+        <div class="myth-item">
+          <div class="myth-col">
+            <div class="myth-label red">❌ Myth</div>
+            {{ item.myth }}
+          </div>
+          <div class="fact-col">
+            <div class="myth-label green">✅ Fact</div>
+            {{ item.fact }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% elif section.id == 'key_terms' %}
+    <div class="lesson-section">
+      <h2>📖 {{ section.title }}</h2>
+      <div class="terms-list">
+        {% for t in section.terms %}
+        <div class="term-row">
+          <div class="term-name">{{ t.term }}</div>
+          <div class="term-def">{{ t.definition }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% else %}
+    <!-- Generic section fallback -->
+    <div class="lesson-section">
+      <h2>{{ section.title }}</h2>
+      {% if section.content %}<p>{{ section.content }}</p>{% endif %}
+      {% if section.points %}
+      <ul>{% for pt in section.points %}<li>{{ pt }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% endfor %}
+
+    <!-- Personalised holdings card (only when user has relevant holdings) -->
+    {% if user and relevant_holdings %}
+    <div class="lesson-section" style="border-color: rgba(16,185,129,0.3);">
+      <h2>🎯 Your {{ lesson.title }} Holdings</h2>
+      <p style="font-size: 0.83rem; color: var(--text-muted); margin-bottom: 12px;">Based on your live synced holdings — for context only. Not investment advice.</p>
+      {% for h in relevant_holdings %}
+      <div class="holding-mini">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">{{ h.name }}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); font-family: monospace;">{{ h.isin }}</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 700; font-size: 0.92rem;">{{ format_inr(h.value) }}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">{{ h.quantity | int }} units</div>
+          </div>
+        </div>
+        {% if h.coupon or h.maturity_date %}
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; font-size: 0.78rem; color: var(--text-muted);">
+          {% if h.coupon %}<span>Coupon: <strong>{{ h.coupon }}%</strong></span>{% endif %}
+          {% if h.ytm %}<span>YTM: <strong>{{ h.ytm }}%</strong></span>{% endif %}
+          {% if h.maturity_date %}<span>Matures: <strong>{{ h.maturity_date }}</strong></span>{% endif %}
+          {% if h.next_coupon_date %}<span>Next coupon: <strong>{{ h.next_coupon_date }}</strong></span>{% endif %}
+        </div>
+        {% endif %}
+        <div style="margin-top: 8px; font-size: 0.77rem; color: #ef4444;">
+          <a href="/learn/api/explain/{{ h.isin }}" style="color: #a78bfa; text-decoration: none;" onclick="openExplainDrawer('{{ h.isin }}'); return false;">🔍 Explain this holding</a>
+        </div>
+      </div>
+      {% if not loop.last %}<div style="height: 8px;"></div>{% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Quiz Section -->
+    {% if quiz and quiz.questions %}
+    <div class="lesson-section quiz-section" id="quiz-section">
+      <h2>🎯 Knowledge Check — {{ quiz.title }}</h2>
+      <p style="font-size: 0.83rem; color: var(--text-muted); margin-bottom: 20px;">
+        {{ quiz.questions | length }} questions · {{ lesson.reading_time }}
+        {% if user and progress and progress.best_quiz_score is not none %}
+        · Your best: <strong>{{ progress.best_quiz_score }}%</strong>
+        {% endif %}
+      </p>
+
+      <div id="quiz-form">
+        {% for q in quiz.questions %}
+        <div class="quiz-q" data-qi="{{ loop.index0 }}" data-correct="{{ q.correct_index }}">
+          <div class="quiz-q-text">{{ loop.index }}. {{ q.question }}</div>
+          {% for opt in q.options %}
+          <label class="quiz-option">
+            <input type="radio" name="q{{ loop.index0 }}" value="{{ loop.index0 }}" data-qi="{{ q.correct_index if loop.index0 == q.correct_index else -1 }}">
+            {{ opt }}
+          </label>
+          {% endfor %}
+          <div class="quiz-explanation" id="explanation-{{ loop.index0 }}">{{ q.explanation }}</div>
+        </div>
+        {% endfor %}
+
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 20px;">
+          {% if user %}
+          <button type="button" id="submit-quiz-btn" class="btn btn-primary" onclick="submitQuiz('{{ topic }}')">Submit Answers</button>
+          <button type="button" id="pre-quiz-btn" class="btn btn-outline btn-sm" onclick="submitQuiz('{{ topic }}', 'pre')" title="Test your knowledge before reading this lesson">Pre-read Quiz</button>
+          {% else %}
+          <a href="/auth/login?next=/learn/lesson/{{ topic }}" class="btn btn-primary">Login to track progress</a>
+          {% endif %}
+        </div>
+
+        <div id="quiz-result" style="display: none; margin-top: 16px;">
+          <div id="quiz-score-display" style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;"></div>
+          {% if post_quiz_attempts and pre_quiz_attempts %}
+          <div id="knowledge-gain" style="background: rgba(16,185,129,0.1); border-radius: 8px; padding: 12px; font-size: 0.88rem; color: #10b981;"></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Sources & Last Reviewed -->
+    <div style="margin-top: 24px; padding: 16px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.8rem; color: var(--text-muted);">
+      <div style="font-weight: 600; margin-bottom: 8px; color: var(--text-main);">📎 Sources & Last Reviewed</div>
+      <div style="margin-bottom: 6px;">Last reviewed: <strong>{{ lesson.last_reviewed }}</strong></div>
+      {% for src in lesson.sources %}
+      <div><a href="{{ src.url }}" target="_blank" rel="noopener noreferrer" style="color: #a78bfa;">{{ src.name }}</a></div>
+      {% endfor %}
+    </div>
+
+    <!-- Thumbs Rating -->
+    <div style="margin-top: 16px; text-align: center; padding: 16px;">
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Was this lesson helpful?</div>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button onclick="sendRating('{{ topic }}', 'up')" class="btn btn-outline btn-sm" id="thumbs-up-btn">👍 Yes</button>
+        <button onclick="sendRating('{{ topic }}', 'down')" class="btn btn-outline btn-sm" id="thumbs-down-btn">👎 Not really</button>
+      </div>
+      <div id="rating-thanks" style="display: none; color: #10b981; font-size: 0.83rem; margin-top: 8px;">Thanks for your feedback!</div>
+    </div>
+
+  </div><!-- /lesson-main -->
+
+  <!-- Right Sidebar -->
+  <div class="lesson-sidebar">
+    <div class="sidebar-card">
+      <h4>📚 All Lessons</h4>
+      {% for lbl_topic, lbl_title in lesson_labels.items() %}
+      <a href="/learn/lesson/{{ lbl_topic }}" class="sidebar-lesson-link {% if lbl_topic == topic %}active{% endif %}">{{ lbl_title }}</a>
+      {% endfor %}
+    </div>
+
+    {% if user and progress %}
+    <div class="sidebar-card">
+      <h4>Your Progress</h4>
+      {% if progress.completed_at %}
+      <div class="badge badge-success" style="margin-bottom: 8px;">✓ Lesson completed</div>
+      {% else %}
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Mark as complete when done reading</div>
+      <button onclick="markComplete('{{ topic }}')" class="btn btn-secondary btn-sm" id="complete-btn" style="width: 100%;">Mark Complete</button>
+      {% endif %}
+      {% if progress.best_quiz_score is not none %}
+      <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">Best quiz score: <strong style="color: #10b981;">{{ progress.best_quiz_score }}%</strong></div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="sidebar-card">
+      <h4>🛠 Tools</h4>
+      <a href="/learn/simulator" class="sidebar-lesson-link">🧮 Income Simulator</a>
+      <a href="/learn/compare" class="sidebar-lesson-link">⚖️ Compare Assets</a>
+      <a href="/learn/what-if" class="sidebar-lesson-link">🎯 What-If Allocator</a>
+      {% if user %}
+      <a href="/learn/income-calendar" class="sidebar-lesson-link">📅 Income Calendar</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Explain-my-holding drawer -->
+<div id="explain-drawer-backdrop" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000;" onclick="closeExplainDrawer()"></div>
+<div id="explain-drawer" style="display:none; position:fixed; right:0; top:0; height:100%; width:min(420px, 100%); background: var(--bg-surface); border-left: 1px solid var(--border-color); z-index:1001; overflow-y:auto; padding: 24px;">
+  <button onclick="closeExplainDrawer()" style="position:absolute; top:16px; right:16px; background:none; border:none; cursor:pointer; color: var(--text-muted); font-size:1.2rem;">✕</button>
+  <div id="explain-content"><div style="color: var(--text-muted); margin-top: 40px; text-align: center;">Loading…</div></div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function submitQuiz(topic, mode = 'post') {
+  const answers = [];
+  {% for q in quiz.questions if quiz.questions %}
+  const radios{{ loop.index0 }} = document.querySelectorAll(`input[name=q{{ loop.index0 }}]`);
+  let selected{{ loop.index0 }} = -1;
+  radios{{ loop.index0 }}.forEach(r => { if (r.checked) selected{{ loop.index0 }} = parseInt(r.value); });
+  answers.push(selected{{ loop.index0 }});
+  {% endfor %}
+
+  const res = await fetch(`/learn/quiz/${topic}/submit?mode=${mode}`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({answers})
+  });
+  const data = await res.json();
+
+  // Show results
+  document.getElementById('quiz-result').style.display = 'block';
+  const scoreEl = document.getElementById('quiz-score-display');
+  scoreEl.textContent = `${data.correct}/${data.total} correct — ${data.score}%`;
+  scoreEl.style.color = data.score >= 80 ? '#10b981' : data.score >= 60 ? '#f59e0b' : '#ef4444';
+
+  // Highlight options
+  data.results.forEach((r, qi) => {
+    const options = document.querySelectorAll(`[data-qi="${qi}"] .quiz-option`);
+    options.forEach((opt, oi) => {
+      if (oi === r.correct_index) opt.classList.add('correct');
+      else if (oi === r.selected && !r.is_correct) opt.classList.add('wrong');
+    });
+    const expEl = document.getElementById(`explanation-${qi}`);
+    if (expEl) expEl.style.display = 'block';
+  });
+
+  // Disable radios
+  document.querySelectorAll('.quiz-q input[type=radio]').forEach(r => r.disabled = true);
+}
+
+async function markComplete(topic) {
+  await fetch(`/learn/lesson/${topic}/complete`, {method: 'POST'});
+  const btn = document.getElementById('complete-btn');
+  if (btn) {
+    btn.textContent = '✓ Completed!';
+    btn.disabled = true;
+    btn.style.background = 'rgba(16,185,129,0.2)';
+    btn.style.color = '#10b981';
+  }
+}
+
+async function sendRating(topic, thumbs) {
+  await fetch(`/learn/rating/${topic}`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({thumbs})
+  });
+  document.getElementById('thumbs-up-btn').disabled = true;
+  document.getElementById('thumbs-down-btn').disabled = true;
+  document.getElementById('rating-thanks').style.display = 'block';
+}
+
+async function openExplainDrawer(isin) {
+  document.getElementById('explain-drawer-backdrop').style.display = 'block';
+  document.getElementById('explain-drawer').style.display = 'block';
+  document.getElementById('explain-content').innerHTML = '<div style="color: var(--text-muted); margin-top: 40px; text-align: center;">Loading…</div>';
+  const res = await fetch(`/learn/api/explain/${isin}`);
+  if (!res.ok) {
+    document.getElementById('explain-content').innerHTML = '<div style="color:#ef4444; margin-top:40px; text-align:center;">Could not load explanation.</div>';
+    return;
+  }
+  const d = await res.json();
+  const val = d.value ? '₹' + Number(d.value).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—';
+  document.getElementById('explain-content').innerHTML = `
+    <h3 style="font-size:1.1rem; font-weight:700; margin:0 0 6px 0; color:var(--text-main); padding-right:28px;">${d.name}</h3>
+    <div style="font-size:0.78rem; color:var(--text-muted); font-family:monospace; margin-bottom:16px;">${d.isin}</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+      <div style="background:var(--bg-muted); border-radius:8px; padding:10px;">
+        <div style="font-size:0.72rem; color:var(--text-muted);">Current Value</div>
+        <div style="font-weight:700; font-size:0.95rem;">${val}</div>
+      </div>
+      <div style="background:var(--bg-muted); border-radius:8px; padding:10px;">
+        <div style="font-size:0.72rem; color:var(--text-muted);">Quantity</div>
+        <div style="font-weight:700; font-size:0.95rem;">${d.quantity} units</div>
+      </div>
+      ${d.coupon ? `<div style="background:var(--bg-muted); border-radius:8px; padding:10px;"><div style="font-size:0.72rem; color:var(--text-muted);">Coupon</div><div style="font-weight:700;">${d.coupon}%</div></div>` : ''}
+      ${d.ytm ? `<div style="background:var(--bg-muted); border-radius:8px; padding:10px;"><div style="font-size:0.72rem; color:var(--text-muted);">YTM</div><div style="font-weight:700;">${d.ytm}%</div></div>` : ''}
+      ${d.maturity_date ? `<div style="background:var(--bg-muted); border-radius:8px; padding:10px;"><div style="font-size:0.72rem; color:var(--text-muted);">Maturity</div><div style="font-weight:700;">${d.maturity_date}</div></div>` : ''}
+      ${d.next_coupon_date ? `<div style="background:var(--bg-muted); border-radius:8px; padding:10px;"><div style="font-size:0.72rem; color:var(--text-muted);">Next Coupon</div><div style="font-weight:700;">${d.next_coupon_date}</div></div>` : ''}
+    </div>
+    <div style="background:rgba(167,139,250,0.1); border-left:3px solid #7c3aed; padding:12px; border-radius:4px; font-size:0.87rem; color:var(--text-main); margin-bottom:14px;">${d.explanation}</div>
+    <div style="background:rgba(239,68,68,0.08); border-left:3px solid #ef4444; padding:10px; border-radius:4px; font-size:0.8rem; color:var(--text-muted); margin-bottom:16px;">⚠️ ${d.risk_note}</div>
+    ${d.lesson_url ? `<a href="${d.lesson_url}" style="display:block; text-align:center; padding:10px; background:rgba(124,58,237,0.2); border:1px solid rgba(124,58,237,0.4); border-radius:8px; color:#a78bfa; text-decoration:none; font-weight:600; font-size:0.87rem;">📚 Read the full lesson →</a>` : ''}
+    <div style="margin-top:12px; font-size:0.75rem; color:var(--text-muted);">${d.disclaimer}</div>
+  `;
+}
+
+function closeExplainDrawer() {
+  document.getElementById('explain-drawer-backdrop').style.display = 'none';
+  document.getElementById('explain-drawer').style.display = 'none';
+}
+</script>
+{% endblock %}

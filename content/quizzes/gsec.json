@@ -1,0 +1,56 @@
+{
+  "topic": "gsec",
+  "title": "Government Securities Quiz",
+  "questions": [
+    {
+      "id": "gsec_q1",
+      "question": "Who issues Central Government Securities in India?",
+      "options": [
+        "SEBI",
+        "The Reserve Bank of India (RBI) on behalf of the Government of India",
+        "Municipal Corporations",
+        "Commercial Banks"
+      ],
+      "correct_index": 1,
+      "explanation": "RBI conducts debt management operations and auctions for the Government of India."
+    },
+    {
+      "id": "gsec_q2",
+      "question": "How often do most dated Government of India bonds pay interest (coupons)?",
+      "options": ["Monthly", "Semi-annually (twice a year)", "Every 5 years", "Only at maturity"],
+      "correct_index": 1,
+      "explanation": "Standard dated G-Secs pay coupon interest semi-annually (every 6 months) directly to the bondholder's account."
+    },
+    {
+      "id": "gsec_q3",
+      "question": "What is the standard face value of a Government of India bond?",
+      "options": ["₹10,000", "₹1,00,000", "₹100", "₹1,000"],
+      "correct_index": 2,
+      "explanation": "Government bonds have a standard face value of ₹100 per unit."
+    },
+    {
+      "id": "gsec_q4",
+      "question": "If prevailing market interest rates increase, what happens to the market resale price of an existing fixed-rate G-Sec?",
+      "options": [
+        "Its price increases",
+        "Its price falls",
+        "Its price stays exactly unchanged forever",
+        "Its coupon rate automatically doubles"
+      ],
+      "correct_index": 1,
+      "explanation": "Bond prices have an inverse relationship with interest rates. When interest rates rise, existing bonds with lower coupons drop in price."
+    },
+    {
+      "id": "gsec_q5",
+      "question": "Where can a retail individual buy G-Secs directly from the RBI with zero brokerage?",
+      "options": [
+        "At a local post office counter only",
+        "Via the RBI Retail Direct portal (rbiretaildirect.org.in)",
+        "Via international forex brokers",
+        "Through cryptocurrency exchanges"
+      ],
+      "correct_index": 1,
+      "explanation": "The RBI Retail Direct scheme allows individual retail investors to open a free Gilt account and participate directly in primary government bond auctions."
+    }
+  ]
+}

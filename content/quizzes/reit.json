@@ -1,0 +1,56 @@
+{
+  "topic": "reit",
+  "title": "REIT Knowledge Quiz",
+  "questions": [
+    {
+      "id": "reit_q1",
+      "question": "Under SEBI regulations, what minimum percentage of Net Distributable Cash Flows (NDCF) must a REIT distribute to unitholders?",
+      "options": ["50%", "75%", "90%", "100%"],
+      "correct_index": 2,
+      "explanation": "SEBI (Real Estate Investment Trusts) Regulations, 2014 mandate that at least 90% of NDCF must be distributed to unitholders periodically."
+    },
+    {
+      "id": "reit_q2",
+      "question": "What is the typical minimum lot size for trading listed REIT units on Indian stock exchanges today?",
+      "options": ["100 units", "50 units", "1 unit", "200 units"],
+      "correct_index": 2,
+      "explanation": "SEBI revised trading lot sizes in July 2021 to 1 unit to facilitate easy retail investor participation."
+    },
+    {
+      "id": "reit_q3",
+      "question": "What is the primary source of cash distributions paid by commercial office REITs in India?",
+      "options": [
+        "Government welfare grants",
+        "Contractual tenant rentals and corporate lease income",
+        "Trading profits from flipping residential apartments",
+        "Bank deposit interest only"
+      ],
+      "correct_index": 1,
+      "explanation": "REITs primarily hold operational commercial offices leased to corporations that pay periodic rental income."
+    },
+    {
+      "id": "reit_q4",
+      "question": "How are Long-Term Capital Gains (LTCG) on listed REIT units taxed if held for more than 12 months (post Finance Act 2024)?",
+      "options": [
+        "Completely tax-free with zero limit",
+        "12.5% on cumulative gains exceeding ₹1.25 lakh per financial year",
+        "Flat 30% without exemption",
+        "At personal marginal income slab rate"
+      ],
+      "correct_index": 1,
+      "explanation": "Finance Act 2024 standardized listed equity/REIT LTCG at 12.5% above ₹1.25 lakh for holding periods exceeding 12 months."
+    },
+    {
+      "id": "reit_q5",
+      "question": "What happens to the distribution payouts of a REIT if major tenants vacate and buildings have high vacancies?",
+      "options": [
+        "The government guarantees paying the difference to investors",
+        "Rental revenue drops, which reduces the Net Distributable Cash Flow payouts",
+        "Distributions automatically double",
+        "REIT unitholders are personally liable to pay the tenant debt"
+      ],
+      "correct_index": 1,
+      "explanation": "Because REIT distributions depend on collected rent, higher vacancies reduce cash available for distribution."
+    }
+  ]
+}

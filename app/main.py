@@ -13,7 +13,7 @@ from app.config import settings
 from app.database import engine, Base, SessionLocal
 from app.models import AdminSetting
 from app.services.seed_service import seed_database
-from app.routers import auth, depository, aa_api, internal, admin, health
+from app.routers import auth, depository, aa_api, internal, admin, health, learn
 
 logger = logging.getLogger("app.main")
 
@@ -60,6 +60,46 @@ async def lifespan(app: FastAPI):
                 if "connection_method" not in d_cols:
                     conn.execute(text("ALTER TABLE demat_accounts ADD COLUMN connection_method VARCHAR(64) DEFAULT 'Auto-linked (demo)'"))
                 conn.commit()
+        # Ensure lesson progress and quiz tables exist for new DB migrations
+        for tbl_name, ddl in [
+            ("lesson_progress", """
+                CREATE TABLE IF NOT EXISTS lesson_progress (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL REFERENCES users(id),
+                    lesson_id VARCHAR(64) NOT NULL,
+                    lang VARCHAR(8) DEFAULT 'en',
+                    started_at DATETIME,
+                    completed_at DATETIME,
+                    best_quiz_score INTEGER,
+                    last_score INTEGER,
+                    source_card VARCHAR(64)
+                )
+            """),
+            ("quiz_attempts", """
+                CREATE TABLE IF NOT EXISTS quiz_attempts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL REFERENCES users(id),
+                    lesson_id VARCHAR(64) NOT NULL,
+                    attempt_type VARCHAR(16) DEFAULT 'post',
+                    score INTEGER NOT NULL DEFAULT 0,
+                    answers_json TEXT,
+                    attempted_at DATETIME
+                )
+            """),
+            ("lesson_analytics", """
+                CREATE TABLE IF NOT EXISTS lesson_analytics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    lesson_id VARCHAR(64) NOT NULL,
+                    event VARCHAR(32) NOT NULL,
+                    source_card VARCHAR(64),
+                    occurred_at DATETIME
+                )
+            """),
+        ]:
+            if tbl_name not in tables:
+                with engine.connect() as conn:
+                    conn.execute(text(ddl))
+                    conn.commit()
         if "holdings" in tables:
             h_cols = [c["name"] for c in insp.get_columns("holdings")]
             if "metadata_json" not in h_cols:
@@ -188,6 +228,8 @@ app.include_router(depository.router)
 app.include_router(aa_api.router)
 app.include_router(internal.router)
 app.include_router(admin.router)
+app.include_router(learn.router)
+app.include_router(learn.api_router)
 
 if __name__ == "__main__":
     import uvicorn

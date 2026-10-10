@@ -285,7 +285,7 @@ window.toggleTopSecuritiesTab = function() {
 
 window.addEventListener('resize', initCardHoverEffects);
 
-// Interactive Shrunken Card toggle for Dashboard 60/40 view
+// Interactive Shrunken Card toggle for Dashboard 60/40 view (kept for backwards compatibility)
 window.toggleShrunkCard = function(cardId) {
   const card = document.getElementById(cardId);
   if (!card) return;
@@ -299,6 +299,59 @@ window.toggleShrunkCard = function(cardId) {
     header.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
   }
 };
+
+// Aceternity Expandable Card Modal System
+window.openExpandableCard = function(cardId) {
+  const card = document.querySelector(`[data-card-id="${cardId}"]`);
+  const backdrop = document.getElementById('aceternity-modal-backdrop');
+  if (!card || !backdrop) return;
+
+  const titleEl = card.querySelector('.compact-module-title, .square-card-title');
+  const iconEl = card.querySelector('.compact-module-icon, .square-card-icon');
+  const contentEl = card.querySelector('.square-card-content, .compact-module-content');
+  const modalTitle = document.getElementById('aceternity-modal-title');
+  const modalIcon = document.getElementById('aceternity-modal-icon');
+  const modalBody = document.getElementById('aceternity-modal-body');
+
+  if (modalTitle && titleEl) modalTitle.textContent = titleEl.textContent.trim();
+  if (modalIcon && iconEl) modalIcon.innerHTML = iconEl.innerHTML;
+  if (modalBody && contentEl) modalBody.innerHTML = contentEl.innerHTML;
+
+  backdrop.style.display = 'flex';
+  backdrop.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+
+  requestAnimationFrame(() => {
+    backdrop.classList.add('is-active');
+  });
+};
+
+window.closeExpandableCard = function(e) {
+  const backdrop = document.getElementById('aceternity-modal-backdrop');
+  if (!backdrop) return;
+
+  backdrop.classList.remove('is-active');
+  document.body.style.overflow = '';
+
+  setTimeout(() => {
+    if (!backdrop.classList.contains('is-active')) {
+      backdrop.style.display = 'none';
+      backdrop.setAttribute('aria-hidden', 'true');
+      const modalBody = document.getElementById('aceternity-modal-body');
+      if (modalBody) modalBody.innerHTML = '';
+    }
+  }, 240);
+};
+
+// Global escape key listener
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') {
+    const backdrop = document.getElementById('aceternity-modal-backdrop');
+    if (backdrop && backdrop.style.display !== 'none' && backdrop.classList.contains('is-active')) {
+      closeExpandableCard();
+    }
+  }
+});
 
 // Graph Tab switcher
 window.switchGraphTab = function(tabKey) {

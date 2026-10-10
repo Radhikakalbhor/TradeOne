@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+{% block title %}Learn — Understand REITs, InvITs & Bonds | TradeOne{% endblock %}
+{% block content %}
+
+<style>
+/* ─── Learn Hub Styles ─── */
+.learn-hero {
+  background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #1a0a2e 100%);
+  border-radius: 16px;
+  padding: 40px 36px;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.learn-hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.learn-hero h1 { font-size: 2rem; font-weight: 800; margin: 0 0 10px 0; color: #f8fafc; }
+.learn-hero p { color: #94a3b8; font-size: 1rem; margin: 0 0 24px 0; max-width: 580px; line-height: 1.6; }
+.learn-hero-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+.hero-badge {
+  background: rgba(167,139,250,0.15);
+  border: 1px solid rgba(167,139,250,0.3);
+  color: #a78bfa;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.learn-disclaimer-bar {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  color: #d97706;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  margin-bottom: 32px;
+}
+.lesson-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 22px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+.lesson-card:hover {
+  border-color: #7c3aed;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(124,58,237,0.15);
+}
+.lesson-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin-bottom: 14px;
+}
+.lesson-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0 0 6px 0; }
+.lesson-card p { font-size: 0.83rem; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.5; }
+.lesson-card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lesson-reading-time { font-size: 0.75rem; color: var(--text-muted); }
+.lesson-progress-badge {
+  font-size: 0.72rem;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.lesson-progress-badge.completed { background: rgba(16,185,129,0.15); color: #10b981; }
+.lesson-progress-badge.started { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.lesson-card-arrow {
+  position: absolute;
+  top: 20px;
+  right: 18px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+.lesson-card:hover .lesson-card-arrow { transform: translateX(3px); color: #a78bfa; }
+
+/* Divcheck card */
+.div-check-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 28px;
+}
+.div-check-bar-wrap { margin: 16px 0; }
+.div-check-bar {
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  background: var(--bg-muted);
+}
+.div-check-segment { height: 100%; transition: width 0.4s ease; }
+.div-check-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-muted); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.div-check-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.div-check-btn {
+  background: rgba(167,139,250,0.1);
+  border: 1px solid rgba(167,139,250,0.3);
+  color: #a78bfa;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.div-check-btn:hover { background: rgba(167,139,250,0.2); }
+
+.tools-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 32px;
+}
+.tool-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 18px;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tool-card:hover { border-color: #06b6d4; box-shadow: 0 4px 16px rgba(6,182,212,0.1); }
+.tool-icon { font-size: 1.6rem; }
+.tool-card h4 { font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin: 0 0 2px 0; }
+.tool-card p { font-size: 0.75rem; color: var(--text-muted); margin: 0; }
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+/* Language switcher */
+.lang-switch { display: flex; gap: 8px; align-items: center; }
+.lang-btn {
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.lang-btn.active, .lang-btn:hover { background: rgba(167,139,250,0.15); border-color: #7c3aed; color: #a78bfa; }
+</style>
+
+<!-- Hero -->
+<div class="learn-hero">
+  <h1>📚 Learn</h1>
+  <p>Understand investment options beyond stocks — REITs, InvITs, and bonds — using your real portfolio as context. No advice, just clear education.</p>
+  <div class="learn-hero-badges">
+    <span class="hero-badge">📊 Personalised insights</span>
+    <span class="hero-badge">✅ Sourced & dated content</span>
+    <span class="hero-badge">🎓 Quizzes & Progress</span>
+    <span class="hero-badge">🇮🇳 Indian market focus</span>
+  </div>
+</div>
+
+<!-- Disclaimer -->
+<div class="learn-disclaimer-bar">
+  <span>⚠️</span>
+  <span>{{ disclaimer }}</span>
+</div>
+
+<!-- Language Switcher -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+  <div class="section-label" style="margin: 0;">Content language</div>
+  <div class="lang-switch">
+    <a href="/learn?lang=en" class="lang-btn {% if lang == 'en' %}active{% endif %}">🇬🇧 English</a>
+    <a href="/learn?lang=hi" class="lang-btn {% if lang == 'hi' %}active{% endif %}">🇮🇳 हिन्दी</a>
+  </div>
+</div>
+
+<!-- Diversification Check Card (only when user has holdings) -->
+{% if user and div_data %}
+<div class="div-check-card" id="div-check-card">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+    <div>
+      <h2 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 4px 0; color: var(--text-main);">📊 Your Portfolio Mix</h2>
+      <p style="font-size: 0.83rem; color: var(--text-muted); margin: 0;">Based on your live holdings across {{ div_data.num_brokers }} broker{{ 's' if div_data.num_brokers != 1 else '' }}</p>
+    </div>
+    <span class="badge" style="background: rgba(167,139,250,0.1); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3);">Live from your Demat</span>
+  </div>
+
+  {% set colors = {'Equity': '#f59e0b', 'ETF': '#06b6d4', 'REIT': '#10b981', 'InvIT': '#8b5cf6', 'Bond': '#3b82f6', 'Mutual Fund': '#ec4899'} %}
+
+  <div class="div-check-bar-wrap">
+    <div class="div-check-bar">
+      {% for cls, pct in div_data.breakdown.items() %}
+      <div class="div-check-segment" {{ 'style="width: ' ~ pct ~ '%; background: ' ~ colors.get(cls, '#64748b') ~ ';"' }} title="{{ cls }}: {{ pct }}%"></div>
+      {% endfor %}
+    </div>
+    <div class="div-check-legend">
+      {% for cls, pct in div_data.breakdown.items() %}
+      <div class="legend-item">
+        <span class="legend-dot" style="background: {{ colors.get(cls, '#64748b') }};"></span>
+        <span>{{ cls }}: <strong>{{ pct }}%</strong></span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Neutral factual message -->
+  {% set equity_pct = div_data.equity_pct %}
+  {% set reit_pct = div_data.reit_pct %}
+  {% set invit_pct = div_data.invit_pct %}
+  {% set bond_pct = div_data.bond_pct %}
+  <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+    Your holdings are <strong>{{ equity_pct }}% in equities/ETFs</strong> across {{ div_data.num_brokers }} broker{{ 's' if div_data.num_brokers != 1 else '' }}.
+    REITs make up <strong>{{ reit_pct }}%</strong>, InvITs <strong>{{ invit_pct }}%</strong>, and Bonds <strong>{{ bond_pct }}%</strong>.
+  </p>
+
+  <!-- Factual observations (only when true) -->
+  {% if div_data.observations %}
+  <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+    {% for obs in div_data.observations %}
+    <div style="background: rgba(245,158,11,0.08); border-left: 3px solid var(--warning); border-radius: 4px; padding: 8px 12px; font-size: 0.83rem; color: var(--text-main);">
+      💡 {{ obs }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="div-check-btns">
+    <a href="/learn/lesson/reit?source=div_card" class="div-check-btn">What are REITs?</a>
+    <a href="/learn/lesson/invit?source=div_card" class="div-check-btn">What are InvITs?</a>
+    <a href="/learn/lesson/gsec?source=div_card" class="div-check-btn">What are Bonds?</a>
+    <a href="/learn/compare" class="div-check-btn">Compare all →</a>
+  </div>
+</div>
+{% elif user %}
+<!-- Empty state when user has no holdings -->
+<div class="div-check-card" style="text-align: center; padding: 36px 24px;">
+  <div style="font-size: 2.5rem; margin-bottom: 12px;">📂</div>
+  <h3 style="color: var(--text-muted); font-weight: 600;">No holdings linked yet</h3>
+  <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 420px; margin: 8px auto 20px;">Link your accounts or trade on a connected broker to see how your portfolio is split. The general lessons below are always available.</p>
+  <a href="/accounts" class="btn btn-outline btn-sm">Link Accounts →</a>
+</div>
+{% endif %}
+
+<!-- Quick Tools Row -->
+<div class="section-label">Interactive Tools</div>
+<div class="tools-row">
+  <a href="/learn/compare" class="tool-card">
+    <span class="tool-icon">⚖️</span>
+    <div>
+      <h4>Compare</h4>
+      <p>Side-by-side asset comparison</p>
+    </div>
+  </a>
+  <a href="/learn/simulator" class="tool-card">
+    <span class="tool-icon">🧮</span>
+    <div>
+      <h4>Income Simulator</h4>
+      <p>Estimate income from any product</p>
+    </div>
+  </a>
+  <a href="/learn/what-if" class="tool-card">
+    <span class="tool-icon">🎯</span>
+    <div>
+      <h4>What-If Allocator</h4>
+      <p>See how a mix change affects income</p>
+    </div>
+  </a>
+  {% if user %}
+  <a href="/learn/income-calendar" class="tool-card">
+    <span class="tool-icon">📅</span>
+    <div>
+      <h4>Income Calendar</h4>
+      <p>Upcoming coupons from your bonds</p>
+    </div>
+  </a>
+  {% endif %}
+  <a href="/learn/glossary" class="tool-card">
+    <span class="tool-icon">📖</span>
+    <div>
+      <h4>Glossary</h4>
+      <p>40+ terms explained plainly</p>
+    </div>
+  </a>
+</div>
+
+<!-- Lesson Cards Grid -->
+<div class="section-label">Lessons</div>
+{% set lesson_icons = {
+  'reit': ('🏢', '#10b981', 'rgba(16,185,129,0.1)'),
+  'invit': ('🛣️', '#8b5cf6', 'rgba(139,92,246,0.1)'),
+  'gsec': ('🏛️', '#3b82f6', 'rgba(59,130,246,0.1)'),
+  'tbill': ('⏱️', '#06b6d4', 'rgba(6,182,212,0.1)'),
+  'sgb': ('🪙', '#f59e0b', 'rgba(245,158,11,0.1)'),
+  'corpbond': ('🏦', '#ec4899', 'rgba(236,72,153,0.1)'),
+  'stocks_vs_alternatives': ('📊', '#64748b', 'rgba(100,116,139,0.1)'),
+  'taxes': ('🧾', '#d97706', 'rgba(217,119,6,0.1)'),
+  'how_to_buy': ('🛒', '#14b8a6', 'rgba(20,184,166,0.1)'),
+} %}
+<div class="lesson-grid">
+  {% for lesson in lessons %}
+  {% set topic = lesson.id %}
+  {% set icon_tuple = lesson_icons.get(topic, ('📄', '#94a3b8', 'rgba(148,163,184,0.1)')) %}
+  {% set prog = progress_map.get(topic, {}) %}
+  <a href="/learn/lesson/{{ topic }}?lang={{ lang }}" class="lesson-card">
+    <div class="lesson-card-arrow">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </div>
+    <div class="lesson-card-icon" style="background: {{ icon_tuple[2] }}; color: {{ icon_tuple[1] }};">{{ icon_tuple[0] }}</div>
+    <h3>{{ lesson.title }}</h3>
+    <p>{{ lesson.summary[:120] }}{% if lesson.summary|length > 120 %}…{% endif %}</p>
+    <div class="lesson-card-meta">
+      {% if lesson.reading_time %}
+      <span class="lesson-reading-time">⏱ {{ lesson.reading_time }}</span>
+      {% endif %}
+      {% if prog.completed %}
+      <span class="lesson-progress-badge completed">✓ Completed</span>
+      {% elif prog.started %}
+      <span class="lesson-progress-badge started">▶ In Progress</span>
+      {% endif %}
+      {% if lesson.needs_verification %}
+      <span class="lesson-progress-badge" style="background: rgba(239,68,68,0.1); color: #ef4444;">⚠ Check Rules</span>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+{% if enable_assistant %}
+<!-- Ask TradeOne Assistant Panel -->
+<div class="card" style="margin-top: 36px; background: linear-gradient(135deg, #131b2e 0%, #1e1b4b 100%); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 16px; padding: 26px;">
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(139, 92, 246, 0.2); display: flex; align-items: center; justify-content: center; color: #c4b5fd;">
+      🤖
+    </div>
+    <div>
+      <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #f8fafc;">Ask TradeOne Assistant</h3>
+      <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: #94a3b8;">
+        Ask questions about Indian REITs, InvITs, G-Secs, and bonds. Answers are strictly sourced from our educational library.
+      </p>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+    <button type="button" class="btn btn-sm btn-outline" style="font-size: 0.74rem;" onclick="setAssistantPrompt('What is a REIT and how does it earn money?')">What is a REIT?</button>
+    <button type="button" class="btn btn-sm btn-outline" style="font-size: 0.74rem;" onclick="setAssistantPrompt('What is the difference between T-Bills and G-Secs?')">T-Bills vs G-Secs?</button>
+    <button type="button" class="btn btn-sm btn-outline" style="font-size: 0.74rem;" onclick="setAssistantPrompt('What are the risks of corporate bonds?')">Bond risks?</button>
+    <button type="button" class="btn btn-sm btn-outline" style="font-size: 0.74rem;" onclick="setAssistantPrompt('Should I buy stocks or bonds right now?')">Buy advice test</button>
+  </div>
+
+  <form id="assistantForm" onsubmit="submitAssistantQuery(event)" style="display: flex; gap: 10px; margin-bottom: 16px;">
+    <input type="text" id="assistantInput" class="form-input" placeholder="Type a question (e.g. How are bond coupons taxed in India?)..." style="flex: 1;" required>
+    <button type="submit" id="assistantBtn" class="btn btn-primary" style="padding: 10px 22px; font-weight: 600;">Ask</button>
+  </form>
+
+  <div id="assistantResponseBox" style="display: none; background: #0b1222; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 18px;">
+    <div id="assistantAnswerText" style="color: #e2e8f0; font-size: 0.9rem; line-height: 1.55; white-space: pre-wrap; margin-bottom: 14px;"></div>
+    
+    <div id="assistantCitationsBox" style="display: none; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 10px; margin-bottom: 10px;">
+      <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Sources Cited:</span>
+      <div id="assistantCitationsList" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;"></div>
+    </div>
+
+    <div style="font-size: 0.72rem; color: #64748b; line-height: 1.4;">
+      Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser.
+    </div>
+  </div>
+</div>
+
+<script>
+function setAssistantPrompt(txt) {
+  const inp = document.getElementById('assistantInput');
+  inp.value = txt;
+  inp.focus();
+}
+
+async function submitAssistantQuery(e) {
+  e.preventDefault();
+  const input = document.getElementById('assistantInput');
+  const btn = document.getElementById('assistantBtn');
+  const box = document.getElementById('assistantResponseBox');
+  const textEl = document.getElementById('assistantAnswerText');
+  const citesBox = document.getElementById('assistantCitationsBox');
+  const citesList = document.getElementById('assistantCitationsList');
+
+  const question = input.value.trim();
+  if (!question) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Searching...';
+  box.style.display = 'block';
+  textEl.textContent = 'Consulting educational repository...';
+  citesBox.style.display = 'none';
+
+  try {
+    const res = await fetch('/learn/assistant/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question })
+    });
+    const data = await res.json();
+    textEl.textContent = data.answer || 'No answer generated.';
+
+    if (data.citations && data.citations.length > 0) {
+      citesList.innerHTML = '';
+      data.citations.forEach(c => {
+        const link = document.createElement('a');
+        link.href = c.url;
+        link.textContent = c.title + ' →';
+        link.className = 'badge';
+        link.style.cssText = 'background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.35); text-decoration: none; padding: 4px 10px; font-size: 0.75rem;';
+        citesList.appendChild(link);
+      });
+      citesBox.style.display = 'block';
+    } else {
+      citesBox.style.display = 'none';
+    }
+  } catch (err) {
+    textEl.textContent = 'An error occurred while answering your question. Please try again.';
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Ask';
+  }
+}
+</script>
+{% endif %}
+
+{% endblock %}

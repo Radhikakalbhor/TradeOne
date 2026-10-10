@@ -353,7 +353,8 @@ def test_no_seeded_data_ever_appears_for_google_users(db):
 
 # 10. Dashboard Rendering Regression Tests (Decimal Arithmetic & Zero State)
 def test_dashboard_rendering_with_decimal_monetary_values(client, db):
-    user_email = "dashboard.render.test@gmail.com"
+    import uuid
+    user_email = f"dashboard.render.{uuid.uuid4().hex[:8]}@gmail.com"
     user = provision_new_user(db, email=user_email, provider="google")
     token = create_user_session(db, user)
     client.cookies.set("nd_session", token)
@@ -388,7 +389,8 @@ def test_dashboard_rendering_with_decimal_monetary_values(client, db):
     client.cookies.delete("nd_session")
 
 def test_dashboard_rendering_zero_total_portfolio(client, db):
-    user_email = "zero.portfolio.render@gmail.com"
+    import uuid
+    user_email = f"zero.portfolio.{uuid.uuid4().hex[:8]}@gmail.com"
     user = provision_new_user(db, email=user_email, provider="google")
     token = create_user_session(db, user)
     client.cookies.set("nd_session", token)

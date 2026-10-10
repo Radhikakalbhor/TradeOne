@@ -1,0 +1,61 @@
+{
+  "topic": "tbill",
+  "title": "Treasury Bills Quiz",
+  "questions": [
+    {
+      "id": "tbill_q1",
+      "question": "What are the three standard maturity tenors for Indian Treasury Bills?",
+      "options": [
+        "30 days, 60 days, and 90 days",
+        "91 days, 182 days, and 364 days",
+        "1 year, 3 years, and 5 years",
+        "7 days, 14 days, and 28 days"
+      ],
+      "correct_index": 1,
+      "explanation": "RBI issues T-Bills in three standard tenors: 91-day, 182-day, and 364-day bills."
+    },
+    {
+      "id": "tbill_q2",
+      "question": "How do Treasury Bills generate returns for an investor?",
+      "options": [
+        "By paying monthly dividend cheques",
+        "They are zero-coupon instruments issued at a discount and redeemed at par (₹100)",
+        "By giving gold coins upon maturity",
+        "By participating in company profit sharing"
+      ],
+      "correct_index": 1,
+      "explanation": "T-Bills pay no ongoing coupon; the investor buys them at a discounted price (e.g. ₹93.50) and receives par value (₹100) at maturity."
+    },
+    {
+      "id": "tbill_q3",
+      "question": "What is the minimum investment amount for primary non-competitive bidding in T-Bills?",
+      "options": ["₹500", "₹10,000", "₹1,00,000", "₹5,000"],
+      "correct_index": 1,
+      "explanation": "Primary T-Bill bids require a minimum of ₹10,000 and in multiples of ₹10,000 thereafter."
+    },
+    {
+      "id": "tbill_q4",
+      "question": "How is the discount gain earned on a Treasury Bill taxed in India?",
+      "options": [
+        "100% tax-free under all conditions",
+        "Treated as short-term capital gain and taxed at the individual's marginal income slab rate",
+        "Taxed at flat 5% with indexation",
+        "Exempt up to ₹10 lakh"
+      ],
+      "correct_index": 1,
+      "explanation": "The gain on redemption of a T-Bill is classified as short-term capital gain or income from other sources and taxed at your marginal slab rate."
+    },
+    {
+      "id": "tbill_q5",
+      "question": "What is the primary risk associated with very short-term investments like T-Bills?",
+      "options": [
+        "High risk of sovereign national default",
+        "Reinvestment risk: having to reinvest funds at potentially lower rates once the bill matures",
+        "Losing 50% of capital due to stock market crashes",
+        "Company bankruptcy risk"
+      ],
+      "correct_index": 1,
+      "explanation": "Because maturities are under 12 months, investors face reinvestment risk if interest rates drop by the time the bill matures."
+    }
+  ]
+}

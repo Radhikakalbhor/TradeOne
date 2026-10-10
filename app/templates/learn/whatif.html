@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}What-If Allocator | TradeOne Learn{% endblock %}
+{% block content %}
+<style>
+.whatif-hero { background: linear-gradient(135deg, #0b1d2e, #0f172a, #1a0a2e); border-radius: 14px; padding: 32px; margin-bottom: 24px; }
+.whatif-hero h1 { font-size: 1.7rem; font-weight: 800; color: #f8fafc; margin: 0 0 8px 0; }
+.whatif-hero p { color: #94a3b8; margin: 0; }
+
+.whatif-layout { display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 900px) { .whatif-layout { grid-template-columns: 1fr; } }
+
+.whatif-inputs { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; position: sticky; top: 80px; }
+.whatif-inputs h3 { font-size: 1rem; font-weight: 700; color: var(--text-main); margin: 0 0 18px 0; }
+
+.slider-row { margin-bottom: 14px; }
+.slider-label { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+.slider-pct { font-weight: 700; color: var(--text-main); font-size: 0.9rem; }
+input[type=range] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-muted);
+  -webkit-appearance: none;
+  accent-color: #7c3aed;
+  cursor: pointer;
+}
+.total-warn { font-size: 0.78rem; margin-top: 6px; color: #ef4444; display: none; }
+
+.form-input { width: 100%; background: var(--bg-muted); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; color: var(--text-main); font-size: 0.9rem; box-sizing: border-box; }
+.form-label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: block; }
+.form-group { margin-bottom: 14px; }
+
+.whatif-results { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; }
+.result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 24px; }
+.result-card { background: var(--bg-muted); border-radius: 10px; padding: 16px; }
+.result-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.result-value { font-size: 1.3rem; font-weight: 800; }
+.result-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+.learn-disclaimer-bar { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:12px 16px; font-size:0.8rem; color:#d97706; margin-bottom:20px; display:flex; align-items:flex-start; gap:10px; }
+
+.before-after-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.ba-card { border-radius: 10px; padding: 14px; text-align: center; }
+.ba-before { background: rgba(100,116,139,0.1); border: 1px solid rgba(100,116,139,0.2); }
+.ba-after { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3); }
+.ba-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.ba-before .ba-title { color: #64748b; }
+.ba-after .ba-title { color: #a78bfa; }
+.ba-value { font-size: 1.6rem; font-weight: 800; }
+.ba-before .ba-value { color: var(--text-muted); }
+.ba-after .ba-value { color: #a78bfa; }
+
+.limitations-box { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; padding: 14px 16px; font-size: 0.82rem; color: var(--text-muted); margin-top: 16px; }
+.chart-label { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; font-style: italic; }
+</style>
+
+<div class="whatif-hero">
+  <h1>🎯 What-If Allocation</h1>
+  <p>See how shifting a portion of your portfolio into different asset classes might affect estimated income. All outputs use sample assumptions — not your real returns.</p>
+</div>
+
+<div class="learn-disclaimer-bar"><span>⚠️</span><span>{{ disclaimer }}</span></div>
+
+<div class="whatif-layout">
+  <!-- Inputs -->
+  <div class="whatif-inputs">
+    <h3>⚙️ Portfolio Setup</h3>
+
+    <div class="form-group">
+      <label class="form-label" for="wi-total">Total Portfolio Value (₹)</label>
+      <input type="number" class="form-input" id="wi-total" value="{{ div_data.total_value | int if div_data else 1000000 }}" min="10000" step="10000">
+      {% if div_data %}
+      <div style="font-size: 0.75rem; color: #10b981; margin-top: 4px;">✓ Pre-filled from your live portfolio ({{ format_inr(div_data.total_value) }})</div>
+      {% endif %}
+    </div>
+
+    <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">Target Allocation (must total 100%)</div>
+
+    {% set assets_config = [
+      ('equity', 'Stocks / Equities', '#f59e0b'),
+      ('reit', 'REITs', '#10b981'),
+      ('invit', 'InvITs', '#8b5cf6'),
+      ('gsec', 'Govt. Securities', '#3b82f6'),
+      ('corpbond', 'Corporate Bonds', '#ec4899'),
+    ] %}
+
+    {% for key, label, color in assets_config %}
+    <div class="slider-row">
+      <div class="slider-label">
+        <span style="color: {{ color }};">● {{ label }}</span>
+        <span class="slider-pct" id="pct-{{ key }}">{% if div_data and key == 'equity' %}{{ div_data.equity_pct | int }}{% elif div_data and key == 'reit' %}{{ div_data.reit_pct | int }}{% elif div_data and key == 'invit' %}{{ div_data.invit_pct | int }}{% elif div_data and key == 'gsec' %}{{ (div_data.bond_pct * 0.5) | int }}{% elif div_data and key == 'corpbond' %}{{ (div_data.bond_pct * 0.5) | int }}{% else %}{% if key == 'equity' %}80{% else %}5{% endif %}{% endif %}%</span>
+      </div>
+      <input type="range" id="sl-{{ key }}" min="0" max="100" value="{% if div_data and key == 'equity' %}{{ div_data.equity_pct | int }}{% elif div_data and key == 'reit' %}{{ div_data.reit_pct | int }}{% elif div_data and key == 'invit' %}{{ div_data.invit_pct | int }}{% elif div_data and key == 'gsec' %}{{ (div_data.bond_pct * 0.5) | int }}{% elif div_data and key == 'corpbond' %}{{ (div_data.bond_pct * 0.5) | int }}{% else %}{% if key == 'equity' %}80{% else %}5{% endif %}{% endif %}" oninput="updateSlider('{{ key }}')">
+    </div>
+    {% endfor %}
+
+    <div class="total-warn" id="total-warn">⚠ Total must equal 100%. Currently: <span id="total-pct">0</span>%</div>
+
+    <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="runWhatIf()">▶ Calculate</button>
+
+    <div style="margin-top: 14px; font-size: 0.78rem; color: var(--text-muted);">{{ assumptions.notice }}</div>
+  </div>
+
+  <!-- Results -->
+  <div class="whatif-results">
+    <div id="wi-empty" style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+      <div style="font-size: 3rem; margin-bottom: 12px;">🎯</div>
+      <div style="font-weight: 600; margin-bottom: 6px;">Set your allocation and click Calculate</div>
+      <div style="font-size: 0.83rem;">Income estimates will appear here.</div>
+    </div>
+    <div id="wi-output" style="display: none;">
+      <div style="font-weight: 700; font-size: 1rem; color: var(--text-main); margin-bottom: 16px;">💰 Estimated Annual Income — Before vs After</div>
+
+      <div class="before-after-row">
+        <div class="ba-card ba-before">
+          <div class="ba-title">Current Mix</div>
+          <div class="ba-value" id="wi-before-annual">—</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Annual income (sample)</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;" id="wi-before-monthly">—/mo</div>
+        </div>
+        <div class="ba-card ba-after">
+          <div class="ba-title">New Mix</div>
+          <div class="ba-value" id="wi-after-annual">—</div>
+          <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">Annual income (sample)</div>
+          <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 2px;" id="wi-after-monthly">—/mo</div>
+        </div>
+      </div>
+
+      <div style="height: 240px; position: relative; margin-bottom: 8px;">
+        <canvas id="wi-chart"></canvas>
+      </div>
+      <div class="chart-label">⚠ Illustrative sample data only — not a prediction of actual returns</div>
+
+      <div class="limitations-box" style="margin-top: 20px;">
+        <strong>What this simulation does NOT capture:</strong>
+        <ul style="margin: 8px 0 0 0; padding-left: 18px;">
+          <li>Income taxes (LTCG, STCG, slab rate on interest/distributions)</li>
+          <li>Transaction costs, brokerage, STT</li>
+          <li>Liquidity constraints when switching between asset classes</li>
+          <li>Default risk on corporate bonds</li>
+          <li>Price changes in REITs/InvITs and underlying NAV movements</li>
+          <li>Inflation erosion of fixed coupon income over time</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const assumptionsData = {{ assumptions | tojson }};
+let wiChart = null;
+
+function updateSlider(key) {
+  const val = document.getElementById('sl-' + key).value;
+  document.getElementById('pct-' + key).textContent = val + '%';
+  checkTotal();
+}
+
+function checkTotal() {
+  const keys = ['equity', 'reit', 'invit', 'gsec', 'corpbond'];
+  let total = 0;
+  keys.forEach(k => { total += parseInt(document.getElementById('sl-' + k).value || 0); });
+  document.getElementById('total-pct').textContent = total;
+  const warnEl = document.getElementById('total-warn');
+  warnEl.style.display = total !== 100 ? 'block' : 'none';
+  return total;
+}
+
+function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+
+async function runWhatIf() {
+  const total = checkTotal();
+  if (total !== 100) { alert('Allocation must total 100%. Currently: ' + total + '%'); return; }
+
+  const keys = ['equity', 'reit', 'invit', 'gsec', 'corpbond'];
+  const allocation = {};
+  keys.forEach(k => { allocation[k] = parseInt(document.getElementById('sl-' + k).value || 0); });
+  const totalVal = document.getElementById('wi-total').value;
+
+  const res = await fetch('/learn/what-if/run', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({total: totalVal, allocation})
+  });
+  const data = await res.json();
+
+  document.getElementById('wi-empty').style.display = 'none';
+  document.getElementById('wi-output').style.display = 'block';
+
+  document.getElementById('wi-before-annual').textContent = fmt(data.before_annual_income);
+  document.getElementById('wi-before-monthly').textContent = fmt(data.before_monthly_income) + '/mo';
+  document.getElementById('wi-after-annual').textContent = fmt(data.after_annual_income);
+  document.getElementById('wi-after-monthly').textContent = fmt(data.after_monthly_income) + '/mo';
+
+  // Build chart
+  const acData = data.after_details;
+  const chartLabels = Object.keys(acData).map(k => assumptionsData.asset_classes[k]?.name.split('(')[0].trim() || k);
+  const chartValues = Object.values(acData).map(d => d.income);
+  const colors = ['#f59e0b', '#10b981', '#8b5cf6', '#3b82f6', '#ec4899'];
+
+  if (wiChart) wiChart.destroy();
+  const ctx = document.getElementById('wi-chart').getContext('2d');
+  wiChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        label: 'Estimated Annual Income (₹)',
+        data: chartValues,
+        backgroundColor: colors.slice(0, chartLabels.length).map(c => c + 'b3'),
+        borderColor: colors.slice(0, chartLabels.length),
+        borderWidth: 1,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: {display: false}, tooltip: { callbacks: { label: ctx => 'Income: ' + fmt(ctx.raw) }}},
+      scales: {
+        x: { ticks: {color: '#64748b'}, grid: {color: 'rgba(255,255,255,0.05)'} },
+        y: { ticks: {color: '#64748b', callback: v => '₹' + Number(v).toLocaleString('en-IN')}, grid: {color: 'rgba(255,255,255,0.05)'} }
+      }
+    }
+  });
+}
+
+// Initialise totals on load
+checkTotal();
+</script>
+{% endblock %}

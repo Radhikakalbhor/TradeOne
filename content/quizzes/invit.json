@@ -1,0 +1,56 @@
+{
+  "topic": "invit",
+  "title": "InvIT Knowledge Quiz",
+  "questions": [
+    {
+      "id": "invit_q1",
+      "question": "What type of assets do publicly listed Indian InvITs primarily own?",
+      "options": [
+        "Residential luxury villas",
+        "Operational infrastructure such as power transmission lines, highways, and pipelines",
+        "Cryptocurrency and forex tokens",
+        "Short-term commodity trading contracts"
+      ],
+      "correct_index": 1,
+      "explanation": "Public InvITs in India hold operational national infrastructure assets like interstate power grids and toll expressways."
+    },
+    {
+      "id": "invit_q2",
+      "question": "What percentage of Net Distributable Cash Flows (NDCF) must an InvIT distribute under SEBI guidelines?",
+      "options": ["At least 90%", "Exactly 50%", "At least 25%", "Zero, distribution is optional"],
+      "correct_index": 0,
+      "explanation": "SEBI InvIT Regulations mandate that at least 90% of NDCF must be distributed semi-annually or quarterly to unitholders."
+    },
+    {
+      "id": "invit_q3",
+      "question": "What happens to toll road assets after the contracted concession period (e.g. 25-30 years) with NHAI ends?",
+      "options": [
+        "The highway is privatized forever",
+        "Ownership of the road reverts back to the government agency (NHAI)",
+        "The unitholders receive physical asphalt shares",
+        "Toll rates automatically rise by 500%"
+      ],
+      "correct_index": 1,
+      "explanation": "Under Concession Agreements, toll highways are built-operate-transfer (BOT) or toll-operate-transfer (TOT) assets where ownership reverts to the government after the concession term."
+    },
+    {
+      "id": "invit_q4",
+      "question": "What is the minimum lot size for trading public InvITs on the National Stock Exchange today?",
+      "options": ["1,000 units", "100 units", "1 unit", "500 units"],
+      "correct_index": 2,
+      "explanation": "SEBI standardized the minimum trading lot size to 1 unit for publicly listed InvITs."
+    },
+    {
+      "id": "invit_q5",
+      "question": "How do InvIT returns predominantly behave compared to rapid tech stocks?",
+      "options": [
+        "InvITs grow 100% every year like speculative startups",
+        "InvIT returns are predominantly driven by predictable cash yields and steady payouts rather than high capital appreciation",
+        "InvIT returns are completely tax-free under all conditions",
+        "InvIT unit values never fluctuate"
+      ],
+      "correct_index": 1,
+      "explanation": "Because infrastructure assets amortize over their concession life, InvIT total returns are primarily driven by periodic cash distributions."
+    }
+  ]
+}

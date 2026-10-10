@@ -1,0 +1,107 @@
+{
+  "id": "stocks_vs_alternatives",
+  "topic": "stocks_vs_alternatives",
+  "lang": "en",
+  "title": "Stocks vs Alternatives: Understanding the Trade-offs",
+  "subtitle": "How equities, REITs, InvITs, and bonds differ in risk, cash flow, and growth",
+  "summary": "Comparing equity shares with REITs, InvITs, and debt bonds to understand how varying asset classes serve different financial goals like capital growth versus regular income.",
+  "last_reviewed": "2026-04-01",
+  "needs_verification": false,
+  "reading_time": "5 min read",
+  "sources": [
+    {
+      "name": "SEBI Investor Education and Protection Fund",
+      "url": "https://investor.sebi.gov.in"
+    },
+    {
+      "name": "National Stock Exchange of India",
+      "url": "https://www.nseindia.com"
+    }
+  ],
+  "disclaimer": "Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser. Rules, taxes and yields change; verify with official sources.",
+  "sections": [
+    {
+      "id": "what_is_it",
+      "title": "Why Compare Stocks with Other Asset Classes?",
+      "content": "Most retail investors start with common equity shares (stocks). When you buy a share, you are an owner of the company's future profits. While equities offer the highest historical potential for long-term compounding, they also experience the sharpest market drawdowns and provide unpredictable dividend cash flows. Alternatives like REITs, InvITs, and bonds offer contrasting characteristics: contractual cash flows, regulated payouts, or sovereign capital guarantees.",
+      "analogy": "Think of an equity stock like planting a fruit tree: it can grow tall over many years, but bad weather can delay harvests. A bond is like a water contract delivering a measured bucket of water every Monday. A REIT is like owning a rented shop in a bustling bazaar."
+    },
+    {
+      "id": "how_you_earn",
+      "title": "Comparing Core Return Drivers",
+      "content": "Where returns originate across asset classes:",
+      "points": [
+        "Stocks: Driven predominantly by business earnings growth, market multiple expansion, and discretionary dividends.",
+        "REITs: Driven primarily by contractual corporate office rent, high 90% payout mandates, and modest real estate value growth.",
+        "InvITs: Driven by utility toll and power grid tariffs with scheduled capital amortizations over concession lifespans.",
+        "Government & Corporate Bonds: Driven by predetermined contractual coupon rates and contractual maturity par value (subject to credit health)."
+      ]
+    },
+    {
+      "id": "risks",
+      "title": "Risk and Volatility Spectrum",
+      "content": "Comparing maximum drawdowns and predictability:",
+      "points": [
+        "Equity Volatility: High (annual price fluctuations can easily exceed 20-40% during bear cycles).",
+        "REIT/InvIT Volatility: Moderate (units trade on stock exchanges and fluctuate with interest rates, but high cash yields provide a valuation cushion).",
+        "Bond Volatility: Lower (bond prices move with interest rate shifts, but holding to maturity returns par value)."
+      ]
+    },
+    {
+      "id": "who_considers",
+      "title": "Balancing Asset Classes in a Portfolio",
+      "content": "Many retail portfolios in India are 100% concentrated in single equities, leaving them vulnerable during extended market corrections. Looking at alternatives allows investors to pair growth assets (stocks) with income-generating assets (REITs/InvITs) and capital preservation assets (G-Secs/Bonds)."
+    },
+    {
+      "id": "worked_example",
+      "title": "Worked Example: The Compounding vs Cash Flow Trade-off",
+      "badge": "Illustration with sample assumptions",
+      "content": "Suppose an investor holds ₹10,00,000 across two theoretical allocations:",
+      "details": [
+        "Portfolio 1 (100% Equity): At 1.2% dividend yield, annual cash payout is ₹12,000. Capital fluctuations are wider.",
+        "Portfolio 2 (60% Equity, 20% REIT/InvIT, 20% Bonds): At an average income yield of approx. 4.2% across the blended basket, annual cash payout is ₹42,000, creating predictable quarterly and semi-annual cash inflows.",
+        "Trade-off: Portfolio 1 has higher theoretical long-term growth potential; Portfolio 2 provides immediate cash flow resilience and lower drawdowns."
+      ]
+    },
+    {
+      "id": "tax_overview",
+      "title": "Comparative Tax Snapshot",
+      "content": "Key tax rules under Finance Act 2024:",
+      "points": [
+        "Listed Equities & Equity Mutual Funds: LTCG 12.5% above ₹1.25 lakh (holding > 12 months); STCG 20% (holding <= 12 months).",
+        "Listed Units (REIT/InvIT): Same capital gains timeline (12.5% LTCG / 20% STCG). Cash payouts split into interest/dividend/capital repayment.",
+        "Listed Bonds (G-Secs & Corporate): Interest taxed at investor slab rate; LTCG 12.5% if held > 12 months."
+      ]
+    },
+    {
+      "id": "how_to_buy",
+      "title": "Accessing All Asset Classes on One Screen",
+      "steps": [
+        "Through Unified Depository platforms like TradeOne, you can view your stock demat accounts, bond portfolios, and REIT/InvIT holdings side by side.",
+        "All four asset classes settle in your standard Demat account and are governed by SEBI/RBI investor protection frameworks."
+      ]
+    },
+    {
+      "id": "myths_vs_facts",
+      "title": "Myths vs Facts",
+      "items": [
+        {
+          "myth": "Bonds and REITs always deliver lower returns than stocks.",
+          "fact": "Over multi-year flat or sideways equity markets, high-yielding REITs, InvITs, and bonds have historically outperformed equities on a total return basis."
+        },
+        {
+          "myth": "You need different demat accounts for stocks and bonds.",
+          "fact": "A single NSDL or CDSL Demat account can hold equity shares, government bonds, corporate debentures, mutual funds, and REIT units simultaneously."
+        }
+      ]
+    },
+    {
+      "id": "key_terms",
+      "title": "Key Terms to Know",
+      "terms": [
+        {"term": "Asset Allocation", "definition": "The practice of dividing an investment portfolio among different asset categories (stocks, bonds, real estate, cash)."},
+        {"term": "Total Return", "definition": "The complete return on an investment over a period, combining both price appreciation and cash distributions/interest."}
+      ]
+    }
+  ]
+}

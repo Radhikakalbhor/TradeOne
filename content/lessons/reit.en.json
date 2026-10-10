@@ -1,0 +1,115 @@
+{
+  "id": "reit",
+  "topic": "reit",
+  "lang": "en",
+  "title": "Real Estate Investment Trusts (REITs)",
+  "subtitle": "Owning a fractional share in income-generating commercial real estate",
+  "summary": "REITs allow retail investors to own a portion of large commercial office parks, malls, and tech spaces with small ticket sizes, receiving periodic rental income.",
+  "last_reviewed": "2026-04-01",
+  "needs_verification": false,
+  "reading_time": "6 min read",
+  "sources": [
+    {
+      "name": "SEBI (Real Estate Investment Trusts) Regulations, 2014",
+      "url": "https://www.sebi.gov.in"
+    },
+    {
+      "name": "Income Tax Department of India (Sections 10(23FD), 115UA)",
+      "url": "https://incometaxindia.gov.in"
+    },
+    {
+      "name": "National Stock Exchange of India - REIT Product Notes",
+      "url": "https://www.nseindia.com"
+    }
+  ],
+  "disclaimer": "Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser. Rules, taxes and yields change; verify with official sources.",
+  "sections": [
+    {
+      "id": "what_is_it",
+      "title": "What is a REIT?",
+      "content": "A Real Estate Investment Trust (REIT) is a company or trust that owns, operates, or finances income-generating commercial real estate. Think of it like a mutual fund for prime physical buildings: instead of buying an entire commercial office tower for ₹500 crore, thousands of retail and institutional investors pool money together. The trust collects monthly rent from corporate tenants (such as global tech firms and banks) and passes that rent along to unitholders.",
+      "analogy": "Imagine owning 1 square foot of a premium glass-and-steel business park in Bengaluru or Mumbai. You do not maintain elevators or negotiate lease contracts; the manager collects the rent and sends your fractional share to your bank account."
+    },
+    {
+      "id": "how_you_earn",
+      "title": "How Investors Earn from REITs",
+      "content": "Returns from REITs come through two primary channels:",
+      "points": [
+        "Regular Distributions (Income): Under SEBI guidelines, REITs are mandated to distribute at least 90% of their Net Distributable Cash Flows (NDCF) to unitholders. In India, distributions typically happen quarterly.",
+        "Capital Appreciation (Price Change): If the market values the underlying properties higher or rental rates escalate with inflation, the trading price of the REIT unit on the stock exchange may rise."
+      ]
+    },
+    {
+      "id": "risks",
+      "title": "What are the Key Risks?",
+      "content": "While commercial real estate has historically generated steady cash flows, REIT units carry specific risks:",
+      "points": [
+        "Vacancy & Tenant Default Risk: If major corporate tenants do not renew leases or downsize office footprints, rental revenue drops.",
+        "Interest Rate Sensitivity: Rising interest rates make fixed-income instruments like government bonds more attractive, which can cause REIT market prices to soften.",
+        "Property Concentration Risk: A significant portion of value may reside in a few cities or tech-focused micro-markets.",
+        "Liquidity Risk: Daily trading volumes of REIT units on stock exchanges are generally lower than large-cap equities."
+      ]
+    },
+    {
+      "id": "who_considers",
+      "title": "Who Often Considers REITs?",
+      "content": "Investors exploring REITs typically look for periodic cash flow yield (around 6% to 7% historically in India) without the illiquidity, heavy maintenance, tenant disputes, or massive capital outlay of physical rental flats."
+    },
+    {
+      "id": "worked_example",
+      "title": "Worked Example (Sample Illustration)",
+      "badge": "Illustration with sample assumptions",
+      "content": "Suppose an investor holds 500 units of a listed REIT purchased at ₹350 per unit (total investment: ₹1,75,000).",
+      "details": [
+        "Annual distribution per unit: ₹24.00 (split across 4 quarters at ₹6.00 per unit).",
+        "Total annual cash income received: 500 units × ₹24 = ₹12,000 (sample yield: approx. 6.86%).",
+        "If unit price moves from ₹350 to ₹365 over 12 months, unrealized capital gain is ₹15 × 500 = ₹7,500.",
+        "Note: Distribution amounts and unit prices fluctuate depending on occupancy and leasing renewals."
+      ]
+    },
+    {
+      "id": "tax_overview",
+      "title": "Tax Overview in Plain English",
+      "content": "REIT quarterly distributions are typically split into three streams on your dividend statement:",
+      "points": [
+        "Dividend Component: Generally tax-free in the unitholder's hands if the underlying SPV chose the Section 115BAA tax regime; otherwise taxed at your income slab.",
+        "Interest Component: Added to total income and taxed at your marginal slab rate.",
+        "Repayment of Capital: Regulated under Section 56(2)(xii); amounts exceeding the issue price are subject to tax. Check current rules for latest CBDT guidelines.",
+        "Selling Units (Capital Gains): Listed units held for more than 12 months incur Long-Term Capital Gains (LTCG) tax at 12.5% on gains over ₹1.25 lakh. Units held for 12 months or less attract Short-Term Capital Gains (STCG) tax at 20%."
+      ]
+    },
+    {
+      "id": "how_to_buy",
+      "title": "How to Buy REIT Units",
+      "steps": [
+        "Open or log into your existing Demat and Trading account with any SEBI-registered stockbroker.",
+        "Search for listed REIT symbols on NSE or BSE (for example, EMBASSY, MINDSPACE, BROOKFIELD, BIRET).",
+        "Place a normal buy order. Since July 2021, the minimum lot size is just 1 unit (costing roughly ₹300 - ₹450).",
+        "Units settle in your Demat account under T+1 settlement cycle, and quarterly payouts credit directly to your linked bank account."
+      ]
+    },
+    {
+      "id": "myths_vs_facts",
+      "title": "Myths vs Facts",
+      "items": [
+        {
+          "myth": "REITs guarantee a fixed return every year like fixed deposits.",
+          "fact": "REIT distributions depend on collected tenant rent and occupancy rates. Returns fluctuate with market conditions."
+        },
+        {
+          "myth": "You need lakhs of rupees to invest in commercial real estate.",
+          "fact": "SEBI reduced the lot size to 1 single unit on stock exchanges, enabling investment with under ₹500."
+        }
+      ]
+    },
+    {
+      "id": "key_terms",
+      "title": "Key Terms to Know",
+      "terms": [
+        {"term": "NDCF", "definition": "Net Distributable Cash Flows - the cash left after operating expenses and debts that must be paid to unitholders."},
+        {"term": "SPV", "definition": "Special Purpose Vehicle - the subsidiary company that holds the physical land or buildings."},
+        {"term": "WALE", "definition": "Weighted Average Lease Expiry - average remaining duration of leases across all building tenants."}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "topic": "sgb",
+  "title": "Sovereign Gold Bonds Quiz",
+  "questions": [
+    {
+      "id": "sgb_q1",
+      "question": "What is the fixed annual interest coupon paid on Sovereign Gold Bonds?",
+      "options": ["1.00%", "2.50% per annum", "5.00%", "7.50%"],
+      "correct_index": 1,
+      "explanation": "RBI Sovereign Gold Bonds pay a fixed 2.50% annual interest on the initial nominal issue price, credited semi-annually."
+    },
+    {
+      "id": "sgb_q2",
+      "question": "What is the full maturity period of a Sovereign Gold Bond?",
+      "options": ["3 years", "5 years", "8 years", "15 years"],
+      "correct_index": 2,
+      "explanation": "SGBs have a total tenure of 8 years, with early redemption options offered by RBI starting from the 5th year on coupon payment dates."
+    },
+    {
+      "id": "sgb_q3",
+      "question": "Under Section 47(viic) of the Income Tax Act, how are capital gains on SGB redemption at 8-year maturity taxed for individuals?",
+      "options": [
+        "Taxed at 20% with indexation",
+        "100% exempt from income tax",
+        "Taxed at marginal slab rates",
+        "Subject to 10% TDS without exemption"
+      ],
+      "correct_index": 1,
+      "explanation": "Section 47(viic) explicitly exempts individual investors from capital gains tax upon redemption of SGBs at maturity through RBI."
+    },
+    {
+      "id": "sgb_q4",
+      "question": "How is the redemption price of SGB calculated upon maturity?",
+      "options": [
+        "Fixed at the original purchase price plus ₹500",
+        "Based on the simple average closing price of 999 purity gold over the preceding 3 business days published by IBJA",
+        "Decided randomly by the finance minister",
+        "Tied to the US Dollar exchange rate only"
+      ],
+      "correct_index": 1,
+      "explanation": "Redemption value is linked directly to prevailing 24k gold market prices published by the India Bullion and Jewellers Association (IBJA)."
+    },
+    {
+      "id": "sgb_q5",
+      "question": "Does SGB protect an investor if global gold prices drop over the 8-year period?",
+      "options": [
+        "Yes, the government guarantees a minimum 10% gain even if gold drops",
+        "No, SGB guarantees the quantity of gold, not a fixed rupee price. If gold falls, redemption value is lower",
+        "Yes, the investor receives physical silver instead",
+        "Yes, the bond automatically converts into government shares"
+      ],
+      "correct_index": 1,
+      "explanation": "SGB eliminates storage and purity risk, but the investor remains exposed to gold market price volatility."
+    }
+  ]
+}

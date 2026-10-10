@@ -1,0 +1,134 @@
+{
+  "reit": {
+    "title": "Real Estate Investment Trusts (REITs)",
+    "distribution_rule": "At least 90% of Net Distributable Cash Flows (NDCF) must be distributed to unitholders at least semi-annually (most Indian REITs distribute quarterly).",
+    "distribution_rule_source": "SEBI (Real Estate Investment Trusts) Regulations, 2014, Reg 18(16)",
+    "lot_size": "1 unit on NSE / BSE",
+    "lot_size_source": "SEBI Circular SEBI/HO/DDHS/DDHS/CIR/P/2021/600 (July 2021)",
+    "min_investment": "Approx. ₹300 - ₹450 (1 unit market price)",
+    "tax_dividend": "Exempt if SPV opted for Section 115BAA concessional tax regime; otherwise taxed at investor's marginal income tax slab rate.",
+    "tax_interest": "Taxed at unitholder's applicable slab rate.",
+    "tax_rental_income": "Taxed at unitholder's applicable slab rate under Section 10(23FCA).",
+    "tax_repayment_of_capital": "Amounts exceeding issue price taxed as deemed income / under Section 56(2)(xii). Check current rules.",
+    "tax_stcg": "20% (holding period <= 12 months, post Finance Act 2024).",
+    "tax_ltcg": "12.5% on aggregate capital gains exceeding ₹1,25,000 per financial year (holding period > 12 months, post Finance Act 2024).",
+    "sources": [
+      {
+        "name": "SEBI REIT Regulations",
+        "url": "https://www.sebi.gov.in"
+      },
+      {
+        "name": "Income Tax Department of India (Sections 10(23FD), 115UA, 111A, 112A)",
+        "url": "https://incometaxindia.gov.in"
+      }
+    ],
+    "as_of": "2026-04-01",
+    "needs_verification": false
+  },
+  "invit": {
+    "title": "Infrastructure Investment Trusts (InvITs)",
+    "distribution_rule": "At least 90% of Net Distributable Cash Flows (NDCF) must be distributed to unitholders at least semi-annually (or quarterly).",
+    "distribution_rule_source": "SEBI (Infrastructure Investment Trusts) Regulations, 2014, Reg 18(6)",
+    "lot_size": "1 unit on NSE / BSE for public InvITs",
+    "lot_size_source": "SEBI Circular July 2021",
+    "min_investment": "Approx. ₹100 - ₹150 (1 unit market price)",
+    "tax_dividend": "Exempt if SPV opted for Section 115BAA; otherwise taxed at investor's marginal slab rate.",
+    "tax_interest": "Taxed at investor's marginal slab rate.",
+    "tax_stcg": "20% (holding period <= 12 months, post Finance Act 2024).",
+    "tax_ltcg": "12.5% above ₹1.25 lakh (holding period > 12 months, post Finance Act 2024).",
+    "sources": [
+      {
+        "name": "SEBI InvIT Regulations",
+        "url": "https://www.sebi.gov.in"
+      },
+      {
+        "name": "Income Tax Department of India",
+        "url": "https://incometaxindia.gov.in"
+      }
+    ],
+    "as_of": "2026-04-01",
+    "needs_verification": false
+  },
+  "gsec": {
+    "title": "Government Securities (G-Secs)",
+    "face_value": "₹100 standard face value",
+    "min_investment_primary": "₹10,000 via RBI Retail Direct or exchange primary non-competitive bidding",
+    "min_investment_secondary": "1 bond (₹100 face value) on stock exchanges",
+    "interest_frequency": "Semi-annually (every 6 months)",
+    "credit_risk": "Sovereign guarantee (lowest default risk in INR)",
+    "tax_interest": "Added to total income and taxed at marginal income tax slab rate. No TDS deducted by RBI on central/state g-secs in primary accounts.",
+    "tax_capital_gains_ltcg": "12.5% without indexation if held for more than 12 months (post Finance Act 2024).",
+    "tax_capital_gains_stcg": "Taxed at applicable marginal slab rate if held <= 12 months.",
+    "sources": [
+      {
+        "name": "Reserve Bank of India - Government Securities FAQ",
+        "url": "https://www.rbi.org.in"
+      },
+      {
+        "name": "RBI Retail Direct Portal",
+        "url": "https://rbiretaildirect.org.in"
+      }
+    ],
+    "as_of": "2026-04-01",
+    "needs_verification": false
+  },
+  "tbill": {
+    "title": "Treasury Bills (T-Bills)",
+    "tenors": "91-day, 182-day, and 364-day maturities",
+    "pricing_structure": "Zero-coupon: issued at a discount to face value and redeemed at par (₹100).",
+    "min_investment": "₹10,000 and in multiples of ₹10,000 thereof via primary auctions / RBI Retail Direct",
+    "interest_frequency": "No periodic interest coupon; difference between issue price and face value is the return",
+    "tax_return": "Gain upon redemption is treated as short-term capital gain (or business income/other sources) and taxed at marginal slab rate.",
+    "sources": [
+      {
+        "name": "RBI Financial Markets FAQ",
+        "url": "https://www.rbi.org.in"
+      }
+    ],
+    "as_of": "2026-04-01",
+    "needs_verification": false
+  },
+  "sgb": {
+    "title": "Sovereign Gold Bonds (SGB)",
+    "coupon_rate": "2.50% per annum, payable semi-annually on nominal value",
+    "tenor": "8 years with early exit option from 5th year on coupon dates",
+    "capital_gains_exemption": "Capital gains on maturity redemption by an individual are completely exempt from tax under Section 47(viic).",
+    "secondary_market_tax": "If sold in secondary market before 8-year maturity: LTCG at 12.5% without indexation if held > 12 months; STCG at slab rate if held <= 12 months.",
+    "tax_coupon": "2.5% annual interest is taxed at investor's marginal slab rate.",
+    "new_issuance_status": "Check current RBI issuance calendar. Government has not scheduled fresh tranches recently; existing tranches remain active on secondary exchange markets.",
+    "sources": [
+      {
+        "name": "RBI Sovereign Gold Bond Operational Guidelines",
+        "url": "https://www.rbi.org.in"
+      },
+      {
+        "name": "Income Tax Act, Section 47(viic)",
+        "url": "https://incometaxindia.gov.in"
+      }
+    ],
+    "as_of": "2026-04-01",
+    "needs_verification": true
+  },
+  "corpbond": {
+    "title": "Corporate Bonds & Debentures",
+    "face_value_private_placement": "₹10,000 (reduced by SEBI from ₹1,00,000 in July 2024 to enhance retail participation)",
+    "face_value_public_issue": "Usually ₹1,000 per debenture in public issuances",
+    "lot_size_source": "SEBI Circular on reduction of face value of debt securities (July 2024)",
+    "credit_rating_scale": "AAA (highest safety), AA, A, BBB (investment grade), BB and below (speculative / high credit risk)",
+    "tax_interest": "Added to total income and taxed at marginal income tax slab rate. TDS of 10% under Section 193 applies to listed debentures (verify PAN submission).",
+    "tax_capital_gains_ltcg": "12.5% without indexation if listed and held > 12 months (post Finance Act 2024).",
+    "tax_capital_gains_stcg": "Taxed at investor's slab rate if held <= 12 months.",
+    "sources": [
+      {
+        "name": "SEBI Debt Market Regulations",
+        "url": "https://www.sebi.gov.in"
+      },
+      {
+        "name": "Income Tax Act, Section 193",
+        "url": "https://incometaxindia.gov.in"
+      }
+    ],
+    "as_of": "2026-04-01",
+    "needs_verification": false
+  }
+}

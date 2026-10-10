@@ -1,0 +1,106 @@
+{
+  "id": "tbill",
+  "topic": "tbill",
+  "lang": "en",
+  "title": "Treasury Bills (T-Bills)",
+  "subtitle": "Short-term sovereign cash management instruments (91, 182, and 364 days)",
+  "summary": "Treasury Bills are short-term zero-coupon debt obligations issued by the Government of India at a discount, offering sovereign safety for parking cash over months.",
+  "last_reviewed": "2026-04-01",
+  "needs_verification": false,
+  "reading_time": "4 min read",
+  "sources": [
+    {
+      "name": "Reserve Bank of India - Treasury Bill Auctions Guidelines",
+      "url": "https://www.rbi.org.in"
+    },
+    {
+      "name": "RBI Retail Direct Treasury Bills Portal",
+      "url": "https://rbiretaildirect.org.in"
+    }
+  ],
+  "disclaimer": "Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser. Rules, taxes and yields change; verify with official sources.",
+  "sections": [
+    {
+      "id": "what_is_it",
+      "title": "What are Treasury Bills?",
+      "content": "Treasury Bills (T-Bills) are short-term promissory notes issued by the Government of India through RBI auctions to bridge short-term cash flow gaps. They carry maturities of 91 days, 182 days, or 364 days.",
+      "analogy": "Imagine buying a government gift certificate worth ₹100 for ₹93.50 today. In one year, the government gives you the full ₹100. The ₹6.50 difference is your earnings. T-Bills pay no ongoing coupon—the profit is embedded in the discount price."
+    },
+    {
+      "id": "how_you_earn",
+      "title": "How Investors Earn from T-Bills",
+      "content": "Zero-Coupon Discount Structure:",
+      "points": [
+        "Issued at a discount to the face value of ₹100.",
+        "Redeemed at 100% of par face value upon maturity date.",
+        "The difference between the discounted purchase price and redemption price represents the return."
+      ]
+    },
+    {
+      "id": "risks",
+      "title": "What are the Risks?",
+      "content": "T-Bills are among the lowest-risk financial assets in the Indian currency system:",
+      "points": [
+        "Reinvestment Risk: Because maturities are under 1 year, when the bill matures you must reinvest at whatever interest rates prevail in the future.",
+        "Inflation Risk: Short-term cash yields may trail high food/energy inflation spikes.",
+        "Credit Risk: Backed by the sovereign; credit default risk is negligible in INR."
+      ]
+    },
+    {
+      "id": "who_considers",
+      "title": "Who Often Considers T-Bills?",
+      "content": "Individuals and businesses wanting an alternative to bank savings accounts or short-term fixed deposits for emergency funds, upcoming tax outlays, or capital waiting to be deployed."
+    },
+    {
+      "id": "worked_example",
+      "title": "Worked Example (Sample Illustration)",
+      "badge": "Illustration with sample assumptions",
+      "content": "An investor bids for a 364-day T-Bill in a weekly RBI auction.",
+      "details": [
+        "Cut-off price determined in auction: ₹93.65 per unit (face value ₹100).",
+        "Investment for 1,000 units: ₹93,650.",
+        "After 364 days, RBI deposits ₹1,00,000 directly into the investor's bank account.",
+        "Profit earned: ₹6,350 (annualized yield: approx. 6.78%)."
+      ]
+    },
+    {
+      "id": "tax_overview",
+      "title": "Tax Overview in Plain English",
+      "content": "Taxation of T-Bill returns:",
+      "points": [
+        "Under Indian tax provisions, the discount earned on T-Bills upon maturity is treated as short-term capital gain (or other income) and taxed at the individual's marginal slab rate.",
+        "There is no TDS on redemption payments via RBI Retail Direct."
+      ]
+    },
+    {
+      "id": "how_to_buy",
+      "title": "How to Buy T-Bills",
+      "steps": [
+        "Via RBI Retail Direct: Place non-competitive bids on Wednesdays for 91-day, 182-day, or 364-day bills with minimum ₹10,000.",
+        "Via Stockbroker Apps: Most modern retail brokers (Zerodha, Groww, Upstox, etc.) offer a dedicated Government Bonds & T-Bills window during weekly bidding cycles."
+      ]
+    },
+    {
+      "id": "myths_vs_facts",
+      "title": "Myths vs Facts",
+      "items": [
+        {
+          "myth": "T-Bills pay monthly or quarterly interest.",
+          "fact": "T-Bills are zero-coupon instruments. All returns are paid upon maturity when the bill is redeemed at par."
+        },
+        {
+          "myth": "There are penalty lock-ins if you need money back.",
+          "fact": "T-Bills are credited to Demat/CSGL accounts and can be traded on secondary exchange debt segments before maturity."
+        }
+      ]
+    },
+    {
+      "id": "key_terms",
+      "title": "Key Terms to Know",
+      "terms": [
+        {"term": "Zero-Coupon", "definition": "A debt instrument that does not pay periodic interest coupons but trades at a deep discount to face value."},
+        {"term": "Cut-off Price", "definition": "The price determined in RBI auctions at which all successful non-competitive bidders receive allotment."}
+      ]
+    }
+  ]
+}

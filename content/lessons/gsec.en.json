@@ -1,0 +1,108 @@
+{
+  "id": "gsec",
+  "topic": "gsec",
+  "lang": "en",
+  "title": "Government Securities (G-Secs)",
+  "subtitle": "Direct sovereign debt issued by the Reserve Bank of India",
+  "summary": "Government bonds are sovereign debt instruments issued by the Central or State Governments to finance infrastructure and national initiatives, offering fixed coupon payments backed by the Government of India.",
+  "last_reviewed": "2026-04-01",
+  "needs_verification": false,
+  "reading_time": "5 min read",
+  "sources": [
+    {
+      "name": "Reserve Bank of India - Master Direction on Government Securities",
+      "url": "https://www.rbi.org.in"
+    },
+    {
+      "name": "RBI Retail Direct FAQ",
+      "url": "https://rbiretaildirect.org.in"
+    }
+  ],
+  "disclaimer": "Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser. Rules, taxes and yields change; verify with official sources.",
+  "sections": [
+    {
+      "id": "what_is_it",
+      "title": "What are Government Securities?",
+      "content": "A Government Security (G-Sec) is a tradable instrument issued by the Central Government or State Governments (State Development Loans, or SDLs). When you buy a G-Sec, you are lending money directly to the government. In return, the government agrees to pay you a fixed coupon (interest rate) every six months and return your principal at maturity.",
+      "analogy": "Imagine giving a loan to the Reserve Bank of India on behalf of the nation. The loan contract specifies the exact percentage of interest you will receive on fixed dates on your calendar, backed by the taxation power of the sovereign."
+    },
+    {
+      "id": "how_you_earn",
+      "title": "How Investors Earn from G-Secs",
+      "content": "Returns come from fixed coupon payments and potential price changes:",
+      "points": [
+        "Semi-Annual Coupon Payments: Most dated G-Secs pay coupon interest twice a year directly into your linked bank account.",
+        "Principal Repayment at Par: At maturity, the government redeems each bond at face value (typically ₹100 per unit).",
+        "Secondary Market Trading: Bond prices fluctuate on exchanges inversely with prevailing market interest rates. If market yields drop, existing high-coupon bonds gain in price."
+      ]
+    },
+    {
+      "id": "risks",
+      "title": "What are the Risks?",
+      "content": "While credit risk is sovereign (minimal default risk in Indian Rupees), bonds carry other significant financial risks:",
+      "points": [
+        "Interest Rate Risk: If market interest rates rise, the resale price of existing fixed-rate bonds falls. If you need to sell a 10-year bond before maturity in a high-rate environment, you may incur capital loss.",
+        "Inflation Risk: A fixed 7.18% coupon may lose purchasing power if inflation runs persistently high over long tenors.",
+        "Liquidity Risk on Retail Segments: While institutional secondary markets are active, retail order books on stock exchanges can have wider bid-ask spreads."
+      ]
+    },
+    {
+      "id": "who_considers",
+      "title": "Who Often Considers G-Secs?",
+      "content": "Investors prioritizing sovereign capital safety and wanting to lock in fixed scheduled cash flows over 5, 10, or 30 years without the credit risk of private corporate issuers."
+    },
+    {
+      "id": "worked_example",
+      "title": "Worked Example (Sample Illustration)",
+      "badge": "Illustration with sample assumptions",
+      "content": "Consider buying 1,000 units of GOI 7.18% 2033 bond with face value ₹100 (Total face value: ₹1,00,000).",
+      "details": [
+        "Annual coupon rate: 7.18% of face value = ₹7,180 per year.",
+        "Payout schedule: Semi-annual payments of ₹3,590 every 6 months.",
+        "At maturity in 2033, the full ₹1,00,000 face value is returned.",
+        "If purchased in secondary market at ₹101.50, effective Yield to Maturity (YTM) adjusts slightly below the coupon rate."
+      ]
+    },
+    {
+      "id": "tax_overview",
+      "title": "Tax Overview in Plain English",
+      "content": "Taxation of Central Government Securities:",
+      "points": [
+        "Interest (Coupon) Income: Added to your gross total income and taxed at your applicable slab rate.",
+        "TDS: No Tax Deducted at Source (TDS) applies to central government bonds held in primary accounts.",
+        "Capital Gains: Listed government bonds held for more than 12 months attract LTCG tax at 12.5% without indexation (Finance Act 2024). Short-term gains are taxed at slab rates."
+      ]
+    },
+    {
+      "id": "how_to_buy",
+      "title": "How to Buy G-Secs",
+      "steps": [
+        "Option A (RBI Retail Direct): Open a free Retail Direct Gilt account online at rbiretaildirect.org.in to bid in primary weekly auctions with zero brokerage fees.",
+        "Option B (Stockbrokers / Exchanges): Search bond symbols on your Zerodha, Groww, Angel One, or Upstox app (e.g., GS2033, GS2034) and place buy orders with minimum ₹100 face value."
+      ]
+    },
+    {
+      "id": "myths_vs_facts",
+      "title": "Myths vs Facts",
+      "items": [
+        {
+          "myth": "Government bonds have zero risk of losing money at any time.",
+          "fact": "If you hold until maturity, you receive par value. But if you sell before maturity on the secondary market when interest rates have increased, market value will be lower than what you paid."
+        },
+        {
+          "myth": "Retail individuals cannot invest in central government borrowing programs.",
+          "fact": "RBI Retail Direct and exchange non-competitive bidding windows allow any retail citizen with a PAN to participate with as little as ₹10,000."
+        }
+      ]
+    },
+    {
+      "id": "key_terms",
+      "title": "Key Terms to Know",
+      "terms": [
+        {"term": "Coupon", "definition": "The annual interest rate stated on the bond, paid periodically based on face value."},
+        {"term": "YTM (Yield to Maturity)", "definition": "The total estimated annualized return earned if the bond is held until its final maturity date, accounting for market purchase price and all future coupons."},
+        {"term": "Sovereign Guarantee", "definition": "Backing by the government, representing the lowest default risk in local currency."}
+      ]
+    }
+  ]
+}

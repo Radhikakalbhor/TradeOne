@@ -1,35 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}My Demat Accounts - TradeOne{% endblock %}
+{% block title %}Registered Accounts - TradeOne{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>My Registered Demat Accounts</h1>
-    <p class="page-subtitle">Demat accounts registered under Depository Beneficiary Owner ID: <strong>{{ user.bo_id }}</strong></p>
+    <h1>Registered Accounts</h1>
   </div>
   <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-    <a href="/admin/consistency" class="btn btn-secondary">
-      🔍 Verify Consistency
-    </a>
     <form method="POST" action="/accounts/sync-all" style="margin: 0;">
-      <button type="submit" class="btn btn-primary">
-        ↻ Sync All Accounts
+      <button type="submit" class="btn btn-primary btn-sm">
+        ↻ Refresh
       </button>
     </form>
-    <span class="badge badge-warning" style="font-size: 0.85rem; padding: 6px 12px;">
+    <span class="badge badge-warning" style="font-size: 0.8rem; padding: 5px 10px;">
       Total Accounts: {{ account_cards|length }}
     </span>
-  </div>
-</div>
-
-<!-- Architecture & Connection Method Explanatory Banner -->
-<div class="card" style="margin-bottom: 24px; padding: 14px 18px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25);">
-  <div style="display: flex; align-items: center; gap: 10px;">
-    <span style="font-size: 1.2rem;">ℹ️</span>
-    <div style="font-size: 0.85rem; color: var(--text-main);">
-      <strong>Connection Mode Architecture:</strong> Demo mode uses trusted server-to-server access; production uses the Account Aggregator consent flow.
-    </div>
   </div>
 </div>
 

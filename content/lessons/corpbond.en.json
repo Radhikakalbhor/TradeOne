@@ -1,0 +1,113 @@
+{
+  "id": "corpbond",
+  "topic": "corpbond",
+  "lang": "en",
+  "title": "Corporate Bonds & Debentures",
+  "subtitle": "Debt securities issued by Indian corporations and public sector enterprises",
+  "summary": "Corporate bonds allow retail investors to lend directly to blue-chip corporations and NBFCs in exchange for regular, higher interest coupon payouts than traditional bank deposits.",
+  "last_reviewed": "2026-04-01",
+  "needs_verification": false,
+  "reading_time": "6 min read",
+  "sources": [
+    {
+      "name": "SEBI Debt Market Regulations & Operational Framework",
+      "url": "https://www.sebi.gov.in"
+    },
+    {
+      "name": "CRISIL / ICRA Credit Rating Definitions",
+      "url": "https://www.crisil.com"
+    },
+    {
+      "name": "Income Tax Act, Section 193 (TDS on Debentures)",
+      "url": "https://incometaxindia.gov.in"
+    }
+  ],
+  "disclaimer": "Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser. Rules, taxes and yields change; verify with official sources.",
+  "sections": [
+    {
+      "id": "what_is_it",
+      "title": "What are Corporate Bonds?",
+      "content": "When corporations need capital to build factories, expand retail operations, or fund working capital, they can borrow from banks, issue equity shares, or issue debt bonds (Non-Convertible Debentures, or NCDs). As a bondholder, you are a creditor of the company, not a shareholder.",
+      "analogy": "Imagine lending money to a reputable company like Tata Capital or NHAI. In exchange for your loan, they sign a legal covenant to pay you a specified coupon rate every year and return your full principal on a stated maturity date, irrespective of whether company share price moves up or down."
+    },
+    {
+      "id": "how_you_earn",
+      "title": "How Investors Earn from Corporate Bonds",
+      "content": "Income mechanisms for bondholders:",
+      "points": [
+        "Fixed Coupon Income: Paid annually, semi-annually, or monthly according to bond terms.",
+        "Maturity Par Value: 100% repayment of face value upon maturity.",
+        "Secondary Trading Gains: Buying bonds at a discount on the exchange or OBPP platform and holding to par or selling as credit ratings improve."
+      ]
+    },
+    {
+      "id": "risks",
+      "title": "What are the Risks?",
+      "content": "Unlike sovereign debt, corporate bonds entail credit and default risk:",
+      "points": [
+        "Credit / Default Risk: The risk that the borrowing company faces financial distress and fails to pay coupons or principal. Always check external credit ratings (CRISIL, ICRA, CARE, India Ratings).",
+        "Rating Downgrade Risk: If a bond is downgraded from AAA to AA or BBB, its market price drops immediately on the secondary market.",
+        "Liquidity Risk: Many corporate debentures trade infrequently on exchange order books, making quick exits challenging without price concessions."
+      ]
+    },
+    {
+      "id": "who_considers",
+      "title": "Who Often Considers Corporate Bonds?",
+      "content": "Investors seeking steady fixed yields (historically 8% to 10% on AA/AAA rated issues) higher than bank fixed deposits, who are comfortable taking measured corporate credit risk."
+    },
+    {
+      "id": "worked_example",
+      "title": "Worked Example (Sample Illustration)",
+      "badge": "Illustration with sample assumptions",
+      "content": "An investor purchases 10 units of an AAA-rated corporate bond with ₹10,000 face value and 8.50% annual coupon (Total investment: ₹1,00,000).",
+      "details": [
+        "Annual coupon interest: 8.50% of ₹1,00,000 = ₹8,500 credited annually.",
+        "Maturity period: 3 years.",
+        "Total coupon interest over 3 years: ₹25,500.",
+        "At maturity, the company repays the ₹1,00,000 principal in full (assuming no default)."
+      ]
+    },
+    {
+      "id": "tax_overview",
+      "title": "Tax Overview in Plain English",
+      "content": "Tax implications of corporate debt instruments:",
+      "points": [
+        "Coupon (Interest) Income: Added to your gross total income and taxed at your marginal slab rate.",
+        "TDS: 10% TDS is deducted under Section 193 on interest from listed debentures if interest exceeds ₹5,000 in a year (unless Form 15G/15H is validly submitted).",
+        "Capital Gains: Listed corporate bonds held for more than 12 months attract LTCG tax at 12.5% without indexation (Finance Act 2024). Short-term gains are taxed at slab rates."
+      ]
+    },
+    {
+      "id": "how_to_buy",
+      "title": "How to Buy Corporate Bonds",
+      "steps": [
+        "Online Bond Platform Providers (OBPP): SEBI-regulated platforms (such as BondBazaar, Wint Wealth, GoldenPi, Grip) designed specifically for retail bond discovery.",
+        "Direct Stockbrokers: Search listed NCD symbols on NSE or BSE debt segments.",
+        "Public Issues (IPO): Apply through UPI ASBA during new corporate debenture public offerings (minimum application typically ₹10,000)."
+      ]
+    },
+    {
+      "id": "myths_vs_facts",
+      "title": "Myths vs Facts",
+      "items": [
+        {
+          "myth": "All corporate bonds with high interest rates (12%+) are safe as long as they are listed.",
+          "fact": "A very high yield usually reflects higher credit risk. Lower credit-rated bonds have higher default probabilities."
+        },
+        {
+          "myth": "Corporate bonds are insured by DICGC like bank deposits.",
+          "fact": "Bank deposits are insured up to ₹5 lakh by DICGC; corporate bonds carry no government insurance. The investor relies on company balance sheet strength and collateral debenture trustees."
+        }
+      ]
+    },
+    {
+      "id": "key_terms",
+      "title": "Key Terms to Know",
+      "terms": [
+        {"term": "Credit Rating", "definition": "An independent assessment by agencies like CRISIL/ICRA evaluating the borrower's likelihood of fulfilling debt obligations."},
+        {"term": "NCD", "definition": "Non-Convertible Debenture - a fixed-income debt instrument that cannot be converted into equity shares."},
+        {"term": "Debenture Trustee", "definition": "A SEBI-registered institution legally appointed to protect bondholders' rights and enforce security collateral in default."}
+      ]
+    }
+  ]
+}

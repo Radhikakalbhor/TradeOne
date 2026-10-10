@@ -1,0 +1,66 @@
+{
+  "topic": "corpbond",
+  "title": "Corporate Bonds Quiz",
+  "questions": [
+    {
+      "id": "corpbond_q1",
+      "question": "What is the key difference between holding an equity share and holding a corporate bond of a company?",
+      "options": [
+        "Shareholders are creditors; bondholders are owners",
+        "Bondholders are creditors entitled to contractual interest and principal; shareholders are equity owners sharing in profits and losses",
+        "Bondholders have voting rights on the Board of Directors",
+        "Corporate bonds never have a maturity date"
+      ],
+      "correct_index": 1,
+      "explanation": "A bondholder is a lender/creditor who receives contracted interest and principal repayment before any dividend distribution to shareholders."
+    },
+    {
+      "id": "corpbond_q2",
+      "question": "What does a credit rating of 'AAA' assigned by CRISIL or ICRA signify?",
+      "options": [
+        "Speculative grade with high default risk",
+        "Highest degree of safety regarding timely servicing of financial obligations",
+        "Backed directly by the Reserve Bank of India",
+        "Exempt from all income taxes"
+      ],
+      "correct_index": 1,
+      "explanation": "AAA is the highest domestic credit rating, indicating negligible credit default risk based on rating agency analysis."
+    },
+    {
+      "id": "corpbond_q3",
+      "question": "In July 2024, what change did SEBI introduce regarding the face value of privately placed corporate bonds?",
+      "options": [
+        "Increased face value to ₹10 lakh to ban retail investors",
+        "Reduced minimum face value from ₹1,00,000 to ₹10,000 to improve retail participation",
+        "Abolished corporate bonds altogether",
+        "Required all bonds to be physical certificates"
+      ],
+      "correct_index": 1,
+      "explanation": "SEBI reduced ticket sizes for privately placed debt to ₹10,000 to make corporate debt accessible to everyday retail investors."
+    },
+    {
+      "id": "corpbond_q4",
+      "question": "What is the primary role of a Debenture Trustee in a corporate bond issue?",
+      "options": [
+        "To trade bonds on behalf of the company for quick profits",
+        "To protect bondholders' legal interests, monitor collateral security, and initiate recovery in case of default",
+        "To promise 20% annual returns to retail investors",
+        "To write analyst opinions on news channels"
+      ],
+      "correct_index": 1,
+      "explanation": "Debenture Trustees are SEBI-registered institutions legally tasked with safeguarding debenture holders and enforcing security charges."
+    },
+    {
+      "id": "corpbond_q5",
+      "question": "How is coupon interest from listed corporate bonds taxed for retail individuals?",
+      "options": [
+        "100% tax-free under all conditions",
+        "Added to total income and taxed at the investor's marginal slab rate (with 10% TDS under Section 193 where applicable)",
+        "Flat 5% with indexation",
+        "Exempt up to ₹5 lakh per year"
+      ],
+      "correct_index": 1,
+      "explanation": "Interest from corporate debentures is taxed as income from other sources at the investor's marginal income tax slab rate."
+    }
+  ]
+}

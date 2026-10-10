@@ -27,6 +27,8 @@ class User(Base):
     nominees = relationship("Nominee", back_populates="user", cascade="all, delete-orphan")
     consents = relationship("Consent", back_populates="user", cascade="all, delete-orphan")
     sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
+    lesson_progress = relationship("LessonProgress", back_populates="user", cascade="all, delete-orphan")
+    quiz_attempts = relationship("QuizAttempt", back_populates="user", cascade="all, delete-orphan")
 
 class AuthMethod(Base):
     __tablename__ = "auth_methods"
@@ -290,6 +292,49 @@ class AdminSetting(Base):
 
     key = Column(String(64), primary_key=True)
     value = Column(String(255), nullable=False)
+
+class LessonProgress(Base):
+    """Tracks which lessons a user has started and completed, plus quiz scores."""
+    __tablename__ = "lesson_progress"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    lesson_id = Column(String(64), nullable=False, index=True)   # e.g. "reit", "gsec"
+    lang = Column(String(8), default="en")
+    started_at = Column(DateTime, default=utcnow)
+    completed_at = Column(DateTime, nullable=True)
+    best_quiz_score = Column(Integer, nullable=True)             # 0-100
+    last_score = Column(Integer, nullable=True)
+    source_card = Column(String(64), nullable=True)             # which dashboard card triggered this
+
+    user = relationship("User", back_populates="lesson_progress")
+
+
+class QuizAttempt(Base):
+    """One quiz attempt for a user on a lesson (before or after reading)."""
+    __tablename__ = "quiz_attempts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    lesson_id = Column(String(64), nullable=False, index=True)
+    attempt_type = Column(String(16), default="post")  # "pre" or "post"
+    score = Column(Integer, nullable=False, default=0)   # 0-100
+    answers_json = Column(Text, nullable=True)            # JSON array of selected answer indices
+    attempted_at = Column(DateTime, default=utcnow)
+
+    user = relationship("User", back_populates="quiz_attempts")
+
+
+class LessonAnalytic(Base):
+    """Anonymous analytics: lesson views, thumbs ratings, card-click source."""
+    __tablename__ = "lesson_analytics"
+
+    id = Column(Integer, primary_key=True, index=True)
+    lesson_id = Column(String(64), nullable=False, index=True)
+    event = Column(String(32), nullable=False)   # "view", "complete", "thumbs_up", "thumbs_down"
+    source_card = Column(String(64), nullable=True)
+    occurred_at = Column(DateTime, default=utcnow)
+
 
 class OutboxEvent(Base):
     __tablename__ = "outbox_events"

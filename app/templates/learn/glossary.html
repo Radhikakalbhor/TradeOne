@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block title %}Securities & Financial Glossary | TradeOne Learn{% endblock %}
+
+{% block content %}
+<style>
+.glossary-wrap {
+  max-width: 980px;
+  margin: 0 auto 40px auto;
+}
+.glossary-hero {
+  background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+}
+.glossary-hero h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 8px 0;
+}
+.glossary-hero p {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.5;
+}
+.disclaimer-banner {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  color: #fde68a;
+  margin-top: 14px;
+  line-height: 1.4;
+}
+.search-filter-bar {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.search-input-wrap {
+  flex: 1;
+  min-width: 260px;
+  position: relative;
+}
+.search-input {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  background: #131b2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #f8fafc;
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.search-input:focus {
+  border-color: #8b5cf6;
+}
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+}
+.category-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cat-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.cat-pill:hover, .cat-pill.active {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+  color: #ffffff;
+}
+.terms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.term-card {
+  background: #131b2e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.term-card:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateY(-2px);
+}
+.term-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.term-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0;
+}
+.cat-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.term-def {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+.sources-footer {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+  color: #64748b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+</style>
+
+<div class="glossary-wrap">
+  <div class="glossary-hero">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+      <a href="/learn" style="color: #a78bfa; font-size: 0.82rem; text-decoration: none;">&larr; Learning Hub</a>
+      <span style="color: #475569;">&bull;</span>
+      <span style="color: #94a3b8; font-size: 0.82rem;">Reference Library</span>
+    </div>
+    <h1>{{ glossary.title or "Securities & Financial Glossary" }}</h1>
+    <p>{{ glossary.subtitle or "40+ plain-language definitions for retail investors in India" }}</p>
+    <div class="disclaimer-banner">
+      <strong>Educational Notice:</strong> {{ disclaimer }}
+    </div>
+  </div>
+
+  <div class="search-filter-bar">
+    <div class="search-input-wrap">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" id="termSearch" class="search-input" placeholder="Search terms (e.g. NDCF, YTM, SGB, Accrued)..." oninput="filterTerms()">
+    </div>
+    <div class="category-pills" id="catPills">
+      <div class="cat-pill active" onclick="selectCategory('ALL', this)">All</div>
+      <div class="cat-pill" onclick="selectCategory('Bonds', this)">Bonds</div>
+      <div class="cat-pill" onclick="selectCategory('Trusts', this)">Trusts (REIT/InvIT)</div>
+      <div class="cat-pill" onclick="selectCategory('Debt', this)">Debt & G-Sec</div>
+      <div class="cat-pill" onclick="selectCategory('Tax', this)">Tax</div>
+      <div class="cat-pill" onclick="selectCategory('Depository', this)">Depository</div>
+      <div class="cat-pill" onclick="selectCategory('Risk', this)">Risk</div>
+    </div>
+  </div>
+
+  <div class="terms-grid" id="termsGrid">
+    {% for t in glossary.terms %}
+    <div class="term-card" data-term="{{ t.term|lower }}" data-cat="{{ t.category }}">
+      <div class="term-card-header">
+        <h3 class="term-name">{{ t.term }}</h3>
+        <span class="cat-tag">{{ t.category }}</span>
+      </div>
+      <p class="term-def">{{ t.definition }}</p>
+    </div>
+    {% endfor %}
+    <div class="no-results" id="noResults" style="display: none;">
+      No matching terms found. Try adjusting your search query.
+    </div>
+  </div>
+
+  <div class="sources-footer">
+    <div>
+      Last reviewed: <strong style="color: #94a3b8;">{{ glossary.last_reviewed or "2026-04-01" }}</strong>
+    </div>
+    <div>
+      Sources:
+      {% for s in glossary.sources %}
+      <a href="{{ s.url }}" target="_blank" rel="noopener noreferrer" style="color: #a78bfa; margin-left: 6px; text-decoration: underline;">{{ s.name }}</a>{% if not loop.last %},{% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+let currentCategory = 'ALL';
+
+function selectCategory(cat, el) {
+  currentCategory = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  filterTerms();
+}
+
+function filterTerms() {
+  const query = document.getElementById('termSearch').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.term-card');
+  let visibleCount = 0;
+
+  cards.forEach(card => {
+    const term = card.getAttribute('data-term') || '';
+    const def = card.querySelector('.term-def').textContent.toLowerCase();
+    const cat = card.getAttribute('data-cat') || '';
+
+    const matchesQuery = !query || term.includes(query) || def.includes(query);
+    const matchesCat = currentCategory === 'ALL' || cat.toLowerCase().includes(currentCategory.toLowerCase());
+
+    if (matchesQuery && matchesCat) {
+      card.style.display = 'flex';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  const noResults = document.getElementById('noResults');
+  if (visibleCount === 0) {
+    noResults.style.display = 'block';
+  } else {
+    noResults.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}
