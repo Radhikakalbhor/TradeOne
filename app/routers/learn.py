@@ -60,6 +60,18 @@ LESSON_LABELS = {
     "how_to_buy": "How to Buy",
 }
 
+LESSON_LABELS_HI = {
+    "reit": "रीट्स (REITs)",
+    "invit": "इनविट्स (InvITs)",
+    "gsec": "सरकारी प्रतिभूतियां (G-Secs)",
+    "tbill": "ट्रेजरी बिल्स (T-Bills)",
+    "sgb": "सॉवरेन गोल्ड बॉन्ड्स (SGB)",
+    "corpbond": "कॉरपोरेट बॉन्ड्स (Corporate Bonds)",
+    "stocks_vs_alternatives": "स्टॉक्स बनाम अन्य विकल्प",
+    "taxes": "सरल शब्दों में टैक्स",
+    "how_to_buy": "कैसे खरीदें",
+}
+
 
 def get_user_optional(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("nd_session")
@@ -113,7 +125,7 @@ def learn_hub(
         context={
             "user": user,
             "lessons": lessons,
-            "lesson_labels": LESSON_LABELS,
+            "lesson_labels": LESSON_LABELS_HI if lang == "hi" else LESSON_LABELS,
             "progress_map": progress_map,
             "div_data": div_data,
             "facts": facts,
@@ -227,7 +239,7 @@ def lesson_page(
             "relevant_holdings": relevant_holdings,
             "format_inr": format_inr,
             "disclaimer": LEARN_DISCLAIMER,
-            "lesson_labels": LESSON_LABELS,
+            "lesson_labels": LESSON_LABELS_HI if lang == "hi" else LESSON_LABELS,
         },
     )
 
@@ -265,6 +277,7 @@ def quiz_page(
     if not quiz or not quiz.get("questions"):
         raise HTTPException(status_code=404, detail="Quiz not found")
 
+    current_labels = LESSON_LABELS_HI if lang == "hi" else LESSON_LABELS
     return templates.TemplateResponse(
         request=request,
         name="learn/quiz.html",
@@ -274,7 +287,7 @@ def quiz_page(
             "topic": topic,
             "mode": mode,
             "lang": lang,
-            "lesson_label": LESSON_LABELS.get(topic, topic.title()),
+            "lesson_label": current_labels.get(topic, topic.title()),
             "disclaimer": LEARN_DISCLAIMER,
         },
     )
@@ -321,6 +334,7 @@ async def submit_quiz(
 @router.get("/compare", response_class=HTMLResponse)
 def compare_tool(
     request: Request,
+    lang: str = Query("en"),
     assets: Optional[List[str]] = Query(None),
     user=Depends(get_user_optional),
     db: Session = Depends(get_db),
@@ -350,6 +364,7 @@ def compare_tool(
             "all_assets": {k: v for k, v in COMPARE_DATA.items() if k != "equity"},
             "selected_keys": selected_keys,
             "facts": facts,
+            "lang": lang,
             "disclaimer": LEARN_DISCLAIMER,
         },
     )
@@ -362,6 +377,7 @@ def compare_tool(
 @router.get("/simulator", response_class=HTMLResponse)
 def simulator_page(
     request: Request,
+    lang: str = Query("en"),
     user=Depends(get_user_optional),
     db: Session = Depends(get_db),
 ):
@@ -372,6 +388,7 @@ def simulator_page(
         context={
             "user": user,
             "assumptions": assumptions,
+            "lang": lang,
             "disclaimer": LEARN_DISCLAIMER,
             "format_inr": format_inr,
         },
@@ -415,6 +432,7 @@ async def simulator_run(request: Request, db: Session = Depends(get_db)):
 @router.get("/what-if", response_class=HTMLResponse)
 def whatif_page(
     request: Request,
+    lang: str = Query("en"),
     user=Depends(get_user_optional),
     db: Session = Depends(get_db),
 ):
@@ -428,6 +446,7 @@ def whatif_page(
             "user": user,
             "assumptions": assumptions,
             "div_data": div_data,
+            "lang": lang,
             "disclaimer": LEARN_DISCLAIMER,
             "format_inr": format_inr,
         },
@@ -520,6 +539,7 @@ def glossary_page(
 @router.get("/income-calendar", response_class=HTMLResponse)
 def income_calendar_page(
     request: Request,
+    lang: str = Query("en"),
     user=Depends(require_user),
     db: Session = Depends(get_db),
 ):
@@ -531,6 +551,7 @@ def income_calendar_page(
             "user": user,
             "calendar": calendar_data,
             "format_inr": format_inr,
+            "lang": lang,
             "disclaimer": LEARN_DISCLAIMER,
         },
     )

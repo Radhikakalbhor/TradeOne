@@ -105,8 +105,8 @@
   </form>
 
   <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-    <a href="/learn/simulator" class="btn btn-outline btn-sm">🧮 Try the Income Simulator</a>
-    <a href="/learn" class="btn btn-outline btn-sm">← Back to Learn</a>
+    <a href="/learn/simulator{% if lang == 'hi' %}?lang=hi{% endif %}" class="btn btn-outline btn-sm">🧮 {% if lang == 'hi' %}आय सिम्युलेटर आज़माएं{% else %}Try the Income Simulator{% endif %}</a>
+    <a href="/learn{% if lang == 'hi' %}?lang=hi{% endif %}" class="btn btn-outline btn-sm">← {% if lang == 'hi' %}सीखें पर वापस{% else %}Back to Learn{% endif %}</a>
   </div>
 </div>
 

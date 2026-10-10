@@ -383,3 +383,30 @@ def test_glossary_endpoint(client):
     assert response.status_code == 200
     assert "Glossary" in response.text
     assert "NDCF" in response.text or "Accrued Interest" in response.text
+
+
+def test_hindi_content_and_endpoints(client):
+    """Ensure Hindi localization loads for all lessons, glossary, and hub."""
+    hi_lessons = load_all_lessons("hi")
+    assert len(hi_lessons) == 9
+    for l in hi_lessons:
+        assert l.get("lang") == "hi"
+        assert len(l.get("title", "")) > 0
+        assert "sources" in l and len(l["sources"]) > 0
+        assert "disclaimer" in l
+
+    # Hub endpoint in Hindi
+    res_hub = client.get("/learn?lang=hi")
+    assert res_hub.status_code == 200
+    assert "सीखें" in res_hub.text
+
+    # Lesson endpoint in Hindi
+    res_lesson = client.get("/learn/lesson/tbill?lang=hi")
+    assert res_lesson.status_code == 200
+    assert "ट्रेजरी" in res_lesson.text
+
+    # Glossary endpoint in Hindi
+    res_glossary = client.get("/learn/glossary?lang=hi")
+    assert res_glossary.status_code == 200
+    assert "शब्दावली" in res_glossary.text
+

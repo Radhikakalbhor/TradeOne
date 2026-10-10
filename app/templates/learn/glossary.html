@@ -159,14 +159,34 @@
   flex-wrap: wrap;
   gap: 12px;
 }
+/* Language switcher */
+.lang-switch { display: flex; gap: 8px; align-items: center; }
+.lang-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.lang-btn.active, .lang-btn:hover { background: rgba(167,139,250,0.15); border-color: #7c3aed; color: #a78bfa; }
 </style>
 
 <div class="glossary-wrap">
   <div class="glossary-hero">
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-      <a href="/learn" style="color: #a78bfa; font-size: 0.82rem; text-decoration: none;">&larr; Learning Hub</a>
-      <span style="color: #475569;">&bull;</span>
-      <span style="color: #94a3b8; font-size: 0.82rem;">Reference Library</span>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <a href="/learn{% if lang == 'hi' %}?lang=hi{% endif %}" style="color: #a78bfa; font-size: 0.82rem; text-decoration: none;">&larr; {% if lang == 'hi' %}शिक्षण केंद्र (Learning Hub){% else %}Learning Hub{% endif %}</a>
+        <span style="color: #475569;">&bull;</span>
+        <span style="color: #94a3b8; font-size: 0.82rem;">{% if lang == 'hi' %}संदर्भ पुस्तकालय (Reference Library){% else %}Reference Library{% endif %}</span>
+      </div>
+      <div class="lang-switch">
+        <a href="/learn/glossary?lang=en" class="lang-btn {% if lang == 'en' %}active{% endif %}">🇬🇧 English</a>
+        <a href="/learn/glossary?lang=hi" class="lang-btn {% if lang == 'hi' %}active{% endif %}">🇮🇳 हिन्दी</a>
+      </div>
     </div>
     <h1>{{ glossary.title or "Securities & Financial Glossary" }}</h1>
     <p>{{ glossary.subtitle or "40+ plain-language definitions for retail investors in India" }}</p>
@@ -175,16 +195,17 @@
   <div class="search-filter-bar">
     <div class="search-input-wrap">
       <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input type="text" id="termSearch" class="search-input" placeholder="Search terms (e.g. NDCF, YTM, SGB, Accrued)..." oninput="filterTerms()">
+      <input type="text" id="termSearch" class="search-input" placeholder="{% if lang == 'hi' %}शब्दावली खोजें (उदा. NDCF, YTM, SGB, उपार्जित ब्याज)...{% else %}Search terms (e.g. NDCF, YTM, SGB, Accrued)...{% endif %}" oninput="filterTerms()">
     </div>
     <div class="category-pills" id="catPills">
-      <div class="cat-pill active" onclick="selectCategory('ALL', this)">All</div>
-      <div class="cat-pill" onclick="selectCategory('Bonds', this)">Bonds</div>
-      <div class="cat-pill" onclick="selectCategory('Trusts', this)">Trusts (REIT/InvIT)</div>
-      <div class="cat-pill" onclick="selectCategory('Debt', this)">Debt & G-Sec</div>
-      <div class="cat-pill" onclick="selectCategory('Tax', this)">Tax</div>
-      <div class="cat-pill" onclick="selectCategory('Depository', this)">Depository</div>
-      <div class="cat-pill" onclick="selectCategory('Risk', this)">Risk</div>
+      <div class="cat-pill active" onclick="selectCategory('ALL', this)">{% if lang == 'hi' %}सभी (All){% else %}All{% endif %}</div>
+      {% set seen_cats = [] %}
+      {% for t in glossary.terms %}
+        {% if t.category not in seen_cats %}
+          {% set _ = seen_cats.append(t.category) %}
+          <div class="cat-pill" onclick="selectCategory('{{ t.category }}', this)">{{ t.category }}</div>
+        {% endif %}
+      {% endfor %}
     </div>
   </div>
 
@@ -199,16 +220,16 @@
     </div>
     {% endfor %}
     <div class="no-results" id="noResults" style="display: none;">
-      No matching terms found. Try adjusting your search query.
+      {% if lang == 'hi' %}कोई परिणाम नहीं मिला। कृपया अपनी खोज बदलें।{% else %}No matching terms found. Try adjusting your search query.{% endif %}
     </div>
   </div>
 
   <div class="sources-footer">
     <div>
-      Last reviewed: <strong style="color: #94a3b8;">{{ glossary.last_reviewed or "2026-04-01" }}</strong>
+      {% if lang == 'hi' %}अंतिम समीक्षा:{% else %}Last reviewed:{% endif %} <strong style="color: #94a3b8;">{{ glossary.last_reviewed or "2026-04-01" }}</strong>
     </div>
     <div>
-      Sources:
+      {% if lang == 'hi' %}स्रोत:{% else %}Sources:{% endif %}
       {% for s in glossary.sources %}
       <a href="{{ s.url }}" target="_blank" rel="noopener noreferrer" style="color: #a78bfa; margin-left: 6px; text-decoration: underline;">{{ s.name }}</a>{% if not loop.last %},{% endif %}
       {% endfor %}
@@ -237,7 +258,7 @@ function filterTerms() {
     const cat = card.getAttribute('data-cat') || '';
 
     const matchesQuery = !query || term.includes(query) || def.includes(query);
-    const matchesCat = currentCategory === 'ALL' || cat.toLowerCase().includes(currentCategory.toLowerCase());
+    const matchesCat = currentCategory === 'ALL' || cat === currentCategory || cat.toLowerCase().includes(currentCategory.toLowerCase());
 
     if (matchesQuery && matchesCat) {
       card.style.display = 'flex';

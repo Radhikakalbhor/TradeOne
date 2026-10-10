@@ -180,8 +180,8 @@
     <div id="resultScore" class="result-score">0 / {{ quiz.questions|length }}</div>
     <p id="resultMsg" class="result-note"></p>
     <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-      <a href="/learn/lesson/{{ topic }}" class="btn btn-primary">Return to Lesson</a>
-      <a href="/learn" class="btn btn-secondary">Learning Hub</a>
+      <a href="/learn/lesson/{{ topic }}{% if lang == 'hi' %}?lang=hi{% endif %}" class="btn btn-primary">{% if lang == 'hi' %}पाठ पर वापस जाएं{% else %}Return to Lesson{% endif %}</a>
+      <a href="/learn{% if lang == 'hi' %}?lang=hi{% endif %}" class="btn btn-secondary">{% if lang == 'hi' %}शिक्षण केंद्र{% else %}Learning Hub{% endif %}</a>
     </div>
   </div>
 

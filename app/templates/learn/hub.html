@@ -215,20 +215,20 @@
 
 <!-- Hero -->
 <div class="learn-hero">
-  <h1>📚 Learn</h1>
-  <p>Understand investment options beyond stocks — REITs, InvITs, and bonds — using your real portfolio as context. No advice, just clear education.</p>
+  <h1>{% if lang == 'hi' %}📚 सीखें (Learn){% else %}📚 Learn{% endif %}</h1>
+  <p>{% if lang == 'hi' %}शेयरों से परे निवेश विकल्पों को समझें — REITs, InvITs, और बॉन्ड्स — अपने वास्तविक पोर्टफोलियो के संदर्भ में। कोई वित्तीय सलाह नहीं, केवल निष्पक्ष शिक्षा।{% else %}Understand investment options beyond stocks — REITs, InvITs, and bonds — using your real portfolio as context. No advice, just clear education.{% endif %}</p>
   <div class="learn-hero-badges">
-    <span class="hero-badge">📊 Personalised insights</span>
-    <span class="hero-badge">✅ Sourced & dated content</span>
-    <span class="hero-badge">🎓 Quizzes & Progress</span>
-    <span class="hero-badge">🇮🇳 Indian market focus</span>
+    <span class="hero-badge">{% if lang == 'hi' %}📊 व्यक्तिगत अंतर्दृष्टि{% else %}📊 Personalised insights{% endif %}</span>
+    <span class="hero-badge">{% if lang == 'hi' %}✅ सत्यापित व अद्यतन सामग्री{% else %}✅ Sourced & dated content{% endif %}</span>
+    <span class="hero-badge">{% if lang == 'hi' %}🎓 क्विज़ और प्रगति{% else %}🎓 Quizzes & Progress{% endif %}</span>
+    <span class="hero-badge">{% if lang == 'hi' %}🇮🇳 भारतीय बाजार केंद्रित{% else %}🇮🇳 Indian market focus{% endif %}</span>
   </div>
 </div>
 
 
 <!-- Language Switcher -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-  <div class="section-label" style="margin: 0;">Content language</div>
+  <div class="section-label" style="margin: 0;">{% if lang == 'hi' %}सामग्री की भाषा (Content language){% else %}Content language{% endif %}</div>
   <div class="lang-switch">
     <a href="/learn?lang=en" class="lang-btn {% if lang == 'en' %}active{% endif %}">🇬🇧 English</a>
     <a href="/learn?lang=hi" class="lang-btn {% if lang == 'hi' %}active{% endif %}">🇮🇳 हिन्दी</a>
@@ -238,57 +238,57 @@
 <!-- Quick Exploration Card -->
 <div class="div-check-card" id="div-check-card" style="padding: 16px 20px;">
   <div class="div-check-btns" style="margin-top: 0;">
-    <a href="/learn/lesson/reit?source=div_card" class="div-check-btn">What are REITs?</a>
-    <a href="/learn/lesson/invit?source=div_card" class="div-check-btn">What are InvITs?</a>
-    <a href="/learn/lesson/gsec?source=div_card" class="div-check-btn">What are Bonds?</a>
-    <a href="/learn/compare" class="div-check-btn">Compare all →</a>
+    <a href="/learn/lesson/reit?source=div_card{% if lang == 'hi' %}&lang=hi{% endif %}" class="div-check-btn">{% if lang == 'hi' %}REITs क्या हैं?{% else %}What are REITs?{% endif %}</a>
+    <a href="/learn/lesson/invit?source=div_card{% if lang == 'hi' %}&lang=hi{% endif %}" class="div-check-btn">{% if lang == 'hi' %}InvITs क्या हैं?{% else %}What are InvITs?{% endif %}</a>
+    <a href="/learn/lesson/gsec?source=div_card{% if lang == 'hi' %}&lang=hi{% endif %}" class="div-check-btn">{% if lang == 'hi' %}बॉन्ड्स क्या हैं?{% else %}What are Bonds?{% endif %}</a>
+    <a href="/learn/compare{% if lang == 'hi' %}?lang=hi{% endif %}" class="div-check-btn">{% if lang == 'hi' %}सभी की तुलना करें →{% else %}Compare all →{% endif %}</a>
   </div>
 </div>
 
 <!-- Quick Tools Row -->
-<div class="section-label">Interactive Tools</div>
+<div class="section-label">{% if lang == 'hi' %}इंटरैक्टिव टूल्स (Interactive Tools){% else %}Interactive Tools{% endif %}</div>
 <div class="tools-row">
-  <a href="/learn/compare" class="tool-card">
+  <a href="/learn/compare{% if lang == 'hi' %}?lang=hi{% endif %}" class="tool-card">
     <span class="tool-icon">⚖️</span>
     <div>
-      <h4>Compare</h4>
-      <p>Side-by-side asset comparison</p>
+      <h4>{% if lang == 'hi' %}तुलना (Compare){% else %}Compare{% endif %}</h4>
+      <p>{% if lang == 'hi' %}विभिन्न संपत्तियों की साथ-साथ तुलना{% else %}Side-by-side asset comparison{% endif %}</p>
     </div>
   </a>
-  <a href="/learn/simulator" class="tool-card">
+  <a href="/learn/simulator{% if lang == 'hi' %}?lang=hi{% endif %}" class="tool-card">
     <span class="tool-icon">🧮</span>
     <div>
-      <h4>Income Simulator</h4>
-      <p>Estimate income from any product</p>
+      <h4>{% if lang == 'hi' %}आय सिम्युलेटर (Income Simulator){% else %}Income Simulator{% endif %}</h4>
+      <p>{% if lang == 'hi' %}किसी भी उत्पाद से अनुमानित आय{% else %}Estimate income from any product{% endif %}</p>
     </div>
   </a>
-  <a href="/learn/what-if" class="tool-card">
+  <a href="/learn/what-if{% if lang == 'hi' %}?lang=hi{% endif %}" class="tool-card">
     <span class="tool-icon">🎯</span>
     <div>
-      <h4>What-If Allocator</h4>
-      <p>See how a mix change affects income</p>
+      <h4>{% if lang == 'hi' %}व्हाट-इफ़ एलोकेटर (What-If Allocator){% else %}What-If Allocator{% endif %}</h4>
+      <p>{% if lang == 'hi' %}मिश्रण बदलने से आय पर प्रभाव देखें{% else %}See how a mix change affects income{% endif %}</p>
     </div>
   </a>
   {% if user %}
-  <a href="/learn/income-calendar" class="tool-card">
+  <a href="/learn/income-calendar{% if lang == 'hi' %}?lang=hi{% endif %}" class="tool-card">
     <span class="tool-icon">📅</span>
     <div>
-      <h4>Income Calendar</h4>
-      <p>Upcoming coupons from your bonds</p>
+      <h4>{% if lang == 'hi' %}आय कैलेंडर (Income Calendar){% else %}Income Calendar{% endif %}</h4>
+      <p>{% if lang == 'hi' %}आपके बॉन्ड्स से आगामी कूपन{% else %}Upcoming coupons from your bonds{% endif %}</p>
     </div>
   </a>
   {% endif %}
-  <a href="/learn/glossary" class="tool-card">
+  <a href="/learn/glossary{% if lang == 'hi' %}?lang=hi{% endif %}" class="tool-card">
     <span class="tool-icon">📖</span>
     <div>
-      <h4>Glossary</h4>
-      <p>40+ terms explained plainly</p>
+      <h4>{% if lang == 'hi' %}शब्दावली (Glossary){% else %}Glossary{% endif %}</h4>
+      <p>{% if lang == 'hi' %}40+ वित्तीय शब्दों की सरल व्याख्या{% else %}40+ terms explained plainly{% endif %}</p>
     </div>
   </a>
 </div>
 
 <!-- Lesson Cards Grid -->
-<div class="section-label">Lessons</div>
+<div class="section-label">{% if lang == 'hi' %}पाठ (Lessons){% else %}Lessons{% endif %}</div>
 {% set lesson_icons = {
   'reit': ('🏢', '#10b981', 'rgba(16,185,129,0.1)'),
   'invit': ('🛣️', '#8b5cf6', 'rgba(139,92,246,0.1)'),
@@ -317,12 +317,12 @@
       <span class="lesson-reading-time">⏱ {{ lesson.reading_time }}</span>
       {% endif %}
       {% if prog.completed %}
-      <span class="lesson-progress-badge completed">✓ Completed</span>
+      <span class="lesson-progress-badge completed">{% if lang == 'hi' %}✓ पूर्ण{% else %}✓ Completed{% endif %}</span>
       {% elif prog.started %}
-      <span class="lesson-progress-badge started">▶ In Progress</span>
+      <span class="lesson-progress-badge started">{% if lang == 'hi' %}▶ प्रगति पर{% else %}▶ In Progress{% endif %}</span>
       {% endif %}
       {% if lesson.needs_verification %}
-      <span class="lesson-progress-badge" style="background: rgba(239,68,68,0.1); color: #ef4444;">⚠ Check Rules</span>
+      <span class="lesson-progress-badge" style="background: rgba(239,68,68,0.1); color: #ef4444;">{% if lang == 'hi' %}⚠ नियम जांचें{% else %}⚠ Check Rules{% endif %}</span>
       {% endif %}
     </div>
   </a>

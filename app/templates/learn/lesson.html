@@ -224,21 +224,28 @@
 
 <!-- Breadcrumb & Header -->
 <div class="lesson-header">
-  <div class="lesson-breadcrumb">
-    <a href="/learn">Learn</a> › {{ lesson.title }}
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+    <div class="lesson-breadcrumb" style="margin-bottom: 0;">
+      <a href="/learn{% if lang == 'hi' %}?lang=hi{% endif %}">{% if lang == 'hi' %}सीखें (Learn){% else %}Learn{% endif %}</a> › {{ lesson.title }}
+    </div>
+    <div class="lang-switch">
+      <a href="/learn/lesson/{{ topic }}?lang=en" class="lang-btn {% if lang == 'en' %}active{% endif %}">🇬🇧 English</a>
+      <a href="/learn/lesson/{{ topic }}?lang=hi" class="lang-btn {% if lang == 'hi' %}active{% endif %}">🇮🇳 हिन्दी</a>
+    </div>
   </div>
+
   <h1>{{ lesson.title }}</h1>
   {% if lesson.subtitle %}
   <div class="lesson-header-sub">{{ lesson.subtitle }}</div>
   {% endif %}
   <div class="lesson-header-meta">
     {% if lesson.reading_time %}<span>⏱ {{ lesson.reading_time }}</span>{% endif %}
-    <span>Last reviewed: <strong>{{ lesson.last_reviewed }}</strong></span>
+    <span>{% if lang == 'hi' %}अंतिम समीक्षा:{% else %}Last reviewed:{% endif %} <strong>{{ lesson.last_reviewed }}</strong></span>
     {% for src in lesson.sources %}
     <a href="{{ src.url }}" target="_blank" rel="noopener noreferrer">📎 {{ src.name }}</a>
     {% endfor %}
     {% if lesson.needs_verification %}
-    <span style="color: #ef4444;">⚠ Some facts need verification — check official sources</span>
+    <span style="color: #ef4444;">{% if lang == 'hi' %}⚠ कुछ तथ्यों को आधिकारिक स्रोतों से सत्यापित करें{% else %}⚠ Some facts need verification — check official sources{% endif %}</span>
     {% endif %}
   </div>
 </div>
@@ -248,23 +255,23 @@
   <!-- Left: Sidebar -->
   <div class="lesson-sidebar">
     <div class="sidebar-card">
-      <h4>📚 All Lessons</h4>
+      <h4>{% if lang == 'hi' %}📚 सभी पाठ{% else %}📚 All Lessons{% endif %}</h4>
       {% for lbl_topic, lbl_title in lesson_labels.items() %}
-      <a href="/learn/lesson/{{ lbl_topic }}" class="sidebar-lesson-link {% if lbl_topic == topic %}active{% endif %}">{{ lbl_title }}</a>
+      <a href="/learn/lesson/{{ lbl_topic }}?lang={{ lang }}" class="sidebar-lesson-link {% if lbl_topic == topic %}active{% endif %}">{{ lbl_title }}</a>
       {% endfor %}
     </div>
 
     {% if user and progress %}
     <div class="sidebar-card">
-      <h4>Your Progress</h4>
+      <h4>{% if lang == 'hi' %}आपकी प्रगति{% else %}Your Progress{% endif %}</h4>
       {% if progress.completed_at %}
-      <div class="badge badge-success" style="margin-bottom: 8px;">✓ Lesson completed</div>
+      <div class="badge badge-success" style="margin-bottom: 8px;">{% if lang == 'hi' %}✓ पाठ पूर्ण हुआ{% else %}✓ Lesson completed{% endif %}</div>
       {% else %}
-      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Mark as complete when done reading</div>
-      <button onclick="markComplete('{{ topic }}')" class="btn btn-secondary btn-sm" id="complete-btn" style="width: 100%;">Mark Complete</button>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">{% if lang == 'hi' %}पढ़ने के बाद पूर्ण चिह्नित करें{% else %}Mark as complete when done reading{% endif %}</div>
+      <button onclick="markComplete('{{ topic }}')" class="btn btn-secondary btn-sm" id="complete-btn" style="width: 100%;">{% if lang == 'hi' %}पूर्ण चिह्नित करें{% else %}Mark Complete{% endif %}</button>
       {% endif %}
       {% if progress.best_quiz_score is not none %}
-      <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">Best quiz score: <strong style="color: #10b981;">{{ progress.best_quiz_score }}%</strong></div>
+      <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">{% if lang == 'hi' %}सर्वश्रेष्ठ क्विज़ स्कोर:{% else %}Best quiz score:{% endif %} <strong style="color: #10b981;">{{ progress.best_quiz_score }}%</strong></div>
       {% endif %}
     </div>
     {% endif %}
@@ -391,7 +398,7 @@
         {% for t in section.terms %}
         <div class="term-row">
           <div class="term-name">{{ t.term }}</div>
-          <div class="term-def">{{ t.definition }}</div>
+          <div class="term-def">{{ t.definition or t.def }}</div>
         </div>
         {% endfor %}
       </div>

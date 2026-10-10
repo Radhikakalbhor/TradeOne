@@ -33,16 +33,26 @@ LEARN_DISCLAIMER = (
 # Content Loaders (cached so disk I/O happens only once per server start)
 # ---------------------------------------------------------------------------
 
-@lru_cache(maxsize=None)
-def _load_json(path: Path) -> Any:
+@lru_cache(maxsize=128)
+def _load_json_cached(path_str: str, mtime: float) -> Any:
     try:
-        with open(path, "r", encoding="utf-8") as fh:
+        with open(path_str, "r", encoding="utf-8") as fh:
             return json.load(fh)
     except FileNotFoundError:
-        logger.warning("Content file not found: %s", path)
+        logger.warning("Content file not found: %s", path_str)
         return {}
     except json.JSONDecodeError as exc:
-        logger.error("Invalid JSON in %s: %s", path, exc)
+        logger.error("Invalid JSON in %s: %s", path_str, exc)
+        return {}
+
+
+def _load_json(path: Path) -> Any:
+    try:
+        p = Path(path)
+        mtime = p.stat().st_mtime if p.exists() else 0.0
+        return _load_json_cached(str(p.resolve()), mtime)
+    except Exception as exc:
+        logger.warning("Error checking JSON file %s: %s", path, exc)
         return {}
 
 

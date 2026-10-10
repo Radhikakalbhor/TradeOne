@@ -146,7 +146,7 @@
 <div class="cal-wrap">
   <div class="cal-hero">
     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-      <a href="/learn" style="color: #60a5fa; font-size: 0.82rem; text-decoration: none;">&larr; Learning Hub</a>
+      <a href="/learn{% if lang == 'hi' %}?lang=hi{% endif %}" style="color: #60a5fa; font-size: 0.82rem; text-decoration: none;">&larr; {% if lang == 'hi' %}शिक्षण केंद्र (Learning Hub){% else %}Learning Hub{% endif %}</a>
       <span style="color: #475569;">&bull;</span>
       <span style="color: #94a3b8; font-size: 0.82rem;">Cash Flow Tracking</span>
     </div>
