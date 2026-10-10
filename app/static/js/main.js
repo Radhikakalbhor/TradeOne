@@ -372,6 +372,199 @@ window.switchGraphTab = function(tabKey) {
   }, 50);
 };
 
+// Educational Disclaimer Flash Message in the Middle of Screen
+let learnFlashTimer = null;
+
+window.showLearnFlashMessage = function() {
+  const backdrop = document.getElementById('learn-flash-backdrop');
+  const flash = document.getElementById('learn-flash-message');
+  const timerBar = document.getElementById('learn-flash-timer-bar');
+
+  if (flash) {
+    if (backdrop) {
+      backdrop.style.display = 'block';
+      requestAnimationFrame(() => {
+        backdrop.style.opacity = '1';
+      });
+    }
+
+    flash.style.display = 'block';
+    requestAnimationFrame(() => {
+      flash.style.opacity = '1';
+      flash.style.transform = 'translate(-50%, -50%) scale(1)';
+    });
+
+    const ackBtn = document.getElementById('btn-ack-flash');
+    if (ackBtn) ackBtn.focus();
+
+    // Reset & animate auto-dismiss timer bar
+    if (timerBar) {
+      timerBar.style.transition = 'none';
+      timerBar.style.width = '100%';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          timerBar.style.transition = 'width 7s linear';
+          timerBar.style.width = '0%';
+        });
+      });
+    }
+
+    // Auto-dismiss after 7 seconds
+    if (learnFlashTimer) clearTimeout(learnFlashTimer);
+    learnFlashTimer = setTimeout(() => {
+      closeLearnFlashMessage();
+    }, 7000);
+  }
+};
+
+window.closeLearnFlashMessage = function() {
+  if (learnFlashTimer) {
+    clearTimeout(learnFlashTimer);
+    learnFlashTimer = null;
+  }
+
+  const backdrop = document.getElementById('learn-flash-backdrop');
+  const flash = document.getElementById('learn-flash-message');
+
+  if (flash) {
+    flash.style.opacity = '0';
+    flash.style.transform = 'translate(-50%, -50%) scale(0.92)';
+    if (backdrop) backdrop.style.opacity = '0';
+
+    setTimeout(() => {
+      flash.style.display = 'none';
+      if (backdrop) backdrop.style.display = 'none';
+    }, 300);
+
+    sessionStorage.setItem('learn_disclaimer_acked', 'true');
+  }
+};
+
+// Aliases for compatibility
+window.showLearnDisclaimerModal = window.showLearnFlashMessage;
+window.closeLearnDisclaimerModal = window.closeLearnFlashMessage;
+
+document.addEventListener('DOMContentLoaded', function() {
+  const path = window.location.pathname;
+  if (path.startsWith('/learn')) {
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeLearnFlashMessage();
+      }
+    });
+
+    const isLearnRoot = (path === '/learn' || path === '/learn/');
+    const acked = sessionStorage.getItem('learn_disclaimer_acked');
+
+    if (isLearnRoot || !acked) {
+      setTimeout(showLearnFlashMessage, 150);
+    }
+  } else {
+    // Leaving learn section resets acknowledgement so returning later re-triggers popup
+    sessionStorage.removeItem('learn_disclaimer_acked');
+  }
+});
+
+// -------------------------------------------------------------
+// Aceternity Sparkles Background Canvas Effect
+// -------------------------------------------------------------
+(function initSparkles() {
+  function start() {
+    const canvas = document.getElementById('sparkles-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const minSize = 0.6;
+    const maxSize = 1.4;
+    const particleColor = '#FFFFFF';
+    const density = 100; // Aceternity particleDensity
+
+    let width = 0;
+    let height = 0;
+    let particles = [];
+    let animId = null;
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      createParticles();
+    }
+
+    function createParticles() {
+      const count = Math.max(50, Math.floor((width * height) / (1000000 / density)));
+      particles = [];
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: Math.random() * (maxSize - minSize) + minSize,
+          speedX: (Math.random() - 0.5) * 0.35,
+          speedY: (Math.random() - 0.5) * 0.35,
+          alpha: Math.random() * 0.75 + 0.15,
+          fadeSpeed: Math.random() * 0.015 + 0.005,
+          fadingIn: Math.random() > 0.5,
+        });
+      }
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+
+        if (p.fadingIn) {
+          p.alpha += p.fadeSpeed;
+          if (p.alpha >= 0.95) p.fadingIn = false;
+        } else {
+          p.alpha -= p.fadeSpeed;
+          if (p.alpha <= 0.08) p.fadingIn = true;
+        }
+
+        p.x += p.speedX;
+        p.y += p.speedY;
+
+        if (p.x < 0) p.x = width;
+        else if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        else if (p.y > height) p.y = 0;
+
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = particleColor;
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = particleColor;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      animId = requestAnimationFrame(render);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    render();
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (animId) cancelAnimationFrame(animId);
+      } else {
+        animId = requestAnimationFrame(render);
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+
+
 
 
 

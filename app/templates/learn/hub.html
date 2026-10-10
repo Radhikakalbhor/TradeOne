@@ -123,18 +123,48 @@
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .div-check-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
 .div-check-btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
   background: rgba(167,139,250,0.1);
   border: 1px solid rgba(167,139,250,0.3);
   color: #a78bfa;
   border-radius: 8px;
-  padding: 6px 14px;
+  padding: 8px 16px;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.div-check-btn:hover { background: rgba(167,139,250,0.2); }
+.div-check-btn::after {
+  content: '';
+  position: absolute;
+  left: 15%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a78bfa;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  z-index: -1;
+  pointer-events: none;
+}
+.div-check-btn:hover::after {
+  opacity: 0.22;
+  transform: translate(-50%, -50%) scale(35);
+}
+.div-check-btn:hover {
+  background: rgba(167,139,250,0.2);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+  border-color: rgba(167,139,250,0.5);
+}
+.div-check-btn:active {
+  transform: translateY(0);
+}
 
 .tools-row {
   display: grid;
@@ -195,11 +225,6 @@
   </div>
 </div>
 
-<!-- Disclaimer -->
-<div class="learn-disclaimer-bar">
-  <span>⚠️</span>
-  <span>{{ disclaimer }}</span>
-</div>
 
 <!-- Language Switcher -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
@@ -210,72 +235,15 @@
   </div>
 </div>
 
-<!-- Diversification Check Card (only when user has holdings) -->
-{% if user and div_data %}
-<div class="div-check-card" id="div-check-card">
-  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
-    <div>
-      <h2 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 4px 0; color: var(--text-main);">📊 Your Portfolio Mix</h2>
-      <p style="font-size: 0.83rem; color: var(--text-muted); margin: 0;">Based on your live holdings across {{ div_data.num_brokers }} broker{{ 's' if div_data.num_brokers != 1 else '' }}</p>
-    </div>
-    <span class="badge" style="background: rgba(167,139,250,0.1); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3);">Live from your Demat</span>
-  </div>
-
-  {% set colors = {'Equity': '#f59e0b', 'ETF': '#06b6d4', 'REIT': '#10b981', 'InvIT': '#8b5cf6', 'Bond': '#3b82f6', 'Mutual Fund': '#ec4899'} %}
-
-  <div class="div-check-bar-wrap">
-    <div class="div-check-bar">
-      {% for cls, pct in div_data.breakdown.items() %}
-      <div class="div-check-segment" {{ 'style="width: ' ~ pct ~ '%; background: ' ~ colors.get(cls, '#64748b') ~ ';"' }} title="{{ cls }}: {{ pct }}%"></div>
-      {% endfor %}
-    </div>
-    <div class="div-check-legend">
-      {% for cls, pct in div_data.breakdown.items() %}
-      <div class="legend-item">
-        <span class="legend-dot" style="background: {{ colors.get(cls, '#64748b') }};"></span>
-        <span>{{ cls }}: <strong>{{ pct }}%</strong></span>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Neutral factual message -->
-  {% set equity_pct = div_data.equity_pct %}
-  {% set reit_pct = div_data.reit_pct %}
-  {% set invit_pct = div_data.invit_pct %}
-  {% set bond_pct = div_data.bond_pct %}
-  <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
-    Your holdings are <strong>{{ equity_pct }}% in equities/ETFs</strong> across {{ div_data.num_brokers }} broker{{ 's' if div_data.num_brokers != 1 else '' }}.
-    REITs make up <strong>{{ reit_pct }}%</strong>, InvITs <strong>{{ invit_pct }}%</strong>, and Bonds <strong>{{ bond_pct }}%</strong>.
-  </p>
-
-  <!-- Factual observations (only when true) -->
-  {% if div_data.observations %}
-  <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
-    {% for obs in div_data.observations %}
-    <div style="background: rgba(245,158,11,0.08); border-left: 3px solid var(--warning); border-radius: 4px; padding: 8px 12px; font-size: 0.83rem; color: var(--text-main);">
-      💡 {{ obs }}
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  <div class="div-check-btns">
+<!-- Quick Exploration Card -->
+<div class="div-check-card" id="div-check-card" style="padding: 16px 20px;">
+  <div class="div-check-btns" style="margin-top: 0;">
     <a href="/learn/lesson/reit?source=div_card" class="div-check-btn">What are REITs?</a>
     <a href="/learn/lesson/invit?source=div_card" class="div-check-btn">What are InvITs?</a>
     <a href="/learn/lesson/gsec?source=div_card" class="div-check-btn">What are Bonds?</a>
     <a href="/learn/compare" class="div-check-btn">Compare all →</a>
   </div>
 </div>
-{% elif user %}
-<!-- Empty state when user has no holdings -->
-<div class="div-check-card" style="text-align: center; padding: 36px 24px;">
-  <div style="font-size: 2.5rem; margin-bottom: 12px;">📂</div>
-  <h3 style="color: var(--text-muted); font-weight: 600;">No holdings linked yet</h3>
-  <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 420px; margin: 8px auto 20px;">Link your accounts or trade on a connected broker to see how your portfolio is split. The general lessons below are always available.</p>
-  <a href="/accounts" class="btn btn-outline btn-sm">Link Accounts →</a>
-</div>
-{% endif %}
 
 <!-- Quick Tools Row -->
 <div class="section-label">Interactive Tools</div>

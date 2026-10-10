@@ -393,9 +393,6 @@
           <span id="refresh-button-text">Refresh Brokers</span>
         </button>
       </form>
-      <a href="/verify" class="btn btn-outline btn-sm" aria-label="Verify holdings reconciliation with brokers">
-        🔍 Verify with Brokers
-      </a>
     </div>
   </div>
 
@@ -532,10 +529,7 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
           </div>
           <div>
-            <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #f8fafc;">Asset Diversification</h3>
-            <p id="div-card-text" style="margin: 2px 0 0 0; font-size: 0.82rem; color: #94a3b8;">
-              Distribution of your portfolio across Equities, REITs/InvITs, and Fixed Income Bonds.
-            </p>
+            <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #f8fafc;">Distribution of your portfolio across Equities, REITs/InvITs, and Fixed Income Bonds</h3>
           </div>
         </div>
         <a href="/learn" class="badge" style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.4); text-decoration: none; padding: 5px 12px; font-weight: 600; font-size: 0.76rem;">
@@ -551,7 +545,7 @@
       </div>
 
       <!-- Legend -->
-      <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.78rem; color: #cbd5e1; margin-bottom: 14px;" id="div-legend">
+      <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.78rem; color: #cbd5e1; margin-bottom: 0;" id="div-legend">
         <span style="display: inline-flex; align-items: center; gap: 6px;">
           <span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;"></span>
           Equity / ETF: <strong id="div-pct-equity">0.0%</strong>
@@ -564,14 +558,6 @@
           <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
           Fixed-Income Bonds: <strong id="div-pct-bond">0.0%</strong>
         </span>
-      </div>
-
-      <!-- Quick Explore Links to Learn Module -->
-      <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-        <span style="font-size: 0.75rem; color: #94a3b8;">Explore asset types:</span>
-        <a href="/learn/lesson/reit?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are REITs?</a>
-        <a href="/learn/lesson/invit?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are InvITs?</a>
-        <a href="/learn/lesson/corpbond?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are Bonds?</a>
       </div>
     </div>
   </div>
@@ -694,7 +680,7 @@
       </div>
     </div>
 
-    <!-- CHART 4: Broker x Asset Class Stacked Bar -->
+    <!-- CHART 4: Broker x Asset Class (Table Default) -->
     <div class="chart-card" id="card-chart-broker-asset">
       <div class="chart-card-header">
         <div class="chart-card-title-group">
@@ -703,21 +689,16 @@
           </h2>
           <p class="chart-card-subtitle">Depository breakdown across brokers</p>
         </div>
-        <div class="chart-controls">
-          <button type="button" class="btn-toggle-view" onclick="toggleChartView('broker-asset')" aria-label="Toggle table view for broker asset chart">
-            <span>View as table</span>
-          </button>
-        </div>
       </div>
 
       <div class="chart-content-area">
-        <!-- Canvas -->
-        <div id="view-chart-broker-asset" class="chart-canvas-wrapper">
+        <!-- Canvas (hidden) -->
+        <div id="view-chart-broker-asset" class="chart-canvas-wrapper" style="display: none;">
           <canvas id="brokerAssetChart" aria-label="Broker by asset class stacked bar chart" role="img"></canvas>
         </div>
 
-        <!-- Table View -->
-        <div id="view-table-broker-asset" class="chart-table-container">
+        <!-- Table View (default) -->
+        <div id="view-table-broker-asset" class="chart-table-container" style="display: block;">
           <table class="chart-data-table" id="table-broker-asset">
             <thead>
               <tr id="thead-broker-asset-tr">
@@ -783,7 +764,7 @@
       </div>
     </div>
 
-    <!-- CHART 6: Profit/Loss by Holding (Diverging Horizontal Bar) -->
+    <!-- CHART 6: Profit/Loss by Holding (Table Default) -->
     <div class="chart-card" id="card-chart-pnl">
       <div class="chart-card-header">
         <div class="chart-card-title-group">
@@ -792,21 +773,16 @@
           </h2>
           <p class="chart-card-subtitle">Unrealized gains (green) and losses (red) per security</p>
         </div>
-        <div class="chart-controls">
-          <button type="button" class="btn-toggle-view" onclick="toggleChartView('pnl')" aria-label="Toggle table view for profit loss by holding">
-            <span>View as table</span>
-          </button>
-        </div>
       </div>
 
       <div class="chart-content-area">
-        <!-- Canvas -->
-        <div id="view-chart-pnl" class="chart-canvas-wrapper">
+        <!-- Canvas (hidden) -->
+        <div id="view-chart-pnl" class="chart-canvas-wrapper" style="display: none;">
           <canvas id="pnlDivergingChart" aria-label="Profit and loss by holding diverging bar chart" role="img"></canvas>
         </div>
 
-        <!-- Table View -->
-        <div id="view-table-pnl" class="chart-table-container">
+        <!-- Table View (default) -->
+        <div id="view-table-pnl" class="chart-table-container" style="display: block;">
           <table class="chart-data-table">
             <thead>
               <tr>
@@ -1361,6 +1337,17 @@ function renderBrokerAssetChart(data) {
   const matrix = data.broker_x_asset_class || {};
   const brokers = matrix.brokers || [];
   const datasets = matrix.datasets || [];
+  const emptyBrokerAsset = document.getElementById('empty-broker-asset');
+  const tableBrokerAsset = document.getElementById('view-table-broker-asset');
+
+  if (brokers.length === 0) {
+    if (emptyBrokerAsset) emptyBrokerAsset.style.display = 'flex';
+    if (tableBrokerAsset) tableBrokerAsset.style.display = 'none';
+    return;
+  } else {
+    if (emptyBrokerAsset) emptyBrokerAsset.style.display = 'none';
+    if (tableBrokerAsset) tableBrokerAsset.style.display = 'block';
+  }
 
   if (chartBrokerAsset) chartBrokerAsset.destroy();
 
@@ -1525,6 +1512,17 @@ function renderPnlDivergingChart(data) {
 
   const pnlObj = data.pnl_diverging || {};
   const items = pnlObj.items || [];
+  const emptyPnl = document.getElementById('empty-pnl');
+  const tablePnl = document.getElementById('view-table-pnl');
+
+  if (items.length === 0) {
+    if (emptyPnl) emptyPnl.style.display = 'flex';
+    if (tablePnl) tablePnl.style.display = 'none';
+    return;
+  } else {
+    if (emptyPnl) emptyPnl.style.display = 'none';
+    if (tablePnl) tablePnl.style.display = 'block';
+  }
 
   if (chartPnl) chartPnl.destroy();
 

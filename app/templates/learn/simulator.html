@@ -6,11 +6,37 @@
 .sim-hero h1 { font-size: 1.7rem; font-weight: 800; color: #f8fafc; margin: 0 0 8px 0; }
 .sim-hero p { color: #94a3b8; margin: 0; }
 
-.sim-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
-@media (max-width: 800px) { .sim-layout { grid-template-columns: 1fr; } }
+.sim-grid-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+@media (max-width: 850px) {
+  .sim-grid-top {
+    grid-template-columns: 1fr;
+  }
+}
 
-.sim-inputs { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; position: sticky; top: 80px; }
-.sim-inputs h3 { font-size: 1rem; font-weight: 700; color: var(--text-main); margin: 0 0 20px 0; }
+.sim-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+}
+.sim-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 18px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .form-group { margin-bottom: 16px; }
 .form-label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: block; }
 .form-input {
@@ -27,12 +53,17 @@
 .form-input:focus { outline: none; border-color: #7c3aed; }
 .form-select { appearance: none; cursor: pointer; }
 
-.sim-results { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; }
-.sim-empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+.sim-results {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+.sim-empty { text-align: center; padding: 50px 20px; color: var(--text-muted); }
 
-.result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 24px; }
-@media (max-width: 500px) { .result-grid { grid-template-columns: 1fr; } }
-.result-card { background: var(--bg-muted); border-radius: 10px; padding: 16px; }
+.result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.result-card { background: var(--bg-muted); border-radius: 10px; padding: 16px; border: 1px solid var(--border-color); }
 .result-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
 .result-value { font-size: 1.4rem; font-weight: 800; color: #a78bfa; }
 .result-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
@@ -56,9 +87,11 @@
   font-style: italic;
 }
 
-.assumption-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
-.assumption-table th { background: var(--bg-muted); padding: 8px 10px; text-align: left; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
-.assumption-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-color); color: var(--text-muted); }
+.assumption-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.assumption-table th { background: rgba(30, 41, 59, 0.7); padding: 10px 14px; text-align: left; color: #94a3b8; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-weight: 600; }
+.assumption-table td { padding: 10px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); color: #cbd5e1; }
+.assumption-table tr:last-child td { border-bottom: none; }
+.assumption-table tbody tr:hover td { background: rgba(255, 255, 255, 0.04); }
 </style>
 
 <div class="sim-hero">
@@ -66,11 +99,10 @@
   <p>Estimate potential income from different investment products. All outputs use sample assumptions and are illustrative only.</p>
 </div>
 
-<div class="learn-disclaimer-bar"><span>⚠️</span><span>{{ disclaimer }}</span></div>
-
-<div class="sim-layout">
-  <!-- Inputs -->
-  <div class="sim-inputs">
+<!-- Top Row: Divided into 2 Cards (Inputs on Left, Defaults on Right) -->
+<div class="sim-grid-top">
+  <!-- Card 1 (Left): Simulation Inputs -->
+  <div class="sim-card">
     <h3>⚙️ Simulation Inputs</h3>
     <div class="form-group">
       <label class="form-label" for="sim-product">Product Type</label>
@@ -92,70 +124,82 @@
       <label class="form-label" for="sim-years">Time Period (years)</label>
       <input type="number" class="form-input" id="sim-years" value="5" min="1" max="30">
     </div>
-    <button class="btn btn-primary" style="width: 100%;" onclick="runSimulation()">▶ Calculate</button>
-
-    <!-- Sample assumptions table -->
-    <div style="margin-top: 20px; font-size: 0.78rem; color: var(--text-muted);">
-      <div style="font-weight: 700; margin-bottom: 6px; color: var(--text-main);">📊 Sample Defaults Used</div>
-      <table class="assumption-table">
-        <thead><tr><th>Product</th><th>Yield %</th><th>Volatility %</th></tr></thead>
-        <tbody>
-          {% for key, ac in assumptions.asset_classes.items() %}
-          <tr>
-            <td>{{ ac.name.split('(')[0].strip() }}</td>
-            <td>{{ ac.sample_yield_pct }}%</td>
-            <td>{{ ac.sample_annual_volatility_pct }}%</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <div style="margin-top: 6px; color: var(--text-muted);">{{ assumptions.notice }}</div>
-    </div>
+    <button class="btn btn-primary" style="width: 100%; margin-top: auto;" onclick="runSimulation()">▶ Calculate</button>
   </div>
 
-  <!-- Results -->
-  <div class="sim-results">
-    <div id="sim-empty" class="sim-empty">
-      <div style="font-size: 3rem; margin-bottom: 12px;">🧮</div>
-      <div style="font-weight: 600; margin-bottom: 6px;">Enter values and click Calculate</div>
-      <div style="font-size: 0.83rem;">Results will appear here with a chart.</div>
+  <!-- Card 2 (Right): Sample Defaults Used -->
+  <div class="sim-card">
+    <h3>📊 Sample Defaults Used</h3>
+    <div style="flex: 1; display: flex; flex-direction: column;">
+      <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(15, 23, 42, 0.5);">
+        <table class="assumption-table">
+          <thead>
+            <tr>
+              <th style="padding: 10px 14px;">PRODUCT</th>
+              <th style="text-align: right; padding: 10px 14px; line-height: 1.25;">YIELD<br><span style="font-size: 0.7rem; font-weight: 500;">%</span></th>
+              <th style="text-align: right; padding: 10px 14px; line-height: 1.25;">VOLATILITY<br><span style="font-size: 0.7rem; font-weight: 500;">%</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, ac in assumptions.asset_classes.items() %}
+            <tr style="cursor: pointer;" onclick="selectProduct('{{ key }}')" title="Click to select {{ ac.name }}">
+              <td style="font-weight: 500; color: #e2e8f0;">{{ ac.name.split('(')[0].strip() }}</td>
+              <td style="text-align: right; color: #cbd5e1; font-weight: 500;">{{ ac.sample_yield_pct }}%</td>
+              <td style="text-align: right; color: #94a3b8;">{{ ac.sample_annual_volatility_pct }}%</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 14px; font-size: 0.78rem; color: #94a3b8; line-height: 1.45;">
+        {{ assumptions.notice }}
+      </div>
     </div>
-    <div id="sim-output" style="display: none;">
-      <div class="notice-box" id="sim-notice"></div>
-      <div class="result-grid">
-        <div class="result-card">
-          <div class="result-label">Annual Income</div>
-          <div class="result-value" id="res-annual">—</div>
-          <div class="result-sub">Per year (before tax)</div>
-        </div>
-        <div class="result-card">
-          <div class="result-label">Monthly (avg)</div>
-          <div class="result-value" id="res-monthly">—</div>
-          <div class="result-sub">Distributed as per product</div>
-        </div>
-        <div class="result-card">
-          <div class="result-label">Total over Period</div>
-          <div class="result-value" id="res-total">—</div>
-          <div class="result-sub" id="res-period-label">Over N years</div>
-        </div>
-        <div class="result-card" id="res-maturity-card" style="display:none;">
-          <div class="result-label">Principal at Maturity</div>
-          <div class="result-value" id="res-maturity">—</div>
-          <div class="result-sub">Assuming full face value return</div>
-        </div>
-      </div>
+  </div>
+</div>
 
-      <div id="res-chart-section">
-        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main); margin-bottom: 12px;">📈 Income Distribution Timeline</div>
-        <div style="height: 260px; position: relative;">
-          <canvas id="sim-chart"></canvas>
-        </div>
-        <div class="chart-label">⚠ Sample assumptions — not a prediction. Actual returns depend on market conditions, product performance, and tax.</div>
+<!-- Results Section Below Both Cards -->
+<div class="sim-results" id="sim-results-card">
+  <div id="sim-empty" class="sim-empty">
+    <div style="font-size: 3rem; margin-bottom: 12px;">🧮</div>
+    <div style="font-weight: 600; margin-bottom: 6px; font-size: 1.1rem; color: var(--text-main);">Enter values and click Calculate</div>
+    <div style="font-size: 0.85rem; color: var(--text-muted);">Results and income timeline projections will appear here.</div>
+  </div>
+  <div id="sim-output" style="display: none;">
+    <div class="notice-box" id="sim-notice"></div>
+    <div class="result-grid">
+      <div class="result-card">
+        <div class="result-label">Annual Income</div>
+        <div class="result-value" id="res-annual">—</div>
+        <div class="result-sub">Per year (before tax)</div>
       </div>
+      <div class="result-card">
+        <div class="result-label">Monthly (avg)</div>
+        <div class="result-value" id="res-monthly">—</div>
+        <div class="result-sub">Distributed as per product</div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">Total over Period</div>
+        <div class="result-value" id="res-total">—</div>
+        <div class="result-sub" id="res-period-label">Over N years</div>
+      </div>
+      <div class="result-card" id="res-maturity-card" style="display:none;">
+        <div class="result-label">Principal at Maturity</div>
+        <div class="result-value" id="res-maturity">—</div>
+        <div class="result-sub">Assuming full face value return</div>
+      </div>
+    </div>
 
-      <div id="res-reit-note" style="display:none; margin-top: 14px; background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b; border-radius: 4px; padding: 12px; font-size: 0.83rem; color: var(--text-muted);">
-        <strong>Note for REITs/InvITs:</strong> Distributions can vary each quarter depending on occupancy, project revenues, and management decisions. Unit prices also fluctuate on the exchange. This illustration assumes a constant sample yield.
+    <div id="res-chart-section">
+      <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 12px;">📈 Income Distribution Timeline</div>
+      <div style="height: 280px; position: relative;">
+        <canvas id="sim-chart"></canvas>
       </div>
+      <div class="chart-label">⚠ Sample assumptions — not a prediction. Actual returns depend on market conditions, product performance, and tax.</div>
+    </div>
+
+    <div id="res-reit-note" style="display:none; margin-top: 16px; background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b; border-radius: 4px; padding: 12px 14px; font-size: 0.83rem; color: var(--text-muted);">
+      <strong>Note for REITs/InvITs:</strong> Distributions can vary each quarter depending on occupancy, project revenues, and management decisions. Unit prices also fluctuate on the exchange. This illustration assumes a constant sample yield.
     </div>
   </div>
 </div>
@@ -171,6 +215,14 @@ function updateDefaults() {
   const ac = assumptionsData.asset_classes[product];
   if (ac) {
     document.getElementById('sim-yield').value = ac.sample_yield_pct;
+  }
+}
+
+function selectProduct(key) {
+  const sel = document.getElementById('sim-product');
+  if (sel) {
+    sel.value = key;
+    updateDefaults();
   }
 }
 

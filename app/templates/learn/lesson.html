@@ -4,7 +4,7 @@
 {% block content %}
 <style>
 /* ─── Lesson Page ─── */
-.lesson-wrap { display: grid; grid-template-columns: 1fr 320px; gap: 28px; align-items: start; }
+.lesson-wrap { display: grid; grid-template-columns: 280px 1fr; gap: 28px; align-items: start; }
 @media (max-width: 900px) { .lesson-wrap { grid-template-columns: 1fr; } }
 
 .lesson-main {}
@@ -152,15 +152,16 @@
 .step-text { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; padding-top: 4px; }
 
 /* Sidebar */
-.lesson-sidebar {}
+.lesson-sidebar {
+  position: sticky;
+  top: 80px;
+}
 .sidebar-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 16px;
-  position: sticky;
-  top: 80px;
 }
 .sidebar-card h4 { font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin: 0 0 12px 0; }
 .progress-bar-outer { background: var(--bg-muted); border-radius: 6px; height: 8px; margin-bottom: 8px; }
@@ -242,14 +243,34 @@
   </div>
 </div>
 
-<!-- Disclaimer -->
-<div class="learn-disclaimer-bar">
-  <span>⚠️</span>
-  <span>{{ disclaimer }}</span>
-</div>
 
 <div class="lesson-wrap">
-  <!-- Left: Main Content -->
+  <!-- Left: Sidebar -->
+  <div class="lesson-sidebar">
+    <div class="sidebar-card">
+      <h4>📚 All Lessons</h4>
+      {% for lbl_topic, lbl_title in lesson_labels.items() %}
+      <a href="/learn/lesson/{{ lbl_topic }}" class="sidebar-lesson-link {% if lbl_topic == topic %}active{% endif %}">{{ lbl_title }}</a>
+      {% endfor %}
+    </div>
+
+    {% if user and progress %}
+    <div class="sidebar-card">
+      <h4>Your Progress</h4>
+      {% if progress.completed_at %}
+      <div class="badge badge-success" style="margin-bottom: 8px;">✓ Lesson completed</div>
+      {% else %}
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Mark as complete when done reading</div>
+      <button onclick="markComplete('{{ topic }}')" class="btn btn-secondary btn-sm" id="complete-btn" style="width: 100%;">Mark Complete</button>
+      {% endif %}
+      {% if progress.best_quiz_score is not none %}
+      <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">Best quiz score: <strong style="color: #10b981;">{{ progress.best_quiz_score }}%</strong></div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right: Main Content -->
   <div class="lesson-main">
 
     <!-- Sections -->
@@ -476,52 +497,7 @@
       {% endfor %}
     </div>
 
-    <!-- Thumbs Rating -->
-    <div style="margin-top: 16px; text-align: center; padding: 16px;">
-      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Was this lesson helpful?</div>
-      <div style="display: flex; gap: 12px; justify-content: center;">
-        <button onclick="sendRating('{{ topic }}', 'up')" class="btn btn-outline btn-sm" id="thumbs-up-btn">👍 Yes</button>
-        <button onclick="sendRating('{{ topic }}', 'down')" class="btn btn-outline btn-sm" id="thumbs-down-btn">👎 Not really</button>
-      </div>
-      <div id="rating-thanks" style="display: none; color: #10b981; font-size: 0.83rem; margin-top: 8px;">Thanks for your feedback!</div>
-    </div>
-
   </div><!-- /lesson-main -->
-
-  <!-- Right Sidebar -->
-  <div class="lesson-sidebar">
-    <div class="sidebar-card">
-      <h4>📚 All Lessons</h4>
-      {% for lbl_topic, lbl_title in lesson_labels.items() %}
-      <a href="/learn/lesson/{{ lbl_topic }}" class="sidebar-lesson-link {% if lbl_topic == topic %}active{% endif %}">{{ lbl_title }}</a>
-      {% endfor %}
-    </div>
-
-    {% if user and progress %}
-    <div class="sidebar-card">
-      <h4>Your Progress</h4>
-      {% if progress.completed_at %}
-      <div class="badge badge-success" style="margin-bottom: 8px;">✓ Lesson completed</div>
-      {% else %}
-      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Mark as complete when done reading</div>
-      <button onclick="markComplete('{{ topic }}')" class="btn btn-secondary btn-sm" id="complete-btn" style="width: 100%;">Mark Complete</button>
-      {% endif %}
-      {% if progress.best_quiz_score is not none %}
-      <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">Best quiz score: <strong style="color: #10b981;">{{ progress.best_quiz_score }}%</strong></div>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    <div class="sidebar-card">
-      <h4>🛠 Tools</h4>
-      <a href="/learn/simulator" class="sidebar-lesson-link">🧮 Income Simulator</a>
-      <a href="/learn/compare" class="sidebar-lesson-link">⚖️ Compare Assets</a>
-      <a href="/learn/what-if" class="sidebar-lesson-link">🎯 What-If Allocator</a>
-      {% if user %}
-      <a href="/learn/income-calendar" class="sidebar-lesson-link">📅 Income Calendar</a>
-      {% endif %}
-    </div>
-  </div>
 </div>
 
 <!-- Explain-my-holding drawer -->

@@ -112,6 +112,11 @@ html, body {
 body {
   font-family: var(--font-sans);
   background-color: #030712;
+  background-image: url('/static/images/bg-Tradeone.jpg');
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--text-main);
   line-height: 1.5;
   min-height: 100vh;
@@ -129,12 +134,12 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/static/images/bg-Tradeone.png');
+  background-image: url('/static/images/bg-Tradeone.jpg');
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  z-index: -2;
+  z-index: -3;
   pointer-events: none;
 }
 
@@ -147,8 +152,19 @@ body::after {
   width: 100%;
   height: 100%;
   background: radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.2) 0%, rgba(3, 7, 18, 0.65) 100%);
-  z-index: -1;
+  z-index: -2;
   pointer-events: none;
+}
+
+/* Aceternity Sparkles Background Canvas Effect */
+#sparkles-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
 }
 
 html[data-theme="light"] body::after {
@@ -582,6 +598,176 @@ h3 { font-size: 1.15rem; }
 
 .btn-block {
   width: 100%;
+}
+
+/* ─── Interactive Hover Button Effect for all buttons ─── */
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  left: 15%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.btn:hover::after {
+  opacity: 0.14;
+  transform: translate(-50%, -50%) scale(35);
+}
+
+.btn:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* Magic UI Interactive Hover Button (Pure CSS component) */
+.interactive-hover-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 9999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  padding: 8px 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive-hover-btn .btn-label {
+  display: inline-block;
+  transform: translateX(4px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive-hover-btn .btn-hover-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
+  opacity: 0;
+  transform: translateX(48px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+}
+
+.interactive-hover-btn .btn-bubble {
+  position: absolute;
+  left: 20%;
+  top: 40%;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--saffron-main);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+.interactive-hover-btn:hover .btn-label {
+  transform: translateX(48px);
+  opacity: 0;
+}
+
+.interactive-hover-btn:hover .btn-hover-layer {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.interactive-hover-btn:hover .btn-bubble {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  transform: scale(1.8);
+}
+
+/* ─── Animated Card Component (Applied to all graph / chart cards across the web) ─── */
+.chart-card, .animated-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Subtle grid texture overlay from AnimatedCard Visual */
+.chart-card::before, .animated-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: center;
+  mask-image: radial-gradient(ellipse 65% 55% at 50% 30%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 65% 55% at 50% 30%, #000 40%, transparent 100%);
+  opacity: 0.75;
+  z-index: 0;
+}
+
+/* Radial illumination glow from AnimatedCard EllipseGradient */
+.chart-card::after, .animated-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 180px;
+  background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(139, 92, 246, 0.12) 0%, rgba(245, 158, 11, 0.04) 40%, transparent 80%);
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+}
+
+.chart-card:hover, .animated-card:hover {
+  border-color: rgba(139, 92, 246, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.45), 0 0 24px -6px rgba(139, 92, 246, 0.2);
+}
+
+.chart-card:hover::after, .animated-card:hover::after {
+  opacity: 1;
+}
+
+.chart-card > *, .animated-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Forms */
@@ -1932,5 +2118,128 @@ input:checked + .slider:before {
   padding: 16px 18px 20px 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+
+/* Educational Disclaimer Modal Popup */
+.learn-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s ease;
+}
+
+.learn-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.learn-modal-box {
+  background: #0f172a;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(20, 29, 48, 0.96));
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 18px;
+  max-width: 540px;
+  width: 100%;
+  padding: 32px 28px 28px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 35px rgba(245, 158, 11, 0.15);
+  transform: translateY(20px) scale(0.96);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  text-align: center;
+}
+
+.learn-modal-overlay.active .learn-modal-box {
+  transform: translateY(0) scale(1);
+}
+
+.learn-modal-icon-badge {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.85rem;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+}
+
+.learn-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+
+.learn-modal-text {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #94a3b8;
+  margin-bottom: 26px;
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 12px;
+  padding: 14px 18px;
+  text-align: left;
+}
+
+.learn-modal-highlight {
+  font-weight: 600;
+  color: #f59e0b;
+  margin-bottom: 6px;
+}
+
+.learn-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.learn-modal-actions .btn {
+  min-width: 200px;
+  padding: 12px 24px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+.learn-modal-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  font-size: 1.25rem;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.learn-modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
 
 

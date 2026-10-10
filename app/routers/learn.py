@@ -321,15 +321,24 @@ async def submit_quiz(
 @router.get("/compare", response_class=HTMLResponse)
 def compare_tool(
     request: Request,
-    assets: Optional[str] = Query("equity,reit,gsec,corpbond"),
+    assets: Optional[List[str]] = Query(None),
     user=Depends(get_user_optional),
     db: Session = Depends(get_db),
 ):
-    selected_keys = [k.strip() for k in (assets or "").split(",") if k.strip() in COMPARE_DATA]
-    if not selected_keys:
-        selected_keys = ["equity", "reit", "gsec", "corpbond"]
+    default_keys = ["reit", "invit", "gsec", "corpbond"]
+    raw_list = request.query_params.getlist("assets")
+    if raw_list:
+        custom_keys = []
+        for item in raw_list:
+            for k in item.split(","):
+                k = k.strip()
+                if k in COMPARE_DATA and k != "equity" and k not in custom_keys:
+                    custom_keys.append(k)
+        selected_keys = custom_keys if custom_keys else default_keys
+    else:
+        selected_keys = default_keys
 
-    compare_rows = {k: COMPARE_DATA[k] for k in selected_keys}
+    compare_rows = {k: COMPARE_DATA[k] for k in selected_keys if k in COMPARE_DATA}
     facts = load_facts()
 
     return templates.TemplateResponse(
@@ -338,7 +347,7 @@ def compare_tool(
         context={
             "user": user,
             "compare_rows": compare_rows,
-            "all_assets": COMPARE_DATA,
+            "all_assets": {k: v for k, v in COMPARE_DATA.items() if k != "equity"},
             "selected_keys": selected_keys,
             "facts": facts,
             "disclaimer": LEARN_DISCLAIMER,

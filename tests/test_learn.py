@@ -333,6 +333,14 @@ def test_compare_endpoint(client):
     assert response.status_code == 200
     assert "Compare" in response.text
     assert "REITs" in response.text
+    assert "InvITs" in response.text
+    assert "Stocks (Equities)" not in response.text
+
+    # Multi-selection test
+    res_multi = client.get("/learn/compare?assets=invit&assets=corpbond")
+    assert res_multi.status_code == 200
+    assert "InvITs" in res_multi.text
+    assert "Corporate Bonds" in res_multi.text
 
 
 def test_simulator_page_and_run(client):

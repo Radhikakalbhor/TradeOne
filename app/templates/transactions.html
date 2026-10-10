@@ -6,7 +6,6 @@
 <div class="page-header">
   <div>
     <h1>Securities Transaction Statement</h1>
-    <p class="page-subtitle">Official depository ledger of securities credits, debits, settlements and transfers</p>
   </div>
   <div>
     <a href="/statement/export.csv{% if account_id %}?account_id={{ account_id }}{% endif %}" class="btn btn-secondary">
@@ -53,7 +52,7 @@
     </div>
 
     <div>
-      <button type="submit" class="btn btn-secondary">Filter</button>
+      <button type="submit" class="btn btn-secondary">Apply</button>
       <a href="/statement" class="btn btn-outline">Reset</a>
     </div>
   </form>
