@@ -782,7 +782,7 @@ def ensure_hacksmiths_demo_user(db) -> User:
         user = User(
             email=demo_email,
             name="Hacksmiths",
-            bo_id="1208160012345678",
+            bo_id="1208160099887766",
             masked_pan="ABCXX1234X",
             dob="15081992",
             mobile="+91 9876543210",

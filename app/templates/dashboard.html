@@ -57,205 +57,6 @@
 </div>
 {% endif %}
 
-<!-- Connected Broker Sandbox Hub Status Cards -->
-{% if summary.provider_statuses %}
-<div class="card" style="margin-bottom: 24px; padding: 18px 20px;">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-    <div>
-      <h3 style="margin: 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-        <span>Connected Broker Sources of Truth</span>
-        <span class="badge badge-info" style="font-size: 0.7rem;">Automated Single Registry</span>
-      </h3>
-      <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted);">
-        Every number on this dashboard is sourced strictly from these three deployed brokers for <strong>{{ user.email }}</strong>.
-      </p>
-    </div>
-    <div style="display: flex; gap: 10px; align-items: center;">
-      <a href="/verify" class="btn btn-outline btn-sm">
-        🔍 Verify with Brokers
-      </a>
-      <form method="POST" action="/accounts/sync-all" style="margin: 0;">
-        <button type="submit" class="btn btn-secondary btn-sm">
-          ↻ Sync All Now
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
-    {% for code, p in summary.provider_statuses.items() %}
-    {% set sub = summary.broker_subtotals[code] if summary.broker_subtotals and code in summary.broker_subtotals else None %}
-    <div style="padding: 12px 14px; background: var(--bg-muted); border: 1px solid var(--border-color); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <strong style="font-size: 0.9rem;">{{ p.broker_name }}</strong>
-          <span style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">({{ p.dp_id }})</span>
-        </div>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 3px;">
-          Last synced: <span>{{ p.last_synced_human }}</span>
-          {% if sub %}
-          &bull; <strong>{{ sub.holdings_count }} holding{% if sub.holdings_count != 1 %}s{% endif %}</strong>
-          {% endif %}
-        </div>
-        {% if p.status == 'no_account' %}
-        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; font-style: italic;">
-          No account on {{ p.broker_name }} for this email
-        </div>
-        {% elif p.error %}
-        <div style="font-size: 0.72rem; color: var(--danger); margin-top: 2px;">
-          {{ p.error }}
-        </div>
-        {% endif %}
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 8px;">
-        {% if p.status == 'connected' %}
-        <span class="badge badge-success" style="font-size: 0.75rem;">✓ Synced</span>
-        {% elif p.status == 'no_account' %}
-        <span class="badge" style="font-size: 0.75rem; background: var(--border-color); color: var(--text-muted);">0 holdings</span>
-        {% elif p.status == 'stale' %}
-        <span class="badge badge-warning" style="font-size: 0.75rem;">▲ Stale</span>
-        <form method="POST" action="/accounts/sync/{{ code }}" style="margin: 0;">
-          <button type="submit" class="btn btn-outline btn-sm" style="padding: 2px 8px; font-size: 0.72rem;">Retry</button>
-        </form>
-        {% elif p.status == 'error' %}
-        <span class="badge badge-danger" style="font-size: 0.75rem;">⚠ Error</span>
-        {% else %}
-        <span class="badge badge-danger" style="font-size: 0.75rem;">⚠ Unreachable</span>
-        <form method="POST" action="/accounts/sync/{{ code }}" style="margin: 0;">
-          <button type="submit" class="btn btn-outline btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: var(--danger); border-color: var(--danger);">Retry</button>
-        </form>
-        {% endif %}
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-
-<!-- Primary Stats Overview Grid -->
-<div class="grid-4" style="margin-bottom: 24px;">
-  <div class="stat-card">
-    <div class="stat-label">Total Portfolio Valuation</div>
-    <div class="stat-value" id="stat-total-value">{{ format_inr(summary.total_value) }}</div>
-    <div class="stat-subtext">
-      {% if summary.day_change >= 0 %}
-      <span class="badge badge-success">▲ {{ format_inr(summary.day_change) }} (+{{ "%.2f"|format(summary.day_change_pct) }}%)</span>
-      {% else %}
-      <span class="badge badge-danger">▼ {{ format_inr(summary.day_change) }} ({{ "%.2f"|format(summary.day_change_pct) }}%)</span>
-      {% endif %}
-      <span style="color: var(--text-muted); font-size: 0.75rem;">today</span>
-    </div>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-label">Active Demat Accounts</div>
-    <div class="stat-value" id="stat-num-accounts">{{ summary.num_accounts }}</div>
-    <div class="stat-subtext">
-      <a href="/accounts" style="color: var(--saffron-main); text-decoration: none; font-weight: 500;">
-        Across {{ summary.num_dps }} Depository Participants &rarr;
-      </a>
-    </div>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-label">Distinct Securities</div>
-    <div class="stat-value" id="stat-num-securities">{{ summary.num_securities }}</div>
-    <div class="stat-subtext">
-      <span style="color: var(--text-muted);">Equities, Bonds, REITs, ETFs</span>
-    </div>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-label">Unrealized Profit & Loss</div>
-    <div class="stat-value" id="stat-total-pnl" style="color: {% if summary.total_pnl >= 0 %}var(--success){% else %}var(--danger){% endif %};">
-      {{ format_inr(summary.total_pnl) }}
-    </div>
-    <div class="stat-subtext">
-      <span class="badge {% if summary.total_pnl >= 0 %}badge-success{% else %}badge-danger{% endif %}">
-        {% if summary.total_pnl >= 0 %}+{% endif %}{{ "%.2f"|format(summary.total_pnl_pct) }}%
-      </span>
-      <span style="color: var(--text-muted);">cost: {{ format_inr(summary.total_invested) }}</span>
-    </div>
-  </div>
-</div>
-
-<!-- Per-Broker Subtotals Section (Exact Math Verification) -->
-<div class="card" style="margin-bottom: 24px;">
-  <div class="card-title" style="margin-bottom: 12px;">
-    <span>Per-Broker Holdings & Valuation Subtotals</span>
-    <span style="font-size: 0.8rem; color: var(--text-muted);">Subtotals add up exactly to grand total</span>
-  </div>
-  <div class="table-container">
-    <table class="data-table" id="table-broker-subtotals">
-      <thead>
-        <tr>
-          <th>Broker / DP</th>
-          <th>Sync Status</th>
-          <th class="text-right">Holdings Count</th>
-          <th class="text-right">Total Units</th>
-          <th class="text-right">Invested Value</th>
-          <th class="text-right">Current Valuation</th>
-          <th class="text-right">Unrealized P&L</th>
-          <th class="text-right">% of Portfolio</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for code, sub in summary.broker_subtotals.items() %}
-        {% set pct = sub.pct if sub.pct is defined else ((sub.current_value / summary.total_value * 100) if summary.total_value > 0 else 0.0) %}
-        <tr>
-          <td>
-            <strong>{{ sub.broker_name }}</strong>
-            <span style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted); display: block;">{{ sub.dp_id }}</span>
-          </td>
-          <td>
-            {% if sub.status == 'connected' %}
-            <span class="badge badge-success" style="font-size: 0.75rem;">Connected</span>
-            {% elif sub.status == 'no_account' %}
-            <span class="badge" style="font-size: 0.75rem; background: var(--border-color); color: var(--text-muted);">No Account</span>
-            {% elif sub.status == 'stale' %}
-            <span class="badge badge-warning" style="font-size: 0.75rem;">Stale</span>
-            {% else %}
-            <span class="badge badge-danger" style="font-size: 0.75rem;">Unavailable</span>
-            {% endif %}
-          </td>
-          <td class="text-right">{{ sub.holdings_count }}</td>
-          <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(sub.quantity) }}</td>
-          <td class="text-right">{{ format_inr(sub.invested) }}</td>
-          <td class="text-right" style="font-weight: 600;">{{ format_inr(sub.current_value) }}</td>
-          <td class="text-right">
-            {% if sub.pnl >= 0 %}
-            <span style="color: var(--success); font-weight: 600;">+{{ format_inr(sub.pnl) }} (+{{ "%.2f"|format(sub.pnl_pct) }}%)</span>
-            {% else %}
-            <span style="color: var(--danger); font-weight: 600;">{{ format_inr(sub.pnl) }} ({{ "%.2f"|format(sub.pnl_pct) }}%)</span>
-            {% endif %}
-          </td>
-          <td class="text-right" style="font-weight: 600;">{{ "%.1f"|format(pct) }}%</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-      <tfoot>
-        <tr style="border-top: 2px solid var(--border-color); font-weight: bold; background: var(--bg-muted);">
-          <td>Grand Total Consolidated</td>
-          <td>&mdash;</td>
-          <td class="text-right">{{ summary.num_securities }}</td>
-          <td class="text-right">&mdash;</td>
-          <td class="text-right">{{ format_inr(summary.total_invested) }}</td>
-          <td class="text-right" style="color: var(--saffron-main);">{{ format_inr(summary.total_value) }}</td>
-          <td class="text-right">
-            {% if summary.total_pnl >= 0 %}
-            <span style="color: var(--success);">+{{ format_inr(summary.total_pnl) }} (+{{ "%.2f"|format(summary.total_pnl_pct) }}%)</span>
-            {% else %}
-            <span style="color: var(--danger);">{{ format_inr(summary.total_pnl) }} ({{ "%.2f"|format(summary.total_pnl_pct) }}%)</span>
-            {% endif %}
-          </td>
-          <td class="text-right">100.0%</td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
-</div>
-
 <!-- Zero State Display -->
 {% if summary.total_value <= 0 and top_holdings|length == 0 %}
 <div class="card" id="empty-state-card" style="padding: 48px 24px; text-align: center; margin-bottom: 24px; background: var(--bg-muted); border: 2px dashed var(--border-color); border-radius: 12px;">
@@ -279,113 +80,365 @@
 </div>
 {% else %}
 
-<!-- Portfolio Insights Section (Only shown when user has holdings) -->
-{% if summary.insights %}
-<div class="card" style="margin-bottom: 24px;">
-  <div class="card-title" style="margin-bottom: 14px;">
-    <span>Portfolio Analytics & Factual Insights</span>
-    <span style="font-size: 0.8rem; color: var(--text-muted);">Derived from Active Demat Holdings</span>
-  </div>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
-    {% for ins in summary.insights %}
-    <div style="padding: 12px 14px; background: var(--bg-muted); border-radius: 8px; border-left: 4px solid {% if ins.type == 'risk' %}var(--danger){% elif ins.type == 'absence' %}#8b5cf6{% else %}var(--saffron-main){% endif %};">
-      <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: var(--text-muted);">{{ ins.title }}</div>
-      <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-main);">{{ ins.message }}</p>
-    </div>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
+<!-- 60% Left Graphs / 40% Right Shrunken Cards Layout -->
+<div class="dashboard-split-layout">
+  
+  <!-- LEFT/MIDDLE COLUMN (60%): Interactive Portfolio Allocation Graphs -->
+  <div class="dashboard-graphs-col">
+    {% if summary.asset_allocation or summary.dp_allocation or summary.sector_allocation %}
+    <div class="dashboard-graphs-wrapper">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h2 style="font-size: 1.15rem; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--saffron-main);">
+              <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+              <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+            </svg>
+            <span>Portfolio Allocation Graphs</span>
+          </h2>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin: 3px 0 0 0;">Visual distribution across Asset Classes, Broker Demats, and Sectors</p>
+        </div>
+        <div class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--saffron-main); border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.75rem; padding: 4px 10px;">
+          60% Visual Hub
+        </div>
+      </div>
 
-<!-- Charts Section: Asset Class, DP Allocation, and Sector Allocation (Only when user has holdings) -->
-{% if summary.asset_allocation or summary.dp_allocation or summary.sector_allocation %}
-<div class="grid-3" style="margin-bottom: 24px;">
-  <div class="card">
-    <div class="card-title">
-      <span>Asset Class</span>
-      <span style="font-size: 0.8rem; color: var(--text-muted);">By Class</span>
-    </div>
-    <div style="height: 240px; position: relative; display: flex; justify-content: center; align-items: center;">
-      <canvas id="assetChart"></canvas>
-    </div>
-  </div>
+      <!-- Graph View Switcher Tabs -->
+      <div class="graph-nav-tabs">
+        <button type="button" class="graph-tab-btn active" data-tab="all" onclick="switchGraphTab('all')">
+          All Graphs (Grid)
+        </button>
+        <button type="button" class="graph-tab-btn" data-tab="asset" onclick="switchGraphTab('asset')">
+          Asset Class
+        </button>
+        <button type="button" class="graph-tab-btn" data-tab="dp" onclick="switchGraphTab('dp')">
+          Broker (DP)
+        </button>
+        <button type="button" class="graph-tab-btn" data-tab="sector" onclick="switchGraphTab('sector')">
+          Sector Allocation
+        </button>
+      </div>
 
-  <div class="card">
-    <div class="card-title">
-      <span>Broker (DP)</span>
-      <span style="font-size: 0.8rem; color: var(--text-muted);">By Provider</span>
-    </div>
-    <div style="height: 240px; position: relative; display: flex; justify-content: center; align-items: center;">
-      <canvas id="dpChart"></canvas>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">
-      <span>Sector Allocation</span>
-      <span style="font-size: 0.8rem; color: var(--text-muted);">By Sector</span>
-    </div>
-    <div style="height: 240px; position: relative; display: flex; justify-content: center; align-items: center;">
-      <canvas id="sectorChart"></canvas>
-    </div>
-  </div>
-</div>
-{% endif %}
-
-<!-- Top Holdings Overview Table -->
-<div class="card">
-  <div class="card-title">
-    <span>Top Securities (Aggregated Across Demats)</span>
-    <a href="/holdings" class="btn btn-outline btn-sm">View All Holdings &rarr;</a>
-  </div>
-
-  <div class="table-container">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Security Name</th>
-          <th>ISIN</th>
-          <th>Asset Class</th>
-          <th class="text-right">Total Units</th>
-          <th class="text-right">Last Price</th>
-          <th class="text-right">Market Value</th>
-          <th class="text-right">Unrealized P&L</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for h in top_holdings %}
-        <tr>
-          <td>
-            <strong>{{ h.security_name }}</strong>
-            <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">{{ h.symbol }}</span>
-            {% if h.broker_breakdown %}
-            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px;">
-              {% for b in h.broker_breakdown %}
-              <span class="badge" style="font-size: 0.7rem; padding: 1px 6px; background: var(--bg-muted); border: 1px solid var(--border-color);">
-                {{ b.broker_name }}: {{ "%.2f"|format(b.quantity) }}
-              </span>
-              {% endfor %}
+      <!-- Combined Grid Panel -->
+      <div class="graph-panel active" data-panel="all">
+        <div class="graphs-grid-combined">
+          <div class="graph-card-inner">
+            <div style="font-weight: 600; font-size: 0.88rem; margin-bottom: 8px; display: flex; justify-content: space-between;">
+              <span>Asset Class</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">By Class</span>
             </div>
-            {% endif %}
-          </td>
-          <td style="font-family: monospace; font-size: 0.82rem;">{{ h.isin }}</td>
-          <td>
-            <span class="badge badge-info">{{ h.asset_class }}</span>
-          </td>
-          <td class="text-right" style="font-family: monospace;">{{ "%.3f"|format(h.total_units) }}</td>
-          <td class="text-right">₹{{ "%.2f"|format(h.last_price) }}</td>
-          <td class="text-right" style="font-weight: 600;">{{ format_inr(h.current_value) }}</td>
-          <td class="text-right">
-            {% if h.pnl >= 0 %}
-            <span style="color: var(--success); font-weight: 600;">+{{ format_inr(h.pnl) }} (+{{ "%.2f"|format(h.pnl_pct) }}%)</span>
-            {% else %}
-            <span style="color: var(--danger); font-weight: 600;">{{ format_inr(h.pnl) }} ({{ "%.2f"|format(h.pnl_pct) }}%)</span>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            <div style="height: 240px; position: relative;">
+              <canvas id="assetChart"></canvas>
+            </div>
+          </div>
+
+          <div class="graph-card-inner">
+            <div style="font-weight: 600; font-size: 0.88rem; margin-bottom: 8px; display: flex; justify-content: space-between;">
+              <span>Broker (DP)</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">By Provider</span>
+            </div>
+            <div style="height: 240px; position: relative;">
+              <canvas id="dpChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="graph-card-inner" style="margin-top: 16px;">
+          <div style="font-weight: 600; font-size: 0.88rem; margin-bottom: 8px; display: flex; justify-content: space-between;">
+            <span>Sector Allocation</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">By Industry Sector</span>
+          </div>
+          <div style="height: 260px; position: relative;">
+            <canvas id="sectorChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Single View Panels -->
+      <div class="graph-panel" data-panel="asset">
+        <div class="graph-card-inner">
+          <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; display: flex; justify-content: space-between;">
+            <span>Asset Class Allocation</span>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Full Focus View</span>
+          </div>
+          <div style="height: 380px; position: relative;">
+            <canvas id="assetChartSingle"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="graph-panel" data-panel="dp">
+        <div class="graph-card-inner">
+          <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; display: flex; justify-content: space-between;">
+            <span>Depository Participant (Broker) Allocation</span>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Full Focus View</span>
+          </div>
+          <div style="height: 380px; position: relative;">
+            <canvas id="dpChartSingle"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="graph-panel" data-panel="sector">
+        <div class="graph-card-inner">
+          <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; display: flex; justify-content: space-between;">
+            <span>Sector Distribution</span>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Full Focus View</span>
+          </div>
+          <div style="height: 380px; position: relative;">
+            <canvas id="sectorChartSingle"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- RIGHT COLUMN (40%): Shrunken Tap-To-Expand Cards -->
+  <div class="dashboard-cards-col">
+    
+    <!-- Shrunk Card 1: Key Valuation & Primary Stats -->
+    <div class="shrunk-card" id="card-stats-summary">
+      <div class="shrunk-card-header" onclick="toggleShrunkCard('card-stats-summary')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); toggleShrunkCard('card-stats-summary');}" role="button" tabindex="0" aria-expanded="false">
+        <div class="shrunk-card-lead">
+          <div class="shrunk-card-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div class="shrunk-card-info">
+            <div class="shrunk-card-title">
+              <span>Key Valuation & Stats</span>
+              <span class="badge badge-success" style="font-size: 0.72rem; padding: 2px 7px;">{{ format_inr(summary.total_value) }}</span>
+            </div>
+            <div class="shrunk-card-subtitle">
+              {{ summary.num_accounts }} Demats &bull; {{ summary.num_securities }} Securities &bull; P&L: {{ format_inr(summary.total_pnl) }}
+            </div>
+          </div>
+        </div>
+        <div class="shrunk-card-trail">
+          <span class="shrunk-card-tap-badge">Tap to expand</span>
+          <svg class="shrunk-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+      <div class="shrunk-card-body">
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+          <div class="stat-card" style="padding: 14px;">
+            <div class="stat-label" style="font-size: 0.75rem;">Total Portfolio Valuation</div>
+            <div class="stat-value" style="font-size: 1.25rem;">{{ format_inr(summary.total_value) }}</div>
+            <div class="stat-subtext" style="font-size: 0.72rem;">
+              {% if summary.day_change >= 0 %}
+              <span class="badge badge-success" style="font-size: 0.7rem;">▲ {{ format_inr(summary.day_change) }}</span>
+              {% else %}
+              <span class="badge badge-danger" style="font-size: 0.7rem;">▼ {{ format_inr(summary.day_change) }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="stat-card" style="padding: 14px;">
+            <div class="stat-label" style="font-size: 0.75rem;">Active Demat Accounts</div>
+            <div class="stat-value" style="font-size: 1.25rem;">{{ summary.num_accounts }}</div>
+            <div class="stat-subtext" style="font-size: 0.72rem;">
+              <a href="/accounts" style="color: var(--saffron-main); text-decoration: none;">Across {{ summary.num_dps }} Brokers &rarr;</a>
+            </div>
+          </div>
+
+          <div class="stat-card" style="padding: 14px;">
+            <div class="stat-label" style="font-size: 0.75rem;">Distinct Securities</div>
+            <div class="stat-value" style="font-size: 1.25rem;">{{ summary.num_securities }}</div>
+            <div class="stat-subtext" style="font-size: 0.72rem; color: var(--text-muted);">Equities, Bonds, ETFs</div>
+          </div>
+
+          <div class="stat-card" style="padding: 14px;">
+            <div class="stat-label" style="font-size: 0.75rem;">Unrealized P&L</div>
+            <div class="stat-value" style="font-size: 1.25rem; color: {% if summary.total_pnl >= 0 %}var(--success){% else %}var(--danger){% endif %};">
+              {{ format_inr(summary.total_pnl) }}
+            </div>
+            <div class="stat-subtext" style="font-size: 0.72rem;">
+              <span class="badge {% if summary.total_pnl >= 0 %}badge-success{% else %}badge-danger{% endif %}" style="font-size: 0.7rem;">
+                {% if summary.total_pnl >= 0 %}+{% endif %}{{ "%.2f"|format(summary.total_pnl_pct) }}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shrunk Card 2: Connected Broker Sources of Truth -->
+    {% if summary.provider_statuses %}
+    <div class="shrunk-card" id="card-broker-hub">
+      <div class="shrunk-card-header" onclick="toggleShrunkCard('card-broker-hub')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); toggleShrunkCard('card-broker-hub');}" role="button" tabindex="0" aria-expanded="false">
+        <div class="shrunk-card-lead">
+          <div class="shrunk-card-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
+          </div>
+          <div class="shrunk-card-info">
+            <div class="shrunk-card-title">
+              <span>Connected Broker Sources</span>
+              <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">{{ summary.provider_statuses|length }} Brokers</span>
+            </div>
+            <div class="shrunk-card-subtitle">
+              NiftyTrade, BharatInvest & BondBazaar live sync status
+            </div>
+          </div>
+        </div>
+        <div class="shrunk-card-trail">
+          <span class="shrunk-card-tap-badge">Tap to expand</span>
+          <svg class="shrunk-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+      <div class="shrunk-card-body">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for code, p in summary.provider_statuses.items() %}
+          {% set sub = summary.broker_subtotals[code] if summary.broker_subtotals and code in summary.broker_subtotals else None %}
+          <div style="padding: 10px 12px; background: var(--bg-muted); border: 1px solid var(--border-color); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <strong style="font-size: 0.88rem;">{{ p.broker_name }}</strong>
+                <span style="font-family: monospace; font-size: 0.72rem; color: var(--text-muted);">({{ p.dp_id }})</span>
+              </div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                Synced: {{ p.last_synced_human }}
+                {% if sub %} &bull; <strong>{{ sub.holdings_count }} holding{% if sub.holdings_count != 1 %}s{% endif %}</strong>{% endif %}
+              </div>
+            </div>
+            <div>
+              {% if p.status == 'connected' %}
+              <span class="badge badge-success" style="font-size: 0.72rem;">✓ Synced</span>
+              {% elif p.status == 'no_account' %}
+              <span class="badge" style="font-size: 0.72rem; background: var(--border-color); color: var(--text-muted);">0 holdings</span>
+              {% elif p.status == 'stale' %}
+              <span class="badge badge-warning" style="font-size: 0.72rem;">▲ Stale</span>
+              {% else %}
+              <span class="badge badge-danger" style="font-size: 0.72rem;">⚠ Error</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+          <a href="/verify" class="btn btn-outline btn-sm" style="font-size: 0.78rem;">🔍 Verify with Brokers</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Shrunk Card 3: Per-Broker Holdings & Valuation Subtotals -->
+    {% if summary.broker_subtotals %}
+    <div class="shrunk-card" id="card-broker-subtotals">
+      <div class="shrunk-card-header" onclick="toggleShrunkCard('card-broker-subtotals')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); toggleShrunkCard('card-broker-subtotals');}" role="button" tabindex="0" aria-expanded="false">
+        <div class="shrunk-card-lead">
+          <div class="shrunk-card-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <div class="shrunk-card-info">
+            <div class="shrunk-card-title">
+              <span>Per-Broker Subtotals</span>
+              <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--saffron-main); border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.72rem; padding: 2px 7px;">Full Table</span>
+            </div>
+            <div class="shrunk-card-subtitle">
+              Mathematical verification across demats
+            </div>
+          </div>
+        </div>
+        <div class="shrunk-card-trail">
+          <span class="shrunk-card-tap-badge">Tap to expand</span>
+          <svg class="shrunk-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+      <div class="shrunk-card-body">
+        <div class="table-container" style="max-height: 380px; overflow-y: auto;">
+          <table class="data-table" style="font-size: 0.8rem;">
+            <thead>
+              <tr>
+                <th>Broker</th>
+                <th class="text-right">Holdings</th>
+                <th class="text-right">Valuation</th>
+                <th class="text-right">P&L</th>
+                <th class="text-right">%</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for code, sub in summary.broker_subtotals.items() %}
+              {% set pct = sub.pct if sub.pct is defined else ((sub.current_value / summary.total_value * 100) if summary.total_value > 0 else 0.0) %}
+              <tr>
+                <td><strong>{{ sub.broker_name }}</strong></td>
+                <td class="text-right">{{ sub.holdings_count }}</td>
+                <td class="text-right" style="font-weight: 600;">{{ format_inr(sub.current_value) }}</td>
+                <td class="text-right">
+                  {% if sub.pnl >= 0 %}
+                  <span style="color: var(--success); font-weight: 600;">+{{ format_inr(sub.pnl) }}</span>
+                  {% else %}
+                  <span style="color: var(--danger); font-weight: 600;">{{ format_inr(sub.pnl) }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-right">{{ "%.1f"|format(pct) }}%</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Shrunk Card 4: Portfolio Analytics & Factual Insights -->
+    {% if summary.insights %}
+    <div class="shrunk-card" id="card-insights">
+      <div class="shrunk-card-header" onclick="toggleShrunkCard('card-insights')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); toggleShrunkCard('card-insights');}" role="button" tabindex="0" aria-expanded="false">
+        <div class="shrunk-card-lead">
+          <div class="shrunk-card-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </div>
+          <div class="shrunk-card-info">
+            <div class="shrunk-card-title">
+              <span>Portfolio Analytics & Insights</span>
+              <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); font-size: 0.72rem; padding: 2px 7px;">{{ summary.insights|length }} Insights</span>
+            </div>
+            <div class="shrunk-card-subtitle">
+              Derived risk warnings and allocation alerts
+            </div>
+          </div>
+        </div>
+        <div class="shrunk-card-trail">
+          <span class="shrunk-card-tap-badge">Tap to expand</span>
+          <svg class="shrunk-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+      <div class="shrunk-card-body">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for ins in summary.insights %}
+          <div style="padding: 10px 12px; background: var(--bg-muted); border-radius: 8px; border-left: 4px solid {% if ins.type == 'risk' %}var(--danger){% elif ins.type == 'absence' %}#8b5cf6{% else %}var(--saffron-main){% endif %};">
+            <div style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: var(--text-muted);">{{ ins.title }}</div>
+            <p style="margin: 3px 0 0 0; font-size: 0.82rem; color: var(--text-main);">{{ ins.message }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
   </div>
 </div>
 {% endif %}
@@ -416,104 +469,55 @@ document.addEventListener('DOMContentLoaded', function() {
     '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b', '#14b8a6', '#f97316'
   ];
 
-  // Asset class donut chart
+  // Donut chart generator helper
+  function createDonut(canvasId, labels, values, bgColors) {
+    const el = document.getElementById(canvasId);
+    if (!el || !labels || labels.length === 0) return null;
+    return new Chart(el, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          backgroundColor: bgColors.slice(0, labels.length),
+          borderWidth: 2,
+          borderColor: '#1c2129'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Inter', size: 11 } } },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return ` ${ctx.label}: ₹${Number(ctx.raw).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+              }
+            }
+          }
+        },
+        cutout: '64%'
+      }
+    });
+  }
+
   const assetLabels = Object.keys(assetData || {});
   const assetValues = Object.values(assetData || {});
-  if (assetLabels.length > 0 && document.getElementById('assetChart')) {
-    new Chart(document.getElementById('assetChart'), {
-      type: 'doughnut',
-      data: {
-        labels: assetLabels,
-        datasets: [{
-          data: assetValues,
-          backgroundColor: colors.slice(0, assetLabels.length),
-          borderWidth: 2,
-          borderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1c2129' : '#ffffff'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Inter', size: 10 } } },
-          tooltip: {
-            callbacks: {
-              label: function(ctx) {
-                return ` ${ctx.label}: ₹${Number(ctx.raw).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-              }
-            }
-          }
-        },
-        cutout: '65%'
-      }
-    });
-  }
-
-  // DP donut chart
   const dpLabels = Object.keys(dpData || {});
   const dpValues = Object.values(dpData || {});
-  if (dpLabels.length > 0 && document.getElementById('dpChart')) {
-    new Chart(document.getElementById('dpChart'), {
-      type: 'doughnut',
-      data: {
-        labels: dpLabels,
-        datasets: [{
-          data: dpValues,
-          backgroundColor: ['#d97706', '#2563eb', '#059669', '#7c3aed', '#db2777'].slice(0, dpLabels.length),
-          borderWidth: 2,
-          borderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1c2129' : '#ffffff'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Inter', size: 10 } } },
-          tooltip: {
-            callbacks: {
-              label: function(ctx) {
-                return ` ${ctx.label}: ₹${Number(ctx.raw).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-              }
-            }
-          }
-        },
-        cutout: '65%'
-      }
-    });
-  }
-
-  // Sector donut chart
   const sectorLabels = Object.keys(sectorData || {});
   const sectorValues = Object.values(sectorData || {});
-  if (sectorLabels.length > 0 && document.getElementById('sectorChart')) {
-    new Chart(document.getElementById('sectorChart'), {
-      type: 'doughnut',
-      data: {
-        labels: sectorLabels,
-        datasets: [{
-          data: sectorValues,
-          backgroundColor: colors.slice(0, sectorLabels.length),
-          borderWidth: 2,
-          borderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1c2129' : '#ffffff'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Inter', size: 10 } } },
-          tooltip: {
-            callbacks: {
-              label: function(ctx) {
-                return ` ${ctx.label}: ₹${Number(ctx.raw).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-              }
-            }
-          }
-        },
-        cutout: '65%'
-      }
-    });
-  }
+
+  // Primary Combined Grid Charts
+  createDonut('assetChart', assetLabels, assetValues, colors);
+  createDonut('dpChart', dpLabels, dpValues, ['#d97706', '#2563eb', '#059669', '#7c3aed', '#db2777']);
+  createDonut('sectorChart', sectorLabels, sectorValues, colors);
+
+  // Dedicated Single Focus View Charts
+  createDonut('assetChartSingle', assetLabels, assetValues, colors);
+  createDonut('dpChartSingle', dpLabels, dpValues, ['#d97706', '#2563eb', '#059669', '#7c3aed', '#db2777']);
+  createDonut('sectorChartSingle', sectorLabels, sectorValues, colors);
 });
 </script>
 <style>

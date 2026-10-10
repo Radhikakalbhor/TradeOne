@@ -1,37 +1,16 @@
-// TradeOne Core Client Scripts
-
-// Theme Management
+// Theme Management - Permanently Locked to Dark Mode
 (function() {
-  const savedTheme = localStorage.getItem('nd_theme') || 
-    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.documentElement.setAttribute('data-theme', 'dark');
+  localStorage.setItem('nd_theme', 'dark');
 })();
 
 function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme') || 'light';
-  const target = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', target);
-  localStorage.setItem('nd_theme', target);
-  updateThemeIcons(target);
-}
-
-function updateThemeIcons(theme) {
-  const moonIcon = document.getElementById('theme-moon');
-  const sunIcon = document.getElementById('theme-sun');
-  if (moonIcon && sunIcon) {
-    if (theme === 'dark') {
-      moonIcon.style.display = 'none';
-      sunIcon.style.display = 'block';
-    } else {
-      moonIcon.style.display = 'block';
-      sunIcon.style.display = 'none';
-    }
-  }
+  document.documentElement.setAttribute('data-theme', 'dark');
+  localStorage.setItem('nd_theme', 'dark');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-  updateThemeIcons(currentTheme);
+  document.documentElement.setAttribute('data-theme', 'dark');
 
   // Email persistence on login screen
   const emailInput = document.getElementById('login-email-input');
@@ -156,7 +135,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Copy to clipboard utility
 function copyToClipboard(text, elemId) {
   navigator.clipboard.writeText(text).then(() => {
     const el = document.getElementById(elemId);
@@ -167,3 +145,182 @@ function copyToClipboard(text, elemId) {
     }
   });
 }
+
+// Expandable Left-side Navigation Drawer
+function toggleNavDrawer(forceState) {
+  const drawer = document.getElementById('nav-drawer');
+  const overlay = document.getElementById('nav-drawer-overlay');
+  if (!drawer || !overlay) return;
+
+  const isOpen = drawer.classList.contains('active');
+  const shouldOpen = typeof forceState === 'boolean' ? forceState : !isOpen;
+
+  if (shouldOpen) {
+    drawer.classList.add('active');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  } else {
+    drawer.classList.remove('active');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+// Close drawer on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    toggleNavDrawer(false);
+  }
+});
+
+// ========================================================
+// Aceternity UI Card Hover Effect System
+// ========================================================
+function initCardHoverEffects() {
+  // 1. Interactive Cursor Spotlight on every card
+  const cards = document.querySelectorAll('.card, .stat-card, .auth-card');
+  cards.forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      card.style.setProperty('--mouse-x', `${x}px`);
+      card.style.setProperty('--mouse-y', `${y}px`);
+    });
+  });
+
+  // 2. Gliding Animated Hover Pill for Card Grids (Aceternity layoutId="hoverBackground")
+  const gridContainers = document.querySelectorAll('.grid-2, .grid-3, .grid-4');
+  gridContainers.forEach(grid => {
+    const gridCards = grid.querySelectorAll(':scope > .card, :scope > .stat-card');
+    if (gridCards.length < 2) return;
+
+    let pill = grid.querySelector(':scope > .card-hover-pill');
+    if (!pill) {
+      pill = document.createElement('div');
+      pill.className = 'card-hover-pill';
+      grid.prepend(pill);
+    }
+
+    gridCards.forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        pill.style.top = `${card.offsetTop}px`;
+        pill.style.left = `${card.offsetLeft}px`;
+        pill.style.width = `${card.offsetWidth}px`;
+        pill.style.height = `${card.offsetHeight}px`;
+        pill.style.opacity = '1';
+      });
+    });
+
+    grid.addEventListener('mouseleave', () => {
+      pill.style.opacity = '0';
+    });
+  });
+}
+
+// Aceternity FocusCards Effect on Navigation Drawer links
+function initDrawerFocusCards() {
+  const container = document.querySelector('.nav-drawer-links');
+  if (!container) return;
+
+  const links = container.querySelectorAll('.drawer-link');
+  let rafId = null;
+
+  links.forEach(link => {
+    link.addEventListener('mouseenter', () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        container.classList.add('has-hover');
+        links.forEach(other => {
+          if (other !== link) {
+            other.classList.add('is-dimmed');
+          } else {
+            other.classList.remove('is-dimmed');
+          }
+        });
+      });
+    });
+  });
+
+  container.addEventListener('mouseleave', () => {
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      container.classList.remove('has-hover');
+      links.forEach(l => l.classList.remove('is-dimmed'));
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  initCardHoverEffects();
+  initDrawerFocusCards();
+
+  // Keyboard accessibility for Top Securities collapsible tab header
+  const topSecuritiesHeader = document.getElementById('top-securities-header');
+  if (topSecuritiesHeader) {
+    topSecuritiesHeader.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleTopSecuritiesTab();
+      }
+    });
+  }
+});
+
+// Interactive Collapsible Tab toggle for Top Securities
+window.toggleTopSecuritiesTab = function() {
+  const card = document.getElementById('top-securities-card');
+  const btnText = document.getElementById('top-securities-btn-text');
+  const header = document.getElementById('top-securities-header');
+  if (!card) return;
+
+  const isExpanded = card.classList.toggle('expanded');
+  if (btnText) {
+    btnText.textContent = isExpanded ? 'Collapse Table' : 'Expand Table';
+  }
+  if (header) {
+    header.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+  }
+};
+
+window.addEventListener('resize', initCardHoverEffects);
+
+// Interactive Shrunken Card toggle for Dashboard 60/40 view
+window.toggleShrunkCard = function(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  const isExpanded = card.classList.toggle('is-expanded');
+  const badge = card.querySelector('.shrunk-card-tap-badge');
+  if (badge) {
+    badge.textContent = isExpanded ? 'Tap to collapse' : 'Tap to expand';
+  }
+  const header = card.querySelector('.shrunk-card-header');
+  if (header) {
+    header.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+  }
+};
+
+// Graph Tab switcher
+window.switchGraphTab = function(tabKey) {
+  const buttons = document.querySelectorAll('.graph-tab-btn');
+  const panels = document.querySelectorAll('.graph-panel');
+
+  buttons.forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-tab') === tabKey);
+  });
+
+  panels.forEach(p => {
+    p.classList.toggle('active', p.getAttribute('data-panel') === tabKey);
+  });
+
+  // Re-trigger layout resize for Chart.js
+  setTimeout(() => {
+    window.dispatchEvent(new Event('resize'));
+  }, 50);
+};
+
+
+
+
+
+
