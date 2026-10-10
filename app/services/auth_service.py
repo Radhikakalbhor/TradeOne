@@ -59,11 +59,25 @@ def get_gmail_access_token() -> Tuple[bool, str]:
     if _gmail_token_cache["token"] and _gmail_token_cache["expires_at"] > now + 60:
         return True, _gmail_token_cache["token"]
 
+    client_id_val = settings.GMAIL_CLIENT_ID
+    masked_client_id = f"{client_id_val[:8]}...{client_id_val[-8:]}" if len(client_id_val) > 16 else ("SET" if client_id_val else "MISSING")
+    has_secret = bool(settings.GMAIL_CLIENT_SECRET)
+    secret_len = len(settings.GMAIL_CLIENT_SECRET)
+    rt_val = settings.GMAIL_REFRESH_TOKEN
+    has_rt = bool(rt_val)
+    rt_len = len(rt_val)
+    rt_prefix = rt_val[:4] if rt_len >= 4 else "none"
+
+    logger.info(
+        "Gmail OAuth token refresh attempt: Client ID=%s (len=%d), Secret present=%s (len=%d), Refresh Token present=%s (len=%d, prefix=%s)",
+        masked_client_id, len(client_id_val), has_secret, secret_len, has_rt, rt_len, rt_prefix
+    )
+
     token_url = "https://oauth2.googleapis.com/token"
     payload = {
-        "client_id": settings.GMAIL_CLIENT_ID,
+        "client_id": client_id_val,
         "client_secret": settings.GMAIL_CLIENT_SECRET,
-        "refresh_token": settings.GMAIL_REFRESH_TOKEN,
+        "refresh_token": rt_val,
         "grant_type": "refresh_token",
     }
 
@@ -82,6 +96,11 @@ def get_gmail_access_token() -> Tuple[bool, str]:
                         details = err_desc or err_code or resp.text
                 except Exception:
                     details = resp.text
+                logger.error(
+                    "Google token refresh rejected (HTTP %s): %s. [Diagnostics: Client ID=%s (len=%d), Secret len=%d, Refresh Token len=%d, prefix=%s]. "
+                    "Note: 'invalid_grant: Bad Request' indicates the refresh token was generated with a different OAuth Client ID or has been revoked.",
+                    resp.status_code, details, masked_client_id, len(client_id_val), secret_len, rt_len, rt_prefix
+                )
                 return False, f"Google token refresh failed (HTTP {resp.status_code}): {details}"
 
             data = resp.json()
@@ -109,7 +128,8 @@ def send_email_via_gmail_api(to_email: str, subject: str, html_content: str) -> 
 
     token_ok, token_val = get_gmail_access_token()
     if not token_ok:
-        return False, token_val
+        logger.error("Gmail API delivery aborted: %s", token_val)
+        return False, "Failed to authenticate with Gmail API provider. Please verify the Gmail refresh token configuration."
 
     sender = settings.GMAIL_SENDER or "hacksmiths360@gmail.com"
 

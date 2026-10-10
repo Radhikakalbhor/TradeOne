@@ -591,6 +591,33 @@ def test_send_email_via_gmail_api_error(monkeypatch):
         assert "Daily sending quota exceeded" in msg
 
 
+def test_send_email_token_refresh_failure_sanitized_for_user(monkeypatch):
+    """Verify that when token refresh fails, send_email_via_gmail_api returns a sanitized user message."""
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "test_client_id")
+    monkeypatch.setenv("GMAIL_CLIENT_SECRET", "test_client_secret")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "bad_token")
+
+    _gmail_token_cache["token"] = ""
+    _gmail_token_cache["expires_at"] = 0.0
+
+    fake_resp = MagicMock()
+    fake_resp.status_code = 400
+    fake_resp.json.return_value = {"error": "invalid_grant", "error_description": "Bad Request"}
+
+    with patch("httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.post.return_value = fake_resp
+        mock_client_cls.return_value = mock_client
+
+        sent, msg = send_email_via_gmail_api("user@test.com", "Subject", "<p>Body</p>")
+        assert sent is False
+        assert "Failed to authenticate with Gmail API provider" in msg
+        # Raw internal error details and tokens must not be exposed to the user
+        assert "invalid_grant" not in msg
+        assert "bad_token" not in msg
+
+
 def test_explicit_email_provider_selection(monkeypatch):
     """Verify explicit EMAIL_PROVIDER overrides auto-detection."""
     monkeypatch.setenv("GMAIL_CLIENT_ID", "test_client_id")

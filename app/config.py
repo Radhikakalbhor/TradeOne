@@ -76,21 +76,37 @@ class Settings:
     @property
     def GMAIL_CLIENT_ID(self) -> str:
         val = os.getenv("GMAIL_CLIENT_ID") or self.GOOGLE_CLIENT_ID or ""
-        return val.strip().strip('"').strip("'")
+        val = val.strip().strip('"').strip("'")
+        if val.startswith("GMAIL_CLIENT_ID="):
+            val = val.split("GMAIL_CLIENT_ID=", 1)[1].strip().strip('"').strip("'")
+        elif val.startswith("GOOGLE_CLIENT_ID="):
+            val = val.split("GOOGLE_CLIENT_ID=", 1)[1].strip().strip('"').strip("'")
+        return val
 
     @property
     def GMAIL_CLIENT_SECRET(self) -> str:
         val = os.getenv("GMAIL_CLIENT_SECRET") or self.GOOGLE_CLIENT_SECRET or ""
-        return val.strip().strip('"').strip("'")
+        val = val.strip().strip('"').strip("'")
+        if val.startswith("GMAIL_CLIENT_SECRET="):
+            val = val.split("GMAIL_CLIENT_SECRET=", 1)[1].strip().strip('"').strip("'")
+        elif val.startswith("GOOGLE_CLIENT_SECRET="):
+            val = val.split("GOOGLE_CLIENT_SECRET=", 1)[1].strip().strip('"').strip("'")
+        return val
 
     @property
     def GMAIL_REFRESH_TOKEN(self) -> str:
-        return os.getenv("GMAIL_REFRESH_TOKEN", "").strip().strip('"').strip("'")
+        val = os.getenv("GMAIL_REFRESH_TOKEN", "").strip().strip('"').strip("'")
+        if val.startswith("GMAIL_REFRESH_TOKEN="):
+            val = val.split("GMAIL_REFRESH_TOKEN=", 1)[1].strip().strip('"').strip("'")
+        return val
 
     @property
     def GMAIL_SENDER(self) -> str:
         val = os.getenv("GMAIL_SENDER", "hacksmiths360@gmail.com")
-        return val.strip().strip('"').strip("'")
+        val = val.strip().strip('"').strip("'")
+        if val.startswith("GMAIL_SENDER="):
+            val = val.split("GMAIL_SENDER=", 1)[1].strip().strip('"').strip("'")
+        return val
 
     # HTTPS Email API (Resend) Settings
     @property
