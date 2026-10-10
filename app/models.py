@@ -29,6 +29,7 @@ class User(Base):
     sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
     lesson_progress = relationship("LessonProgress", back_populates="user", cascade="all, delete-orphan")
     quiz_attempts = relationship("QuizAttempt", back_populates="user", cascade="all, delete-orphan")
+    holding_snapshots = relationship("HoldingSnapshot", back_populates="user", cascade="all, delete-orphan")
 
 class AuthMethod(Base):
     __tablename__ = "auth_methods"
@@ -170,6 +171,19 @@ class Holding(Base):
     @property
     def investment_value(self) -> float:
         return self.total_units * self.avg_price
+
+class HoldingSnapshot(Base):
+    __tablename__ = "holding_snapshots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    snapshot_date = Column(DateTime, default=utcnow, index=True)
+    total_value = Column(Float, nullable=False, default=0.0)
+    invested_value = Column(Float, nullable=False, default=0.0)
+    asset_class_values_json = Column(Text, nullable=True)  # JSON dict e.g. {"Equity": 658640.0, ...}
+    created_at = Column(DateTime, default=utcnow)
+
+    user = relationship("User", back_populates="holding_snapshots")
 
 class Transaction(Base):
     __tablename__ = "transactions"

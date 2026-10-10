@@ -61,7 +61,7 @@ def dashboard(
                 break
 
     if should_sync:
-        broker_adapter.sync_all_brokers(db, user, only_stale=False)
+        broker_adapter.sync_all_brokers(db, user, only_stale=(refresh not in ("true", "1")))
         db.refresh(user)
 
     summary = get_portfolio_summary(db, user)
@@ -75,6 +75,12 @@ def dashboard(
     from app.services.learn_service import compute_diversification, LEARN_DISCLAIMER
     div_data = compute_diversification(db, user)
 
+    try:
+        from app.services.snapshot_service import record_holding_snapshot
+        record_holding_snapshot(db, user)
+    except Exception:
+        pass
+
     return templates.TemplateResponse(request=request, name="dashboard.html", context={
         "user": user,
         "summary": summary,
@@ -84,6 +90,19 @@ def dashboard(
         "div_data": div_data,
         "learn_disclaimer": LEARN_DISCLAIMER,
     })
+
+@router.get("/api/dashboard/charts")
+def get_dashboard_charts_api(
+    response: Response,
+    user: User = Depends(get_required_user),
+    db: Session = Depends(get_db)
+):
+    """Single JSON endpoint returning all consolidated portfolio chart data for the logged-in user."""
+    from app.services.dashboard_chart_service import get_dashboard_charts_data
+    # Cache nothing across users
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+    response.headers["Pragma"] = "no-cache"
+    return get_dashboard_charts_data(db, user)
 
 @router.get("/accounts", response_class=HTMLResponse)
 def demat_accounts(
@@ -552,6 +571,11 @@ def sync_individual_broker(
     from app.services.broker_adapter import broker_adapter
     p_code = (provider_code or "").lower().strip()
     res = broker_adapter.sync_user_from_broker(db, user, p_code)
+    try:
+        from app.services.snapshot_service import record_holding_snapshot
+        record_holding_snapshot(db, user)
+    except Exception:
+        pass
 
     if request.headers.get("accept") == "application/json" or request.headers.get("x-requested-with") == "XMLHttpRequest":
         return res
@@ -569,6 +593,11 @@ def sync_all_brokers_endpoint(
     """Sync all broker providers."""
     from app.services.broker_adapter import broker_adapter
     res = broker_adapter.sync_all_brokers(db, user, only_stale=False)
+    try:
+        from app.services.snapshot_service import record_holding_snapshot
+        record_holding_snapshot(db, user)
+    except Exception:
+        pass
 
     if request.headers.get("accept") == "application/json" or request.headers.get("x-requested-with") == "XMLHttpRequest":
         return res

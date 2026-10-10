@@ -2,706 +2,1725 @@
 
 {% block title %}Dashboard - TradeOne Central Depository{% endblock %}
 
+{% block extra_head %}
+<style>
+/* Dashboard Styles & Chart Grid */
+.dashboard-v2-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Row 1: Number Cards */
+.number-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .number-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .number-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.num-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.num-card:hover {
+  border-color: var(--border-focus);
+}
+
+.num-card-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.num-card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.2;
+  margin-bottom: 6px;
+  font-feature-settings: "tnum";
+}
+
+.num-card-subtext {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Charts Grid (2 columns on desktop, 1 on mobile) */
+.charts-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+@media (max-width: 992px) {
+  .charts-grid-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  min-height: 380px;
+  position: relative;
+}
+
+.chart-card-full {
+  grid-column: 1 / -1;
+}
+
+.chart-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chart-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chart-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-card-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-toggle-view {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-toggle-view:hover {
+  color: var(--text-main);
+  border-color: var(--text-muted);
+}
+
+.btn-toggle-view.active {
+  background: var(--bg-muted);
+  color: var(--saffron-main);
+  border-color: var(--saffron-main);
+}
+
+/* Range Selector Pills */
+.range-pill-group {
+  display: inline-flex;
+  background: var(--bg-muted);
+  border-radius: 8px;
+  padding: 2px;
+  border: 1px solid var(--border-color);
+}
+
+.range-pill {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.range-pill.active {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+/* Chart Canvas Wrapper */
+.chart-content-area {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 270px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+/* Donut Split Layout */
+.donut-split-box {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  align-items: center;
+  height: 100%;
+  min-height: 270px;
+}
+
+@media (max-width: 600px) {
+  .donut-split-box {
+    grid-template-columns: 1fr;
+  }
+}
+
+.donut-legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.donut-legend-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--bg-muted);
+}
+
+.donut-legend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.donut-legend-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.donut-color-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.donut-legend-val {
+  font-feature-settings: "tnum";
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.donut-legend-pct {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+/* Table Alternative View */
+.chart-table-container {
+  display: none;
+  width: 100%;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-surface);
+}
+
+.chart-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.chart-data-table th,
+.chart-data-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.chart-data-table th {
+  background: var(--bg-muted);
+  font-weight: 600;
+  color: var(--text-muted);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.chart-data-table td.text-right,
+.chart-data-table th.text-right {
+  text-align: right;
+}
+
+/* Grey Empty Placeholder */
+.chart-empty-placeholder {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-muted);
+  border: 1.5px dashed var(--border-color);
+  border-radius: 10px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  gap: 8px;
+  z-index: 2;
+}
+
+.chart-empty-icon {
+  font-size: 2rem;
+  opacity: 0.6;
+}
+
+.chart-empty-text {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  max-width: 320px;
+  line-height: 1.45;
+}
+
+/* Loading Skeleton */
+.skeleton-box {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-chart-card {
+  height: 380px;
+  border-radius: 14px;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>Consolidated Demat Portfolio</h1>
-    <p class="page-subtitle">Central depository registry across all linked Depository Participants (Brokers)</p>
-  </div>
-</div>
+<div class="dashboard-v2-container">
 
-<!-- Warning banner if any data is STALE -->
-{% if summary.has_stale_data %}
-<div style="background: rgba(245, 158, 11, 0.12); border: 1px solid var(--warning); color: #d97706; padding: 14px 18px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-  <div style="display: flex; align-items: center; gap: 10px;">
-    <span style="font-size: 1.2rem;">⚠️</span>
+  <!-- Page Header -->
+  <div class="page-header" style="margin-bottom: 0;">
     <div>
-      <strong>Notice: Stale Data Included</strong> &mdash;
-      Data from <strong>{{ summary.stale_providers|join(', ') }}</strong> could not be refreshed live and reflects the last successful snapshot.
-      Portfolio numbers are computed with partial fresh data and partial cached data.
+      <h1 style="display: flex; align-items: center; gap: 10px;">
+        <span>Consolidated Demat Portfolio</span>
+      </h1>
+      <p class="page-subtitle">Unified registry across all linked Depository Participants &bull; TradeOne Central Depository</p>
     </div>
-  </div>
-  <form method="POST" action="/accounts/sync-all" style="margin: 0;">
-    <button type="submit" class="btn btn-secondary btn-sm" style="border-color: #d97706; color: #d97706;">
-      ↻ Retry Failed Sync
-    </button>
-  </form>
-</div>
-{% endif %}
-
-<!-- Zero State Display -->
-{% if summary.total_value <= 0 and top_holdings|length == 0 %}
-<div class="card" id="empty-state-card" style="padding: 48px 24px; text-align: center; margin-bottom: 24px; background: var(--bg-muted); border: 2px dashed var(--border-color); border-radius: 12px;">
-  <div style="max-width: 540px; margin: 0 auto;">
-    <div style="font-size: 3rem; margin-bottom: 12px;">📈</div>
-    <h2 style="margin: 0 0 10px 0; font-size: 1.35rem; color: var(--text-main);">No holdings yet</h2>
-    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin: 0 0 24px 0;">
-      No holdings yet. Trade on NiftyTrade, BharatInvest or BondBazaar with this same Google account and they will appear here.
-    </p>
-    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-      <form method="POST" action="/accounts/sync-all" style="margin: 0;">
-        <button type="submit" class="btn btn-primary">
-          ↻ Check brokers now
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+      <form method="POST" action="/accounts/sync-all" style="margin: 0;" id="form-refresh-now">
+        <button type="submit" class="btn btn-secondary btn-sm" id="btn-refresh-now" aria-label="Refresh connected broker holdings">
+          <span id="refresh-spinner-icon" style="display: inline-block;">↻</span>
+          <span id="refresh-button-text">Refresh Brokers</span>
         </button>
       </form>
-      <a href="/verify" class="btn btn-outline">
-        🔍 Verify live with brokers
+      <a href="/verify" class="btn btn-outline btn-sm" aria-label="Verify holdings reconciliation with brokers">
+        🔍 Verify with Brokers
       </a>
     </div>
   </div>
-</div>
-{% else %}
 
-{% if div_data and summary.total_value > 0 %}
-<!-- Learn Diversification Check Card -->
-<div class="card" style="background: linear-gradient(135deg, #131b2e 0%, #1e1b4b 100%); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 14px; padding: 22px; margin-bottom: 24px; position: relative;">
-  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+  <!-- Warning banner if any data is STALE -->
+  {% if summary.has_stale_data %}
+  <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid var(--warning); color: #d97706; padding: 12px 18px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
     <div style="display: flex; align-items: center; gap: 10px;">
-      <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(139, 92, 246, 0.2); display: flex; align-items: center; justify-content: center; color: #c4b5fd;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-      </div>
-      <div>
-        <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #f8fafc;">Portfolio Diversification Check</h3>
-        <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: #94a3b8;">
-          Your holdings are {{ div_data.equity_pct }}% in equities across {{ div_data.num_brokers }} broker{% if div_data.num_brokers != 1 %}s{% endif %}. REITs, InvITs and bonds make up {{ (div_data.reit_pct + div_data.invit_pct + div_data.bond_pct) | round(1) }}%.
-        </p>
+      <span style="font-size: 1.2rem;">⚠️</span>
+      <div style="font-size: 0.88rem;">
+        <strong>Notice: Stale Data Included</strong> &mdash;
+        Data from <strong>{{ summary.stale_providers|join(', ') }}</strong> could not be refreshed live and reflects the last successful snapshot.
       </div>
     </div>
-    <a href="/learn" class="badge" style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.4); text-decoration: none; padding: 5px 12px; font-weight: 600; font-size: 0.76rem;">
-      TradeOne Learn &rarr;
-    </a>
-  </div>
-
-  <!-- Stacked Bar -->
-  <div style="height: 14px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden; display: flex; margin-bottom: 12px;">
-    {% if div_data.equity_pct > 0 %}
-    <div {{ 'style="width: ' ~ div_data.equity_pct ~ '%; background: #3b82f6;"' }} title="Equity: {{ div_data.equity_pct }}%"></div>
-    {% endif %}
-    {% if div_data.reit_pct > 0 %}
-    <div {{ 'style="width: ' ~ div_data.reit_pct ~ '%; background: #8b5cf6;"' }} title="REITs: {{ div_data.reit_pct }}%"></div>
-    {% endif %}
-    {% if div_data.invit_pct > 0 %}
-    <div {{ 'style="width: ' ~ div_data.invit_pct ~ '%; background: #06b6d4;"' }} title="InvITs: {{ div_data.invit_pct }}%"></div>
-    {% endif %}
-    {% if div_data.bond_pct > 0 %}
-    <div {{ 'style="width: ' ~ div_data.bond_pct ~ '%; background: #10b981;"' }} title="Bonds: {{ div_data.bond_pct }}%"></div>
-    {% endif %}
-  </div>
-
-  <!-- Legend -->
-  <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.78rem; color: #cbd5e1; margin-bottom: 14px;">
-    <span style="display: inline-flex; align-items: center; gap: 6px;">
-      <span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;"></span>
-      Equities &amp; ETFs: <strong>{{ div_data.equity_pct }}%</strong>
-    </span>
-    <span style="display: inline-flex; align-items: center; gap: 6px;">
-      <span style="width: 8px; height: 8px; border-radius: 50%; background: #8b5cf6;"></span>
-      REITs: <strong>{{ div_data.reit_pct }}%</strong>
-    </span>
-    <span style="display: inline-flex; align-items: center; gap: 6px;">
-      <span style="width: 8px; height: 8px; border-radius: 50%; background: #06b6d4;"></span>
-      InvITs: <strong>{{ div_data.invit_pct }}%</strong>
-    </span>
-    <span style="display: inline-flex; align-items: center; gap: 6px;">
-      <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
-      Bonds: <strong>{{ div_data.bond_pct }}%</strong>
-    </span>
-  </div>
-
-  {% if div_data.observations and div_data.observations|length > 0 %}
-  <!-- Factual Observations -->
-  <div style="background: rgba(15, 23, 42, 0.6); border-left: 3px solid #8b5cf6; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.8rem; color: #94a3b8; line-height: 1.45;">
-    {% for obs in div_data.observations %}
-    <div {% if not loop.last %}style="margin-bottom: 4px;"{% endif %}>&bull; {{ obs }}</div>
-    {% endfor %}
+    <form method="POST" action="/accounts/sync-all" style="margin: 0;">
+      <button type="submit" class="btn btn-secondary btn-sm" style="border-color: #d97706; color: #d97706;">
+        ↻ Retry Sync
+      </button>
+    </form>
   </div>
   {% endif %}
 
-  <!-- Quick Explore Buttons -->
-  <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-    <span style="font-size: 0.75rem; color: #94a3b8;">Explore alternatives:</span>
-    <a href="/learn/lesson/reit?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are REITs?</a>
-    <a href="/learn/lesson/invit?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are InvITs?</a>
-    <a href="/learn/lesson/corpbond?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are Bonds?</a>
-    <a href="/learn/compare" class="btn btn-sm btn-outline" style="font-size: 0.76rem; padding: 4px 10px;">Compare Options</a>
-  </div>
-
-  <div style="margin-top: 10px; font-size: 0.7rem; color: #64748b;">
-    Educational information only. Not investment advice. TradeOne is not a SEBI-registered investment adviser.
-  </div>
-</div>
-{% endif %}
-
-<!-- Dashboard Split Layout: Expanded Graphs (Majority) & Compact 4 Stacked Boxes -->
-<div class="dashboard-split-layout">
-  
-  <!-- LEFT COLUMN: Simplified, Expanded Portfolio Allocation Graphs -->
-  <div class="dashboard-graphs-col">
-    {% if summary.asset_allocation or summary.dp_allocation or summary.sector_allocation %}
-    <div class="dashboard-graphs-wrapper">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-        <div>
-          <h2 style="font-size: 1.18rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--saffron-main);">
-              <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
-              <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
-            </svg>
-            <span>Portfolio Allocation & Exposure</span>
-          </h2>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0 0;">Clear breakdown across Asset Classes, Broker Demats, and Industry Sectors</p>
-        </div>
-        <div class="badge" style="background: rgba(245, 158, 11, 0.14); color: var(--saffron-main); border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.74rem; padding: 4px 10px;">
-          Live Distribution
-        </div>
+  <!-- Zero State Display -->
+  {% if summary.total_value <= 0 and top_holdings|length == 0 %}
+  <div class="card" id="empty-state-card" style="padding: 48px 24px; text-align: center; margin-bottom: 24px; background: var(--bg-muted); border: 2px dashed var(--border-color); border-radius: 12px;">
+    <div style="max-width: 540px; margin: 0 auto;">
+      <div style="font-size: 3rem; margin-bottom: 12px;">📈</div>
+      <h2 style="margin: 0 0 10px 0; font-size: 1.35rem; color: var(--text-main);">No holdings yet</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin: 0 0 24px 0;">
+        No holdings yet. Trade on NiftyTrade, BharatInvest or BondBazaar with this same Google account and they will appear here.
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <form method="POST" action="/accounts/sync-all" style="margin: 0;">
+          <button type="submit" class="btn btn-primary">
+            ↻ Check brokers now
+          </button>
+        </form>
+        <a href="/verify" class="btn btn-outline">
+          🔍 Verify live with brokers
+        </a>
       </div>
-
-      <!-- Graph View Switcher Tabs -->
-      <div class="graph-nav-tabs">
-        <button type="button" class="graph-tab-btn active" data-tab="all" onclick="switchGraphTab('all')">
-          Overview (All)
-        </button>
-        <button type="button" class="graph-tab-btn" data-tab="asset" onclick="switchGraphTab('asset')">
-          Asset Class
-        </button>
-        <button type="button" class="graph-tab-btn" data-tab="dp" onclick="switchGraphTab('dp')">
-          Broker (DP)
-        </button>
-        <button type="button" class="graph-tab-btn" data-tab="sector" onclick="switchGraphTab('sector')">
-          Sector Distribution
-        </button>
-      </div>
-
-      <!-- Combined Overview Panel -->
-      <div class="graph-panel active" data-panel="all">
-        <div class="graphs-grid-combined">
-          
-          <!-- Asset Class Breakdown -->
-          <div class="graph-card-inner">
-            <div style="font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
-              <span>Asset Class</span>
-              <span class="badge" style="font-size: 0.7rem; background: var(--bg-surface); color: var(--text-muted);">By Class</span>
-            </div>
-            <div class="graph-split-content">
-              <div class="graph-canvas-box">
-                <canvas id="assetChart"></canvas>
-              </div>
-              <div id="assetBreakdownList" class="graph-breakdown-box"></div>
-            </div>
-          </div>
-
-          <!-- Broker Allocation Breakdown -->
-          <div class="graph-card-inner">
-            <div style="font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
-              <span>Broker (DP) Source</span>
-              <span class="badge" style="font-size: 0.7rem; background: var(--bg-surface); color: var(--text-muted);">By Provider</span>
-            </div>
-            <div class="graph-split-content">
-              <div class="graph-canvas-box">
-                <canvas id="dpChart"></canvas>
-              </div>
-              <div id="dpBreakdownList" class="graph-breakdown-box"></div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Industry Sector Distribution -->
-        <div class="graph-card-inner" style="margin-top: 16px;">
-          <div style="font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
-            <span>Industry Sector Exposure</span>
-            <span class="badge" style="font-size: 0.7rem; background: var(--bg-surface); color: var(--text-muted);">By Industry</span>
-          </div>
-          <div class="graph-split-content">
-            <div class="graph-canvas-box">
-              <canvas id="sectorChart"></canvas>
-            </div>
-            <div id="sectorBreakdownList" class="graph-breakdown-box"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Single Focus: Asset Class -->
-      <div class="graph-panel" data-panel="asset">
-        <div class="graph-card-inner">
-          <div style="font-weight: 600; font-size: 0.98rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-            <span>Asset Class Allocation &bull; Deep Dive</span>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Complete breakdown by security class</span>
-          </div>
-          <div class="graph-split-content" style="grid-template-columns: 240px 1fr; min-height: 280px;">
-            <div class="graph-canvas-box" style="height: 260px;">
-              <canvas id="assetChartSingle"></canvas>
-            </div>
-            <div id="assetBreakdownListSingle" class="graph-breakdown-box" style="max-height: 280px;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Single Focus: Broker DP -->
-      <div class="graph-panel" data-panel="dp">
-        <div class="graph-card-inner">
-          <div style="font-weight: 600; font-size: 0.98rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-            <span>Depository Participant (Broker) &bull; Deep Dive</span>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Holdings spread across demats</span>
-          </div>
-          <div class="graph-split-content" style="grid-template-columns: 240px 1fr; min-height: 280px;">
-            <div class="graph-canvas-box" style="height: 260px;">
-              <canvas id="dpChartSingle"></canvas>
-            </div>
-            <div id="dpBreakdownListSingle" class="graph-breakdown-box" style="max-height: 280px;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Single Focus: Sector -->
-      <div class="graph-panel" data-panel="sector">
-        <div class="graph-card-inner">
-          <div style="font-weight: 600; font-size: 0.98rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-            <span>Sector Distribution &bull; Deep Dive</span>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Market sector diversification</span>
-          </div>
-          <div class="graph-split-content" style="grid-template-columns: 240px 1fr; min-height: 280px;">
-            <div class="graph-canvas-box" style="height: 260px;">
-              <canvas id="sectorChartSingle"></canvas>
-            </div>
-            <div id="sectorBreakdownListSingle" class="graph-breakdown-box" style="max-height: 280px;"></div>
-          </div>
-        </div>
-      </div>
-
     </div>
-    {% endif %}
   </div>
+  {% endif %}
 
-  <!-- RIGHT COLUMN: Compact Stack of 4 Boxes (Small & Sleek) -->
-  <div class="dashboard-cards-col">
+  <!-- NUMBER CARDS (ROW 1) -->
+  <div class="number-cards-grid" id="number-cards-container" aria-label="Portfolio Valuation & Sync Summary">
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <h3 style="font-size: 0.9rem; font-weight: 600; margin: 0; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
-        Modules
-      </h3>
-      <span class="badge" style="font-size: 0.68rem; background: rgba(245, 158, 11, 0.12); color: var(--saffron-main);">4</span>
+    <!-- 1. Total Value -->
+    <div class="num-card" id="card-total-value">
+      <div class="num-card-label">
+        <span>Total Portfolio Value</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="num-card-value" id="val-total-portfolio">{{ format_inr(summary.total_value) }}</div>
+      <div class="num-card-subtext">
+        <span>Across {{ summary.num_accounts }} demat accounts</span>
+      </div>
     </div>
 
-    <!-- 4 Small Boxes Stacked Vertically (One Below Another) -->
-    <div class="compact-module-col">
-      
-      <!-- Small Box 1: Key Valuation & Stats -->
-      <div class="compact-module-card" data-card-id="card-stats-summary" onclick="openExpandableCard('card-stats-summary')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); openExpandableCard('card-stats-summary');}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Key Valuation & Stats - Tap to expand">
-        <div class="compact-module-lead">
-          <div class="compact-module-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="1" x2="12" y2="23"></line>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-            </svg>
+    <!-- 2. Invested Value -->
+    <div class="num-card" id="card-invested-value">
+      <div class="num-card-label">
+        <span>Total Invested</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+      </div>
+      <div class="num-card-value" id="val-invested-portfolio">{{ format_inr(summary.total_invested) }}</div>
+      <div class="num-card-subtext">
+        <span>Principal acquisition cost</span>
+      </div>
+    </div>
+
+    <!-- 3. Total P&L -->
+    <div class="num-card" id="card-total-pnl">
+      <div class="num-card-label">
+        <span>Total Unrealized P&amp;L</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+      </div>
+      <div class="num-card-value" id="val-total-pnl" style="color: {% if summary.total_pnl >= 0 %}var(--success){% else %}var(--danger){% endif %};">
+        {{ format_inr(summary.total_pnl) }}
+      </div>
+      <div class="num-card-subtext">
+        <span class="badge {% if summary.total_pnl >= 0 %}badge-success{% else %}badge-danger{% endif %}" id="badge-total-pnl-pct" style="font-size: 0.74rem;">
+          {% if summary.total_pnl >= 0 %}▲ +{% else %}▼ {% endif %}{{ "%.2f"|format(summary.total_pnl_pct) }}%
+        </span>
+        <span style="font-size: 0.74rem; color: var(--text-muted);">overall returns</span>
+      </div>
+    </div>
+
+    <!-- 4. Day Change -->
+    <div class="num-card" id="card-day-change">
+      <div class="num-card-label">
+        <span>Day Change</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+      </div>
+      <div class="num-card-value" id="val-day-change" style="color: {% if summary.day_change >= 0 %}var(--success){% else %}var(--danger){% endif %};">
+        {{ format_inr(summary.day_change) }}
+      </div>
+      <div class="num-card-subtext">
+        <span class="badge {% if summary.day_change >= 0 %}badge-success{% else %}badge-danger{% endif %}" id="badge-day-change-pct" style="font-size: 0.74rem;">
+          {% if summary.day_change >= 0 %}▲ +{% else %}▼ {% endif %}{{ "%.2f"|format(summary.day_change_pct) }}%
+        </span>
+        <span style="font-size: 0.74rem; color: var(--text-muted);">vs prev close</span>
+      </div>
+    </div>
+
+    <!-- 5. Sync Status -->
+    <div class="num-card" id="card-sync-status">
+      <div class="num-card-label">
+        <span>Sync Status</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+      </div>
+      <div class="num-card-value" id="val-sync-status" style="font-size: 1.22rem; display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {% if summary.has_stale_data %}#f59e0b{% else %}#10b981{% endif %};"></span>
+        <span id="text-brokers-synced">{{ summary.num_dps }} of 3 brokers synced</span>
+      </div>
+      <div class="num-card-subtext" id="subtext-sync-status">
+        {% if summary.has_stale_data %}
+        <span class="badge badge-warning" style="font-size: 0.72rem;">⚠️ Stale Data</span>
+        {% else %}
+        <span class="badge badge-success" style="font-size: 0.72rem;">✓ Live Sync</span>
+        {% endif %}
+        <span style="color: var(--text-muted); font-size: 0.74rem;">Synced: Just now</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DIVERSIFICATION CARD (Only shown when user has holdings) -->
+  <div id="diversification-card-wrapper" {% if summary.total_value <= 0 %}style="display: none;"{% endif %}>
+    <div class="card" style="background: linear-gradient(135deg, rgba(19, 27, 46, 0.95) 0%, rgba(30, 27, 75, 0.9) 100%); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 14px; padding: 20px; position: relative;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(139, 92, 246, 0.2); display: flex; align-items: center; justify-content: center; color: #c4b5fd;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
           </div>
-          <div class="compact-module-title">Key Valuation &amp; Stats</div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #f8fafc;">Asset Diversification</h3>
+            <p id="div-card-text" style="margin: 2px 0 0 0; font-size: 0.82rem; color: #94a3b8;">
+              Distribution of your portfolio across Equities, REITs/InvITs, and Fixed Income Bonds.
+            </p>
+          </div>
         </div>
-        <div class="compact-module-expand">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        <a href="/learn" class="badge" style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.4); text-decoration: none; padding: 5px 12px; font-weight: 600; font-size: 0.76rem;">
+          TradeOne Learn &rarr;
+        </a>
+      </div>
+
+      <!-- 100% Stacked Bar -->
+      <div style="height: 14px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden; display: flex; margin-bottom: 12px;" id="div-stacked-bar">
+        <div id="div-bar-equity" style="width: 0%; background: #3b82f6;" title="Equity"></div>
+        <div id="div-bar-reit-invit" style="width: 0%; background: #8b5cf6;" title="REIT / InvIT"></div>
+        <div id="div-bar-bond" style="width: 0%; background: #10b981;" title="Bonds"></div>
+      </div>
+
+      <!-- Legend -->
+      <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.78rem; color: #cbd5e1; margin-bottom: 14px;" id="div-legend">
+        <span style="display: inline-flex; align-items: center; gap: 6px;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;"></span>
+          Equity / ETF: <strong id="div-pct-equity">0.0%</strong>
+        </span>
+        <span style="display: inline-flex; align-items: center; gap: 6px;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #8b5cf6;"></span>
+          REIT &amp; InvIT: <strong id="div-pct-reit-invit">0.0%</strong>
+        </span>
+        <span style="display: inline-flex; align-items: center; gap: 6px;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
+          Fixed-Income Bonds: <strong id="div-pct-bond">0.0%</strong>
+        </span>
+      </div>
+
+      <!-- Quick Explore Links to Learn Module -->
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+        <span style="font-size: 0.75rem; color: #94a3b8;">Explore asset types:</span>
+        <a href="/learn/lesson/reit?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are REITs?</a>
+        <a href="/learn/lesson/invit?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are InvITs?</a>
+        <a href="/learn/lesson/corpbond?source=dash_card" class="btn btn-sm btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">What are Bonds?</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SKELETON LOADING PLACEHOLDERS -->
+  <div id="charts-skeleton-container" class="charts-grid-2col" style="display: none;">
+    <div class="num-card skeleton-box skeleton-chart-card"></div>
+    <div class="num-card skeleton-box skeleton-chart-card"></div>
+    <div class="num-card skeleton-box skeleton-chart-card"></div>
+    <div class="num-card skeleton-box skeleton-chart-card"></div>
+    <div class="num-card skeleton-box skeleton-chart-card"></div>
+    <div class="num-card skeleton-box skeleton-chart-card"></div>
+  </div>
+
+  <!-- CHARTS MAIN GRID -->
+  <div class="charts-grid-2col" id="charts-main-grid">
+
+    <!-- CHART 1 & 2: Allocation Donut (Asset Class & Broker Toggle) -->
+    <div class="chart-card" id="card-chart-allocation">
+      <div class="chart-card-header">
+        <div class="chart-card-title-group">
+          <h2 class="chart-card-title">
+            <span>Portfolio Allocation</span>
+          </h2>
+          <p class="chart-card-subtitle" id="allocation-card-subtitle">Distribution across security classes</p>
+        </div>
+        <div class="chart-controls">
+          <div class="range-pill-group" role="tablist" aria-label="Allocation View Selector">
+            <button type="button" class="range-pill active" id="tab-alloc-asset" onclick="switchAllocationDonut('asset')" role="tab" aria-selected="true">
+              Asset Class
+            </button>
+            <button type="button" class="range-pill" id="tab-alloc-broker" onclick="switchAllocationDonut('broker')" role="tab" aria-selected="false">
+              Broker
+            </button>
+          </div>
+          <button type="button" class="btn-toggle-view" onclick="toggleChartView('allocation')" aria-label="Toggle table view for allocation chart">
+            <span>View as table</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="chart-content-area">
+        <!-- Canvas & Legend -->
+        <div id="view-chart-allocation" class="donut-split-box">
+          <div class="chart-canvas-wrapper" style="height: 250px;">
+            <canvas id="allocationDonutChart" aria-label="Portfolio allocation donut chart" role="img"></canvas>
+          </div>
+          <div id="allocationLegendContainer" class="donut-legend-list"></div>
         </div>
 
-        <div class="compact-module-content" style="display: none;">
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;">
-            <div class="stat-card" style="padding: 16px;">
-              <div class="stat-label" style="font-size: 0.78rem;">Total Portfolio Valuation</div>
-              <div class="stat-value" style="font-size: 1.35rem; margin: 4px 0;">{{ format_inr(summary.total_value) }}</div>
-              <div class="stat-subtext" style="font-size: 0.75rem;">
-                {% if summary.day_change >= 0 %}
-                <span class="badge badge-success" style="font-size: 0.72rem;">▲ {{ format_inr(summary.day_change) }}</span>
-                {% else %}
-                <span class="badge badge-danger" style="font-size: 0.72rem;">▼ {{ format_inr(summary.day_change) }}</span>
-                {% endif %}
-              </div>
-            </div>
+        <!-- Table View -->
+        <div id="view-table-allocation" class="chart-table-container">
+          <table class="chart-data-table" id="table-allocation-data">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="text-right">Valuation</th>
+                <th class="text-right">% of Portfolio</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-allocation-data"></tbody>
+          </table>
+        </div>
 
-            <div class="stat-card" style="padding: 16px;">
-              <div class="stat-label" style="font-size: 0.78rem;">Active Demat Accounts</div>
-              <div class="stat-value" style="font-size: 1.35rem; margin: 4px 0;">{{ summary.num_accounts }}</div>
-              <div class="stat-subtext" style="font-size: 0.75rem;">
-                <a href="/accounts" style="color: var(--saffron-main); text-decoration: none; font-weight: 500;">Across {{ summary.num_dps }} Brokers &rarr;</a>
-              </div>
-            </div>
+        <!-- Grey Empty Placeholder -->
+        <div class="chart-empty-placeholder" id="empty-allocation">
+          <div class="chart-empty-icon">📊</div>
+          <div class="chart-empty-text">Link your accounts or trade on a connected broker to see this chart</div>
+        </div>
+      </div>
+    </div>
 
-            <div class="stat-card" style="padding: 16px;">
-              <div class="stat-label" style="font-size: 0.78rem;">Distinct Securities</div>
-              <div class="stat-value" style="font-size: 1.35rem; margin: 4px 0;">{{ summary.num_securities }}</div>
-              <div class="stat-subtext" style="font-size: 0.75rem; color: var(--text-muted);">Equities, Bonds, ETFs</div>
-            </div>
+    <!-- CHART 3: Portfolio Value Over Time (Area Chart from holding_snapshots) -->
+    <div class="chart-card" id="card-chart-history">
+      <div class="chart-card-header">
+        <div class="chart-card-title-group">
+          <h2 class="chart-card-title">
+            <span>Portfolio Value Over Time</span>
+          </h2>
+          <p class="chart-card-subtitle">Historical portfolio snapshot trajectory</p>
+        </div>
+        <div class="chart-controls">
+          <div class="range-pill-group" role="group" aria-label="Time Range Filter">
+            <button type="button" class="range-pill" id="range-btn-1w" onclick="switchHistoryRange('1W')">1W</button>
+            <button type="button" class="range-pill" id="range-btn-1m" onclick="switchHistoryRange('1M')">1M</button>
+            <button type="button" class="range-pill" id="range-btn-3m" onclick="switchHistoryRange('3M')">3M</button>
+            <button type="button" class="range-pill active" id="range-btn-all" onclick="switchHistoryRange('ALL')">All</button>
+          </div>
+          <button type="button" class="btn-toggle-view" onclick="toggleChartView('history')" aria-label="Toggle table view for portfolio history">
+            <span>View as table</span>
+          </button>
+        </div>
+      </div>
 
-            <div class="stat-card" style="padding: 16px;">
-              <div class="stat-label" style="font-size: 0.78rem;">Unrealized P&L</div>
-              {% if summary.total_pnl >= 0 %}
-              <div class="stat-value" style="font-size: 1.35rem; margin: 4px 0; color: var(--success);">
-                {{ format_inr(summary.total_pnl) }}
-              </div>
+      <div class="chart-content-area">
+        <!-- Canvas -->
+        <div id="view-chart-history" class="chart-canvas-wrapper">
+          <canvas id="portfolioHistoryChart" aria-label="Portfolio valuation history area chart" role="img"></canvas>
+        </div>
+
+        <!-- Table View -->
+        <div id="view-table-history" class="chart-table-container">
+          <table class="chart-data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th class="text-right">Total Valuation</th>
+                <th class="text-right">Invested Value</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-history-data"></tbody>
+          </table>
+        </div>
+
+        <!-- History Empty State (Fewer than 2 points) -->
+        <div class="chart-empty-placeholder" id="empty-history" style="display: none;">
+          <div class="chart-empty-icon">📈</div>
+          <div class="chart-empty-text" id="empty-history-message">History builds up from the day you linked your accounts</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART 4: Broker x Asset Class Stacked Bar -->
+    <div class="chart-card" id="card-chart-broker-asset">
+      <div class="chart-card-header">
+        <div class="chart-card-title-group">
+          <h2 class="chart-card-title">
+            <span>Broker &times; Asset Class</span>
+          </h2>
+          <p class="chart-card-subtitle">Depository breakdown across brokers</p>
+        </div>
+        <div class="chart-controls">
+          <button type="button" class="btn-toggle-view" onclick="toggleChartView('broker-asset')" aria-label="Toggle table view for broker asset chart">
+            <span>View as table</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="chart-content-area">
+        <!-- Canvas -->
+        <div id="view-chart-broker-asset" class="chart-canvas-wrapper">
+          <canvas id="brokerAssetChart" aria-label="Broker by asset class stacked bar chart" role="img"></canvas>
+        </div>
+
+        <!-- Table View -->
+        <div id="view-table-broker-asset" class="chart-table-container">
+          <table class="chart-data-table" id="table-broker-asset">
+            <thead>
+              <tr id="thead-broker-asset-tr">
+                <th>Broker</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-broker-asset"></tbody>
+          </table>
+        </div>
+
+        <!-- Grey Empty Placeholder -->
+        <div class="chart-empty-placeholder" id="empty-broker-asset">
+          <div class="chart-empty-icon">🏛️</div>
+          <div class="chart-empty-text">Link your accounts or trade on a connected broker to see this chart</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART 5: Top 10 Holdings Merged by ISIN -->
+    <div class="chart-card" id="card-chart-top-holdings">
+      <div class="chart-card-header">
+        <div class="chart-card-title-group">
+          <h2 class="chart-card-title">
+            <span>Top 10 Holdings</span>
+            <span class="badge" style="font-size: 0.7rem; background: var(--bg-surface); color: var(--text-muted);">Merged by ISIN</span>
+          </h2>
+          <p class="chart-card-subtitle">Positions with dashed threshold at 25% of portfolio</p>
+        </div>
+        <div class="chart-controls">
+          <button type="button" class="btn-toggle-view" onclick="toggleChartView('top-holdings')" aria-label="Toggle table view for top holdings">
+            <span>View as table</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="chart-content-area">
+        <!-- Canvas -->
+        <div id="view-chart-top-holdings" class="chart-canvas-wrapper">
+          <canvas id="topHoldingsChart" aria-label="Top 10 holdings horizontal bar chart" role="img"></canvas>
+        </div>
+
+        <!-- Table View -->
+        <div id="view-table-top-holdings" class="chart-table-container">
+          <table class="chart-data-table">
+            <thead>
+              <tr>
+                <th>Security</th>
+                <th>Asset Class</th>
+                <th class="text-right">Valuation</th>
+                <th class="text-right">% of Total</th>
+                <th>Broker Split</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-top-holdings"></tbody>
+          </table>
+        </div>
+
+        <!-- Grey Empty Placeholder -->
+        <div class="chart-empty-placeholder" id="empty-top-holdings">
+          <div class="chart-empty-icon">🎯</div>
+          <div class="chart-empty-text">Link your accounts or trade on a connected broker to see this chart</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART 6: Profit/Loss by Holding (Diverging Horizontal Bar) -->
+    <div class="chart-card" id="card-chart-pnl">
+      <div class="chart-card-header">
+        <div class="chart-card-title-group">
+          <h2 class="chart-card-title">
+            <span>Profit / Loss by Holding</span>
+          </h2>
+          <p class="chart-card-subtitle">Unrealized gains (green) and losses (red) per security</p>
+        </div>
+        <div class="chart-controls">
+          <button type="button" class="btn-toggle-view" onclick="toggleChartView('pnl')" aria-label="Toggle table view for profit loss by holding">
+            <span>View as table</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="chart-content-area">
+        <!-- Canvas -->
+        <div id="view-chart-pnl" class="chart-canvas-wrapper">
+          <canvas id="pnlDivergingChart" aria-label="Profit and loss by holding diverging bar chart" role="img"></canvas>
+        </div>
+
+        <!-- Table View -->
+        <div id="view-table-pnl" class="chart-table-container">
+          <table class="chart-data-table">
+            <thead>
+              <tr>
+                <th>Security</th>
+                <th class="text-right">Valuation</th>
+                <th class="text-right">Invested</th>
+                <th class="text-right">P&amp;L (₹)</th>
+                <th class="text-right">P&amp;L (%)</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-pnl"></tbody>
+          </table>
+        </div>
+
+        <!-- Grey Empty Placeholder -->
+        <div class="chart-empty-placeholder" id="empty-pnl">
+          <div class="chart-empty-icon">⚖️</div>
+          <div class="chart-empty-text">Link your accounts or trade on a connected broker to see this chart</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART 7: Income Calendar (12 Months Bond Coupons & Maturities) -->
+    <div class="chart-card" id="card-chart-income">
+      <div class="chart-card-header">
+        <div class="chart-card-title-group">
+          <h2 class="chart-card-title">
+            <span>12-Month Projected Income Calendar</span>
+          </h2>
+          <p class="chart-card-subtitle">Upcoming bond coupons and maturity payouts</p>
+        </div>
+        <div class="chart-controls">
+          <button type="button" class="btn-toggle-view" onclick="toggleChartView('income')" aria-label="Toggle table view for income calendar">
+            <span>View as table</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="chart-content-area">
+        <!-- Canvas -->
+        <div id="view-chart-income" class="chart-canvas-wrapper">
+          <canvas id="incomeCalendarChart" aria-label="12-month income calendar monthly bar chart" role="img"></canvas>
+        </div>
+
+        <!-- Table View -->
+        <div id="view-table-income" class="chart-table-container">
+          <table class="chart-data-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th class="text-right">Coupons</th>
+                <th class="text-right">Maturities</th>
+                <th class="text-right">Total Payout</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-income"></tbody>
+          </table>
+        </div>
+
+        <!-- Bond Empty Placeholder -->
+        <div class="chart-empty-placeholder" id="empty-income">
+          <div class="chart-empty-icon">📅</div>
+          <div class="chart-empty-text" id="empty-income-message">
+            No bond holdings with upcoming coupon payments recorded.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PER-BROKER SUBTOTALS & DETAILS TABLE (Retained for validation and audit) -->
+  <div class="card" style="padding: 20px; border-radius: 14px; margin-top: 10px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+      <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700;">Per-Broker Subtotals &amp; Reconciliation</h3>
+      <span class="badge" style="background: var(--bg-muted); color: var(--text-muted); font-size: 0.74rem;">Live Depository Feed</span>
+    </div>
+
+    <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+      <table class="data-table" id="table-broker-subtotals" style="font-size: 0.84rem; width: 100%;">
+        <thead>
+          <tr>
+            <th>Broker</th>
+            <th class="text-right">Holdings</th>
+            <th class="text-right">Valuation</th>
+            <th class="text-right">P&amp;L</th>
+            <th class="text-right">% of Portfolio</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for code, sub in summary.broker_subtotals.items() %}
+          {% set pct = sub.pct if sub.pct is defined else ((sub.current_value / summary.total_value * 100) if summary.total_value > 0 else 0.0) %}
+          <tr>
+            <td><strong>{{ sub.broker_name }}</strong></td>
+            <td class="text-right">{{ sub.holdings_count }}</td>
+            <td class="text-right" style="font-weight: 600;">{{ format_inr(sub.current_value) }}</td>
+            <td class="text-right">
+              {% if sub.pnl >= 0 %}
+              <span style="color: var(--success); font-weight: 600;">+{{ format_inr(sub.pnl) }}</span>
               {% else %}
-              <div class="stat-value" style="font-size: 1.35rem; margin: 4px 0; color: var(--danger);">
-                {{ format_inr(summary.total_pnl) }}
-              </div>
+              <span style="color: var(--danger); font-weight: 600;">{{ format_inr(sub.pnl) }}</span>
               {% endif %}
-              <div class="stat-subtext" style="font-size: 0.75rem;">
-                <span class="badge {% if summary.total_pnl >= 0 %}badge-success{% else %}badge-danger{% endif %}" style="font-size: 0.72rem;">
-                  {% if summary.total_pnl >= 0 %}+{% endif %}{{ "%.2f"|format(summary.total_pnl_pct) }}%
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Small Box 2: Connected Broker Sources -->
-      {% if summary.provider_statuses %}
-      <div class="compact-module-card" data-card-id="card-broker-hub" onclick="openExpandableCard('card-broker-hub')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); openExpandableCard('card-broker-hub');}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Connected Broker Sources - Tap to expand">
-        <div class="compact-module-lead">
-          <div class="compact-module-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-              <line x1="6" y1="6" x2="6.01" y2="6"></line>
-              <line x1="6" y1="18" x2="6.01" y2="18"></line>
-            </svg>
-          </div>
-          <div class="compact-module-title">Connected Broker Sources</div>
-        </div>
-        <div class="compact-module-expand">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-        </div>
-
-        <div class="compact-module-content" style="display: none;">
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            {% for code, p in summary.provider_statuses.items() %}
-            {% set sub = summary.broker_subtotals[code] if summary.broker_subtotals and code in summary.broker_subtotals else None %}
-            <div style="padding: 12px 14px; background: var(--bg-muted); border: 1px solid var(--border-color); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <strong style="font-size: 0.92rem;">{{ p.broker_name }}</strong>
-                  <span style="font-family: monospace; font-size: 0.74rem; color: var(--text-muted);">({{ p.dp_id }})</span>
-                </div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
-                  Synced: {{ p.last_synced_human }}
-                  {% if sub %} &bull; <strong>{{ sub.holdings_count }} holding{% if sub.holdings_count != 1 %}s{% endif %}</strong>{% endif %}
-                </div>
-              </div>
-              <div>
-                {% if p.status == 'connected' %}
-                <span class="badge badge-success" style="font-size: 0.75rem;">✓ Synced</span>
-                {% elif p.status == 'no_account' %}
-                <span class="badge" style="font-size: 0.75rem; background: var(--border-color); color: var(--text-muted);">0 holdings</span>
-                {% elif p.status == 'stale' %}
-                <span class="badge badge-warning" style="font-size: 0.75rem;">▲ Stale</span>
-                {% else %}
-                <span class="badge badge-danger" style="font-size: 0.75rem;">⚠ Error</span>
-                {% endif %}
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
-            <a href="/verify" class="btn btn-outline btn-sm" style="font-size: 0.8rem;">🔍 Verify with Brokers</a>
-          </div>
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Small Box 3: Per-Broker Subtotals -->
-      {% if summary.broker_subtotals %}
-      <div class="compact-module-card" data-card-id="card-broker-subtotals" onclick="openExpandableCard('card-broker-subtotals')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); openExpandableCard('card-broker-subtotals');}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Per-Broker Subtotals - Tap to expand">
-        <div class="compact-module-lead">
-          <div class="compact-module-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-          </div>
-          <div class="compact-module-title">Per-Broker Subtotals</div>
-        </div>
-        <div class="compact-module-expand">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-        </div>
-
-        <div class="compact-module-content" style="display: none;">
-          <div class="table-container" style="max-height: 400px; overflow-y: auto;">
-            <table class="data-table" id="table-broker-subtotals" style="font-size: 0.82rem;">
-              <thead>
-                <tr>
-                  <th>Broker</th>
-                  <th class="text-right">Holdings</th>
-                  <th class="text-right">Valuation</th>
-                  <th class="text-right">P&L</th>
-                  <th class="text-right">% of Portfolio</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for code, sub in summary.broker_subtotals.items() %}
-                {% set pct = sub.pct if sub.pct is defined else ((sub.current_value / summary.total_value * 100) if summary.total_value > 0 else 0.0) %}
-                <tr>
-                  <td><strong>{{ sub.broker_name }}</strong></td>
-                  <td class="text-right">{{ sub.holdings_count }}</td>
-                  <td class="text-right" style="font-weight: 600;">{{ format_inr(sub.current_value) }}</td>
-                  <td class="text-right">
-                    {% if sub.pnl >= 0 %}
-                    <span style="color: var(--success); font-weight: 600;">+{{ format_inr(sub.pnl) }}</span>
-                    {% else %}
-                    <span style="color: var(--danger); font-weight: 600;">{{ format_inr(sub.pnl) }}</span>
-                    {% endif %}
-                  </td>
-                  <td class="text-right">{{ "%.1f"|format(pct) }}%</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-              <tfoot>
-                <tr style="font-weight: 700; border-top: 2px solid var(--border-color); background: rgba(255, 255, 255, 0.03);">
-                  <td>Grand Total Consolidated</td>
-                  <td class="text-right">{{ summary.num_securities }}</td>
-                  <td class="text-right" style="font-weight: 700;">{{ format_inr(summary.total_value) }}</td>
-                  <td class="text-right">
-                    {% if summary.total_pnl >= 0 %}
-                    <span style="color: var(--success);">+{{ format_inr(summary.total_pnl) }}</span>
-                    {% else %}
-                    <span style="color: var(--danger);">{{ format_inr(summary.total_pnl) }}</span>
-                    {% endif %}
-                  </td>
-                  <td class="text-right">100.0%</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Small Box 4: Portfolio Analytics & Insights -->
-      {% if summary.insights %}
-      <div class="compact-module-card" data-card-id="card-insights" onclick="openExpandableCard('card-insights')" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault(); openExpandableCard('card-insights');}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Portfolio Analytics & Insights - Tap to expand">
-        <div class="compact-module-lead">
-          <div class="compact-module-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
-          </div>
-          <div class="compact-module-title">Portfolio Analytics &amp; Insights</div>
-        </div>
-        <div class="compact-module-expand">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-        </div>
-
-        <div class="compact-module-content" style="display: none;">
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            {% for ins in summary.insights %}
-            {% if ins.type == 'risk' %}
-            <div style="padding: 12px 14px; background: var(--bg-muted); border-radius: 8px; border-left: 4px solid var(--danger);">
-            {% elif ins.type == 'absence' %}
-            <div style="padding: 12px 14px; background: var(--bg-muted); border-radius: 8px; border-left: 4px solid #8b5cf6;">
-            {% else %}
-            <div style="padding: 12px 14px; background: var(--bg-muted); border-radius: 8px; border-left: 4px solid var(--saffron-main);">
-            {% endif %}
-              <div style="font-size: 0.74rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: var(--text-muted);">{{ ins.title }}</div>
-              <p style="margin: 4px 0 0 0; font-size: 0.84rem; color: var(--text-main); line-height: 1.4;">{{ ins.message }}</p>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-      {% endif %}
-
+            </td>
+            <td class="text-right">{{ "%.1f"|format(pct) }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="font-weight: 700; border-top: 2px solid var(--border-color); background: rgba(255, 255, 255, 0.03);">
+            <td>Grand Total Consolidated</td>
+            <td class="text-right">{{ summary.num_securities }}</td>
+            <td class="text-right" style="font-weight: 700;">{{ format_inr(summary.total_value) }}</td>
+            <td class="text-right">
+              {% if summary.total_pnl >= 0 %}
+              <span style="color: var(--success);">+{{ format_inr(summary.total_pnl) }}</span>
+              {% else %}
+              <span style="color: var(--danger);">{{ format_inr(summary.total_pnl) }}</span>
+              {% endif %}
+            </td>
+            <td class="text-right">100.0%</td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
-
   </div>
-</div>
-{% endif %}
 
-<!-- Aceternity Expandable Card Modal Overlay -->
-<div id="aceternity-modal-backdrop" class="aceternity-backdrop" onclick="closeExpandableCard(event)" style="display: none;" aria-hidden="true">
-  <div class="aceternity-modal" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
-    <!-- Aceternity Close Button -->
-    <button type="button" class="aceternity-close-btn" onclick="closeExpandableCard()" aria-label="Close modal">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    </button>
-
-    <div class="aceternity-modal-header">
-      <div id="aceternity-modal-icon" class="compact-module-icon"></div>
-      <h3 id="aceternity-modal-title" class="aceternity-modal-title"></h3>
-    </div>
-
-    <div id="aceternity-modal-body" class="aceternity-modal-body"></div>
-  </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
-<script id="summary-allocation-data" type="application/json">
-{
-  "asset": {{ summary.asset_allocation | tojson }},
-  "dp": {{ summary.dp_allocation | tojson }},
-  "sector": {{ summary.sector_allocation | tojson }}
-}
-</script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const formRefresh = document.getElementById('form-refresh-now');
-  if (formRefresh) {
-    formRefresh.addEventListener('submit', function() {
-      const btn = document.getElementById('btn-refresh-now');
-      const icon = document.getElementById('refresh-spinner-icon');
-      const text = document.getElementById('refresh-button-text');
-      if (btn && icon && text) {
-        btn.disabled = true;
-        text.textContent = 'Syncing...';
-        icon.style.animation = 'spin 1s linear infinite';
-      }
+/**
+ * TradeOne Client-Side Chart Engine
+ * - Fetches `/api/dashboard/charts` for real user data
+ * - Indian Currency Formatting (₹12,34,567.89)
+ * - 300ms smooth animation, no 3D, no looping
+ * - View as table toggles
+ * - Zero state handling (never displays demo data)
+ */
+
+let DASH_DATA = null;
+let activeAllocationTab = 'asset';
+let activeHistoryRange = 'ALL';
+
+// Instances
+let chartAllocation = null;
+let chartHistory = null;
+let chartBrokerAsset = null;
+let chartTopHoldings = null;
+let chartPnl = null;
+let chartIncome = null;
+
+// Indian Currency Number Formatter
+function formatINR(val) {
+  if (val === null || val === undefined || isNaN(val)) return '₹0.00';
+  const isNegative = Number(val) < 0;
+  const absVal = Math.abs(Number(val));
+  const parts = absVal.toFixed(2).split('.');
+  let intPart = parts[0];
+  const decPart = parts[1];
+
+  if (intPart.length > 3) {
+    const lastThree = intPart.substring(intPart.length - 3);
+    const otherNumbers = intPart.substring(0, intPart.length - 3);
+    const formattedOther = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
+    intPart = formattedOther + ',' + lastThree;
+  }
+  return (isNegative ? '-₹' : '₹') + intPart + '.' + decPart;
+}
+
+function formatINRLakhs(val) {
+  const num = Number(val);
+  if (isNaN(num)) return '₹0';
+  if (num >= 10000000) return '₹' + (num / 10000000).toFixed(2) + 'Cr';
+  if (num >= 100000) return '₹' + (num / 100000).toFixed(2) + 'L';
+  if (num >= 1000) return '₹' + (num / 1000).toFixed(1) + 'K';
+  return formatINR(num);
+}
+
+// Center Text Plugin for Chart.js Donut
+const centerTotalPlugin = {
+  id: 'centerTotal',
+  beforeDraw: function(chart) {
+    if (chart.config.type !== 'doughnut') return;
+    const { ctx } = chart;
+    const dataset = chart.data.datasets[0];
+    if (!dataset || !dataset.data || dataset.data.length === 0) return;
+    const total = dataset.data.reduce((a, b) => a + Number(b || 0), 0);
+    if (total <= 0) return;
+
+    const formatted = formatINRLakhs(total);
+    ctx.save();
+    const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+    const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+
+    ctx.font = '600 11px Inter, sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TOTAL', centerX, centerY - 10);
+
+    ctx.font = '700 15px Inter, sans-serif';
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillText(formatted, centerX, centerY + 8);
+    ctx.restore();
+  }
+};
+
+// 25% Threshold Dashed Line Plugin for Top Holdings Bar Chart
+const threshold25Plugin = {
+  id: 'threshold25',
+  afterDraw: function(chart) {
+    if (chart.canvas.id !== 'topHoldingsChart') return;
+    const threshold = chart.options?.plugins?.threshold25?.value;
+    if (!threshold || threshold <= 0) return;
+    const xAxis = chart.scales.x;
+    const yAxis = chart.scales.y;
+    if (!xAxis || !yAxis) return;
+    const xPos = xAxis.getPixelForValue(threshold);
+    if (xPos < xAxis.left || xPos > xAxis.right) return;
+
+    const { ctx } = chart;
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(xPos, yAxis.top);
+    ctx.lineTo(xPos, yAxis.bottom);
+    ctx.stroke();
+
+    // Threshold indicator tag
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = '600 10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('25% Limit', xPos, yAxis.top - 4);
+    ctx.restore();
+  }
+};
+
+// Register custom plugins safely
+Chart.register(centerTotalPlugin, threshold25Plugin);
+
+// Default Chart.js Options (300ms animation, responsive)
+const defaultChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: {
+    duration: 300
+  },
+  plugins: {
+    legend: { display: false }
+  }
+};
+
+// Fetch Dashboard Data from API
+async function loadDashboardCharts() {
+  const skeleton = document.getElementById('charts-skeleton-container');
+  const mainGrid = document.getElementById('charts-main-grid');
+
+  try {
+    const res = await fetch('/api/dashboard/charts', {
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store'
     });
+    if (!res.ok) throw new Error('Failed to load dashboard chart data');
+    DASH_DATA = await res.json();
+    renderAllDashboardComponents(DASH_DATA);
+  } catch (err) {
+    console.error('[DashboardCharts] Load error:', err);
+  }
+}
+
+function renderAllDashboardComponents(data) {
+  if (!data) return;
+
+  const totalVal = data.summary?.total_value || 0;
+  const isZero = data.is_empty || totalVal <= 0;
+
+  // 1. Update Diversification Card
+  const divCard = document.getElementById('diversification-card-wrapper');
+  if (divCard) {
+    if (isZero) {
+      divCard.style.display = 'none';
+    } else {
+      divCard.style.display = 'block';
+      const divInfo = data.diversification;
+      document.getElementById('div-bar-equity').style.width = divInfo.equity_pct + '%';
+      document.getElementById('div-bar-reit-invit').style.width = divInfo.reit_invit_pct + '%';
+      document.getElementById('div-bar-bond').style.width = divInfo.bond_pct + '%';
+
+      document.getElementById('div-pct-equity').textContent = divInfo.equity_pct + '%';
+      document.getElementById('div-pct-reit-invit').textContent = divInfo.reit_invit_pct + '%';
+      document.getElementById('div-pct-bond').textContent = divInfo.bond_pct + '%';
+    }
   }
 
-  const allocationEl = document.getElementById('summary-allocation-data');
-  const allocationPayload = allocationEl ? JSON.parse(allocationEl.textContent || '{}') : {};
-  const assetData = allocationPayload.asset || {};
-  const dpData = allocationPayload.dp || {};
-  const sectorData = allocationPayload.sector || {};
-
-  const colors = [
-    '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b', '#14b8a6', '#f97316'
-  ];
-
-  // Center Text Plugin for Chart.js Donuts
-  const centerTextPlugin = {
-    id: 'centerText',
-    beforeDraw: function(chart) {
-      if (chart.config.type !== 'doughnut') return;
-      const { ctx } = chart;
-      const dataset = chart.data.datasets[0];
-      if (!dataset || !dataset.data || dataset.data.length === 0) return;
-      const total = dataset.data.reduce((a, b) => a + Number(b), 0);
-      if (total <= 0) return;
-      
-      const formatted = '₹' + (total >= 100000 ? (total / 100000).toFixed(1) + 'L' : total >= 1000 ? (total / 1000).toFixed(1) + 'K' : total.toFixed(0));
-      
-      ctx.save();
-      const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
-      const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
-      
-      ctx.font = '700 13px Inter, sans-serif';
-      ctx.fillStyle = '#f8fafc';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(formatted, centerX, centerY);
-      ctx.restore();
-    }
-  };
-
-  // Helper to render high-clarity HTML breakdown lists
-  function renderBreakdownList(containerId, data, bgColors) {
-    const container = document.getElementById(containerId);
-    if (!container || !data) return;
-    const entries = Object.entries(data).filter(([_, val]) => Number(val) > 0).sort((a, b) => b[1] - a[1]);
-    const total = entries.reduce((sum, [_, v]) => sum + Number(v), 0);
-    if (total <= 0 || entries.length === 0) {
-      container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem; padding: 10px;">No allocation recorded</div>';
-      return;
-    }
-
-    let html = '<div class="allocation-breakdown-list">';
-    entries.forEach(([label, value], i) => {
-      const color = bgColors[i % bgColors.length];
-      const pct = ((value / total) * 100).toFixed(1);
-      const valFormatted = '₹' + Number(value).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-      html += `
-        <div class="allocation-item">
-          <div class="allocation-item-top">
-            <div class="allocation-item-lead">
-              <span class="allocation-dot" style="background: ${color};"></span>
-              <span class="allocation-label" title="${label}">${label}</span>
-            </div>
-            <div class="allocation-item-values">
-              <span class="allocation-pct">${pct}%</span>
-              <span class="allocation-val">${valFormatted}</span>
-            </div>
-          </div>
-          <div class="allocation-bar-bg">
-            <div class="allocation-bar-fill" style="width: ${pct}%; background: ${color};"></div>
-          </div>
-        </div>
-      `;
-    });
-    html += '</div>';
-    container.innerHTML = html;
+  // 2. Render Charts or Show Empty Placeholders
+  if (isZero) {
+    showAllEmptyPlaceholders();
+    return;
   }
 
-  // Simplified Donut chart generator helper (clean ring with center total)
-  function createDonut(canvasId, labels, values, bgColors) {
-    const el = document.getElementById(canvasId);
-    if (!el || !labels || labels.length === 0) return null;
-    return new Chart(el, {
-      type: 'doughnut',
-      plugins: [centerTextPlugin],
-      data: {
-        labels: labels,
-        datasets: [{
-          data: values,
-          backgroundColor: bgColors.slice(0, labels.length),
-          borderWidth: 2,
-          borderColor: '#111827'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function(ctx) {
-                const total = ctx.dataset.data.reduce((a, b) => a + Number(b), 0);
-                const val = Number(ctx.raw);
-                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                return ` ${ctx.label}: ₹${val.toLocaleString('en-IN', {minimumFractionDigits: 2})} (${pct}%)`;
-              }
+  // Render Chart 1 & 2: Allocation Donut
+  renderAllocationDonut(data, activeAllocationTab);
+
+  // Render Chart 3: Portfolio History
+  renderPortfolioHistory(data, activeHistoryRange);
+
+  // Render Chart 4: Broker x Asset Class Stacked Bar
+  renderBrokerAssetChart(data);
+
+  // Render Chart 5: Top 10 Holdings
+  renderTopHoldingsChart(data);
+
+  // Render Chart 6: Profit/Loss Diverging Bar
+  renderPnlDivergingChart(data);
+
+  // Render Chart 7: Income Calendar
+  renderIncomeCalendarChart(data);
+}
+
+function showAllEmptyPlaceholders() {
+  const ids = ['empty-allocation', 'empty-history', 'empty-broker-asset', 'empty-top-holdings', 'empty-pnl', 'empty-income'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'flex';
+  });
+}
+
+// -------------------------------------------------------------
+// Chart 1 & 2: Allocation Donut (Asset Class & Broker)
+// -------------------------------------------------------------
+function switchAllocationDonut(type) {
+  activeAllocationTab = type;
+  document.getElementById('tab-alloc-asset').classList.toggle('active', type === 'asset');
+  document.getElementById('tab-alloc-asset').setAttribute('aria-selected', type === 'asset');
+  document.getElementById('tab-alloc-broker').classList.toggle('active', type === 'broker');
+  document.getElementById('tab-alloc-broker').setAttribute('aria-selected', type === 'broker');
+
+  document.getElementById('allocation-card-subtitle').textContent = 
+    type === 'asset' ? 'Distribution across security classes' : 'Allocation across connected brokers';
+
+  if (DASH_DATA && !DASH_DATA.is_empty) {
+    renderAllocationDonut(DASH_DATA, type);
+  }
+}
+
+function renderAllocationDonut(data, type) {
+  const canvas = document.getElementById('allocationDonutChart');
+  const legendBox = document.getElementById('allocationLegendContainer');
+  const tbody = document.getElementById('tbody-allocation-data');
+  if (!canvas || !legendBox) return;
+
+  const dataset = type === 'asset' ? data.asset_class_donut : data.broker_donut;
+  const slices = dataset.slices || [];
+
+  if (chartAllocation) chartAllocation.destroy();
+
+  const labels = slices.map(s => s.label);
+  const values = slices.map(s => s.value);
+  const colors = slices.map(s => s.color);
+
+  chartAllocation = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderWidth: 2,
+        borderColor: '#111827'
+      }]
+    },
+    options: {
+      ...defaultChartOptions,
+      cutout: '72%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const val = Number(ctx.raw);
+              const slice = slices[ctx.dataIndex];
+              return ` ${ctx.label}: ${formatINR(val)} (${slice ? slice.percentage : 0}%)`;
             }
           }
-        },
-        cutout: '72%'
+        }
       }
-    });
+    }
+  });
+
+  // Render Legend
+  let legendHtml = '';
+  let tableHtml = '';
+  slices.forEach(s => {
+    legendHtml += `
+      <div class="donut-legend-item">
+        <div class="donut-legend-header">
+          <span class="donut-legend-name">
+            <span class="donut-color-dot" style="background: ${s.color};"></span>
+            ${s.label}
+          </span>
+          <div>
+            <span class="donut-legend-val">${formatINR(s.value)}</span>
+            <span class="donut-legend-pct">(${s.percentage}%)</span>
+          </div>
+        </div>
+      </div>
+    `;
+    tableHtml += `
+      <tr>
+        <td><strong>${s.label}</strong></td>
+        <td class="text-right">${formatINR(s.value)}</td>
+        <td class="text-right">${s.percentage}%</td>
+      </tr>
+    `;
+  });
+  legendBox.innerHTML = legendHtml;
+  if (tbody) tbody.innerHTML = tableHtml;
+}
+
+// -------------------------------------------------------------
+// Chart 3: Portfolio Value Over Time (Area Chart)
+// -------------------------------------------------------------
+function switchHistoryRange(range) {
+  activeHistoryRange = range;
+  ['1w', '1m', '3m', 'all'].forEach(r => {
+    const btn = document.getElementById('range-btn-' + r);
+    if (btn) btn.classList.toggle('active', r === range.toLowerCase());
+  });
+  if (DASH_DATA && !DASH_DATA.is_empty) {
+    renderPortfolioHistory(DASH_DATA, range);
+  }
+}
+
+function renderPortfolioHistory(data, range) {
+  const canvas = document.getElementById('portfolioHistoryChart');
+  const emptyBox = document.getElementById('empty-history');
+  const tbody = document.getElementById('tbody-history-data');
+  if (!canvas) return;
+
+  const historyObj = data.portfolio_history || {};
+  const points = (historyObj.ranges && historyObj.ranges[range]) ? historyObj.ranges[range] : [];
+
+  if (!points || points.length < 2) {
+    if (emptyBox) {
+      emptyBox.style.display = 'flex';
+      const msgEl = document.getElementById('empty-history-message');
+      if (msgEl) msgEl.textContent = historyObj.empty_message || 'History builds up from the day you linked your accounts';
+    }
+    canvas.style.display = 'none';
+    return;
   }
 
-  const assetLabels = Object.keys(assetData || {});
-  const assetValues = Object.values(assetData || {});
-  const dpLabels = Object.keys(dpData || {});
-  const dpValues = Object.values(dpData || {});
-  const sectorLabels = Object.keys(sectorData || {});
-  const sectorValues = Object.values(sectorData || {});
-  const dpColors = ['#d97706', '#2563eb', '#059669', '#7c3aed', '#db2777'];
+  if (emptyBox) emptyBox.style.display = 'none';
+  canvas.style.display = 'block';
 
-  // Render High-Clarity Breakdown Lists
-  renderBreakdownList('assetBreakdownList', assetData, colors);
-  renderBreakdownList('dpBreakdownList', dpData, dpColors);
-  renderBreakdownList('sectorBreakdownList', sectorData, colors);
-  renderBreakdownList('assetBreakdownListSingle', assetData, colors);
-  renderBreakdownList('dpBreakdownListSingle', dpData, dpColors);
-  renderBreakdownList('sectorBreakdownListSingle', sectorData, colors);
+  if (chartHistory) chartHistory.destroy();
 
-  // Primary Overview Donut Charts
-  createDonut('assetChart', assetLabels, assetValues, colors);
-  createDonut('dpChart', dpLabels, dpValues, dpColors);
-  createDonut('sectorChart', sectorLabels, sectorValues, colors);
+  const labels = points.map(p => p.label || p.date);
+  const totals = points.map(p => p.total_value);
+  const invested = points.map(p => p.invested_value);
 
-  // Dedicated Single Focus View Charts
-  createDonut('assetChartSingle', assetLabels, assetValues, colors);
-  createDonut('dpChartSingle', dpLabels, dpValues, dpColors);
-  createDonut('sectorChartSingle', sectorLabels, sectorValues, colors);
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+  gradient.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
+  gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+  chartHistory = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Total Value',
+          data: totals,
+          borderColor: '#3b82f6',
+          borderWidth: 2.5,
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.3,
+          pointRadius: points.length <= 14 ? 3 : 0,
+          pointHoverRadius: 5
+        },
+        {
+          label: 'Invested',
+          data: invested,
+          borderColor: 'rgba(148, 163, 184, 0.6)',
+          borderWidth: 1.5,
+          borderDash: [5, 5],
+          fill: false,
+          tension: 0.3,
+          pointRadius: 0
+        }
+      ]
+    },
+    options: {
+      ...defaultChartOptions,
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#94a3b8', font: { size: 11 } }
+        },
+        y: {
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          ticks: {
+            color: '#94a3b8',
+            font: { size: 11 },
+            callback: function(val) { return formatINRLakhs(val); }
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return ` ${ctx.dataset.label}: ${formatINR(ctx.raw)}`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Table population
+  if (tbody) {
+    let tHtml = '';
+    points.forEach(p => {
+      tHtml += `
+        <tr>
+          <td>${p.date}</td>
+          <td class="text-right" style="font-weight: 600;">${formatINR(p.total_value)}</td>
+          <td class="text-right">${formatINR(p.invested_value)}</td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = tHtml;
+  }
+}
+
+// -------------------------------------------------------------
+// Chart 4: Broker x Asset Class Stacked Bar
+// -------------------------------------------------------------
+function renderBrokerAssetChart(data) {
+  const canvas = document.getElementById('brokerAssetChart');
+  const theadTr = document.getElementById('thead-broker-asset-tr');
+  const tbody = document.getElementById('tbody-broker-asset');
+  if (!canvas) return;
+
+  const matrix = data.broker_x_asset_class || {};
+  const brokers = matrix.brokers || [];
+  const datasets = matrix.datasets || [];
+
+  if (chartBrokerAsset) chartBrokerAsset.destroy();
+
+  chartBrokerAsset = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: brokers,
+      datasets: datasets
+    },
+    options: {
+      ...defaultChartOptions,
+      scales: {
+        x: {
+          stacked: true,
+          grid: { display: false },
+          ticks: { color: '#94a3b8', font: { size: 11 } }
+        },
+        y: {
+          stacked: true,
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          ticks: {
+            color: '#94a3b8',
+            font: { size: 11 },
+            callback: function(val) { return formatINRLakhs(val); }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: { boxWidth: 10, color: '#cbd5e1', font: { size: 11 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return ` ${ctx.dataset.label}: ${formatINR(ctx.raw)}`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Table population
+  if (theadTr && tbody) {
+    let headHtml = '<th>Broker</th>';
+    datasets.forEach(ds => {
+      headHtml += `<th class="text-right">${ds.label}</th>`;
+    });
+    theadTr.innerHTML = headHtml;
+
+    let bodyHtml = '';
+    brokers.forEach((b, i) => {
+      bodyHtml += `<tr><td><strong>${b}</strong></td>`;
+      datasets.forEach(ds => {
+        bodyHtml += `<td class="text-right">${formatINR(ds.data[i] || 0)}</td>`;
+      });
+      bodyHtml += `</tr>`;
+    });
+    tbody.innerHTML = bodyHtml;
+  }
+}
+
+// -------------------------------------------------------------
+// Chart 5: Top 10 Holdings Merged by ISIN
+// -------------------------------------------------------------
+function renderTopHoldingsChart(data) {
+  const canvas = document.getElementById('topHoldingsChart');
+  const tbody = document.getElementById('tbody-top-holdings');
+  if (!canvas) return;
+
+  const topInfo = data.top_holdings || {};
+  const holdings = topInfo.holdings || [];
+
+  if (chartTopHoldings) chartTopHoldings.destroy();
+
+  const labels = holdings.map(h => h.symbol || h.isin);
+  const values = holdings.map(h => h.current_value);
+  const colors = holdings.map(h => h.highlight_color || '#3b82f6');
+
+  chartTopHoldings = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      ...defaultChartOptions,
+      indexAxis: 'y',
+      scales: {
+        y: {
+          grid: { display: false },
+          ticks: { color: '#f8fafc', font: { size: 11, weight: '600' } }
+        },
+        x: {
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          ticks: {
+            color: '#94a3b8',
+            font: { size: 11 },
+            callback: function(val) { return formatINRLakhs(val); }
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        threshold25: {
+          value: topInfo.threshold_25_pct || 0
+        },
+        tooltip: {
+          callbacks: {
+            title: function(items) {
+              const h = holdings[items[0].dataIndex];
+              return `${h.name} (${h.symbol})`;
+            },
+            label: function(ctx) {
+              const h = holdings[ctx.dataIndex];
+              return ` Valuation: ${formatINR(h.current_value)} (${h.percentage}% of portfolio)`;
+            },
+            afterLabel: function(ctx) {
+              const h = holdings[ctx.dataIndex];
+              return h.broker_split_tooltip ? ` Split: ${h.broker_split_tooltip}` : '';
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Table population
+  if (tbody) {
+    let tHtml = '';
+    holdings.forEach(h => {
+      tHtml += `
+        <tr>
+          <td>
+            <strong>${h.symbol}</strong><br>
+            <span style="font-size: 0.74rem; color: var(--text-muted);">${h.name}</span>
+          </td>
+          <td><span class="badge" style="background: var(--bg-muted); font-size: 0.72rem;">${h.asset_class}</span></td>
+          <td class="text-right" style="font-weight: 600;">${formatINR(h.current_value)}</td>
+          <td class="text-right" style="${h.is_above_25_pct ? 'color: #f59e0b; font-weight: 700;' : ''}">${h.percentage}%</td>
+          <td style="font-size: 0.76rem; color: var(--text-muted);">${h.broker_split_tooltip || '-'}</td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = tHtml;
+  }
+}
+
+// -------------------------------------------------------------
+// Chart 6: Profit / Loss Diverging Bar
+// -------------------------------------------------------------
+function renderPnlDivergingChart(data) {
+  const canvas = document.getElementById('pnlDivergingChart');
+  const tbody = document.getElementById('tbody-pnl');
+  if (!canvas) return;
+
+  const pnlObj = data.pnl_diverging || {};
+  const items = pnlObj.items || [];
+
+  if (chartPnl) chartPnl.destroy();
+
+  const labels = items.map(h => h.symbol);
+  const values = items.map(h => h.pnl);
+  const colors = items.map(h => h.color);
+
+  chartPnl = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      ...defaultChartOptions,
+      indexAxis: 'y',
+      scales: {
+        y: {
+          grid: { display: false },
+          ticks: { color: '#f8fafc', font: { size: 11, weight: '600' } }
+        },
+        x: {
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          ticks: {
+            color: '#94a3b8',
+            font: { size: 11 },
+            callback: function(val) { return formatINRLakhs(val); }
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: function(ctxs) {
+              const h = items[ctxs[0].dataIndex];
+              return `${h.name} (${h.symbol})`;
+            },
+            label: function(ctx) {
+              const h = items[ctx.dataIndex];
+              const prefix = h.pnl >= 0 ? '+' : '';
+              return ` P&L: ${prefix}${formatINR(h.pnl)} (${prefix}${h.pnl_pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Table population
+  if (tbody) {
+    let tHtml = '';
+    items.forEach(h => {
+      const color = h.pnl >= 0 ? 'var(--success)' : 'var(--danger)';
+      const prefix = h.pnl >= 0 ? '+' : '';
+      tHtml += `
+        <tr>
+          <td><strong>${h.symbol}</strong></td>
+          <td class="text-right">${formatINR(h.current_value)}</td>
+          <td class="text-right">${formatINR(h.invested_value)}</td>
+          <td class="text-right" style="color: ${color}; font-weight: 600;">${prefix}${formatINR(h.pnl)}</td>
+          <td class="text-right" style="color: ${color}; font-weight: 600;">${prefix}${h.pnl_pct}%</td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = tHtml;
+  }
+}
+
+// -------------------------------------------------------------
+// Chart 7: Income Calendar (12 Months)
+// -------------------------------------------------------------
+function renderIncomeCalendarChart(data) {
+  const canvas = document.getElementById('incomeCalendarChart');
+  const emptyBox = document.getElementById('empty-income');
+  const tbody = document.getElementById('tbody-income');
+  if (!canvas) return;
+
+  const incomeObj = data.income_calendar || {};
+  const months = incomeObj.months || [];
+
+  if (!incomeObj.has_bonds || months.every(m => m.total_amount <= 0)) {
+    if (emptyBox) {
+      emptyBox.style.display = 'flex';
+      const msg = document.getElementById('empty-income-message');
+      if (msg) msg.textContent = incomeObj.empty_message || 'No bond holdings with upcoming coupon payments recorded.';
+    }
+    canvas.style.display = 'none';
+    return;
+  }
+
+  if (emptyBox) emptyBox.style.display = 'none';
+  canvas.style.display = 'block';
+
+  if (chartIncome) chartIncome.destroy();
+
+  const labels = months.map(m => m.month);
+  const couponData = months.map(m => m.coupon_amount);
+  const matData = months.map(m => m.maturity_amount);
+
+  chartIncome = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Coupon Payments',
+          data: couponData,
+          backgroundColor: '#10b981',
+          borderRadius: 4
+        },
+        {
+          label: 'Maturity Redemption',
+          data: matData,
+          backgroundColor: '#8b5cf6',
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      ...defaultChartOptions,
+      scales: {
+        x: {
+          stacked: true,
+          grid: { display: false },
+          ticks: { color: '#94a3b8', font: { size: 10 } }
+        },
+        y: {
+          stacked: true,
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          ticks: {
+            color: '#94a3b8',
+            font: { size: 11 },
+            callback: function(val) { return formatINRLakhs(val); }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: { boxWidth: 10, color: '#cbd5e1', font: { size: 11 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return ` ${ctx.dataset.label}: ${formatINR(ctx.raw)}`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Table population
+  if (tbody) {
+    let tHtml = '';
+    months.forEach(m => {
+      tHtml += `
+        <tr>
+          <td><strong>${m.month}</strong></td>
+          <td class="text-right">${formatINR(m.coupon_amount)}</td>
+          <td class="text-right">${formatINR(m.maturity_amount)}</td>
+          <td class="text-right" style="font-weight: 600;">${formatINR(m.total_amount)}</td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = tHtml;
+  }
+}
+
+// -------------------------------------------------------------
+// View as Table Toggle Helper
+// -------------------------------------------------------------
+function toggleChartView(cardKey) {
+  const chartView = document.getElementById('view-chart-' + cardKey);
+  const tableView = document.getElementById('view-table-' + cardKey);
+  if (!chartView || !tableView) return;
+
+  const isTableVisible = tableView.style.display === 'block';
+  if (isTableVisible) {
+    tableView.style.display = 'none';
+    chartView.style.display = cardKey === 'allocation' ? 'grid' : 'block';
+  } else {
+    chartView.style.display = 'none';
+    tableView.style.display = 'block';
+  }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  loadDashboardCharts();
 });
 </script>
-<style>
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-</style>
 {% endblock %}
