@@ -176,12 +176,20 @@ DEFAULT_INSTRUMENTS = [
 
 DEFAULT_USERS = [
     {
-        "email": "aarav.mehta@example.com",
-        "name": "Aarav Mehta",
+        "email": "hacksmiths360@gmail.com",
+        "name": "Hacksmiths",
         "bo_id": "1208160012345678",
         "masked_pan": "ABCXX1234X",
         "dob": "15081992",  # DDMM: 1508
         "mobile": "+91 9876543210"
+    },
+    {
+        "email": "aarav.mehta@example.com",
+        "name": "Aarav Mehta",
+        "bo_id": "1208160098765432",
+        "masked_pan": "ABCXX9876X",
+        "dob": "15081992",  # DDMM: 1508
+        "mobile": "+91 9876543211"
     },
     {
         "email": "priya.nair@example.com",
@@ -357,7 +365,9 @@ def seed_database(db):
                 db.commit()
 
                 # Seed Accounts & Holdings
-                if email == "aarav.mehta@example.com":
+                if email == "hacksmiths360@gmail.com":
+                    seed_hacksmiths_accounts(db, user)
+                elif email == "aarav.mehta@example.com":
                     seed_aarav_accounts(db, user)
                 elif email == "priya.nair@example.com":
                     seed_priya_accounts(db, user)
@@ -722,3 +732,81 @@ def seed_starter_accounts_for_user(db, user: User):
                         description=f"Starter portfolio allocation: {sh['symbol']} ({dp_name})"
                     ))
             db.commit()
+
+def seed_hacksmiths_accounts(db, user: User):
+    """Seed Hacksmiths demo portfolio: 3 demat accounts across NiftyTrade, BharatInvest, and BondBazaar with multi-asset holdings."""
+    dp_code_map = {"IN300001": "a", "IN300002": "b", "IN300003": "c"}
+    now = datetime.now(timezone.utc)
+
+    # 1. Ensure 3 Demat Accounts exist across the 3 brokers
+    seed_starter_accounts_for_user(db, user)
+    db.refresh(user)
+
+    # 2. Ensure each account has multi-asset starter holdings
+    for acc in user.demat_accounts:
+        if len(acc.holdings) == 0:
+            code = dp_code_map.get(acc.dp_id, getattr(acc, "provider_code", None) or "b")
+            starter_holdings = generate_starter_portfolio(user.email, provider_code=code)
+            for sh in starter_holdings:
+                existing_h = db.query(Holding).filter(
+                    Holding.demat_account_id == acc.id,
+                    Holding.isin == sh["isin"]
+                ).first()
+                if not existing_h:
+                    db.add(Holding(
+                        demat_account_id=acc.id,
+                        isin=sh["isin"],
+                        free_units=sh["free_units"],
+                        avg_price=sh["avg_price"]
+                    ))
+                    sym = sh["symbol"][:6]
+                    db.add(Transaction(
+                        demat_account_id=acc.id,
+                        isin=sh["isin"],
+                        trans_date=now - timedelta(days=14),
+                        quantity=sh["free_units"],
+                        price=sh["avg_price"],
+                        trans_type="BUY_SETTLEMENT",
+                        reference_id=f"TXN-DEMO-{code.upper()}-{sym}",
+                        description=f"Demo portfolio allocation: {sym} ({acc.dp_name})"
+                    ))
+            acc.sync_status = "connected"
+    db.commit()
+    db.refresh(user)
+
+def ensure_hacksmiths_demo_user(db) -> User:
+    """Ensure dedicated Hacksmiths demo user exists with multi-asset accounts & holdings."""
+    demo_email = "hacksmiths360@gmail.com"
+    user = db.query(User).filter(User.email == demo_email).first()
+    if not user:
+        user = User(
+            email=demo_email,
+            name="Hacksmiths",
+            bo_id="1208160012345678",
+            masked_pan="ABCXX1234X",
+            dob="15081992",
+            mobile="+91 9876543210",
+            wallet_balance=1000000.0
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        # Add default auth methods
+        db.add(AuthMethod(user_id=user.id, provider="email", email=demo_email))
+        db.add(AuthMethod(user_id=user.id, provider="google", provider_sub=f"google_{user.id}", email=demo_email))
+        # Add default Nominee
+        db.add(Nominee(
+            user_id=user.id,
+            name="Hacksmiths Nominee",
+            relationship_type="PRIMARY",
+            percentage=100
+        ))
+        db.commit()
+
+    if user.name != "Hacksmiths":
+        user.name = "Hacksmiths"
+        db.commit()
+
+    seed_hacksmiths_accounts(db, user)
+    return user

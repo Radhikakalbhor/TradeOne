@@ -712,3 +712,99 @@ def test_otp_request_and_verification_via_gmail_api(monkeypatch):
             assert verified2 is False
     finally:
         db.close()
+
+
+def test_login_page_renders_hacksmiths_and_removes_aarav_and_priya():
+    """Verify that TradeOne login page displays Hacksmiths demo account and removes Aarav and Priya."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    resp = client.get("/auth/login")
+    assert resp.status_code == 200
+    html = resp.text
+
+    # Hacksmiths demo account must be present
+    assert "Hacksmiths" in html
+    assert "demo-login-hacksmiths" in html
+    assert "/auth/demo-login" in html
+
+    # Aarav Mehta and Priya Nair must be completely removed
+    assert "Aarav Mehta" not in html
+    assert "Priya Nair" not in html
+    assert "demo-login-aarav" not in html
+    assert "demo-login-priya" not in html
+    assert "aarav.mehta@example.com" not in html
+    assert "priya.nair@example.com" not in html
+
+
+def test_demo_login_hacksmiths_direct_redirect_and_dashboard():
+    """Verify clicking Hacksmiths demo account logs in directly and opens the dashboard."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.database import SessionLocal
+    from app.models import User
+
+    client = TestClient(app)
+    # Direct POST to /auth/demo-login
+    resp = client.post("/auth/demo-login", follow_redirects=False)
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/dashboard"
+    assert "nd_session" in client.cookies
+
+    # Opening the dashboard with the session cookie
+    dash_resp = client.get("/dashboard")
+    assert dash_resp.status_code == 200
+    assert "TradeOne" in dash_resp.text
+
+    # Verify user in database
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.email == "hacksmiths360@gmail.com").first()
+        assert user is not None
+        assert user.name == "Hacksmiths"
+        assert len(user.demat_accounts) >= 3
+    finally:
+        db.close()
+
+
+def test_demo_login_idempotent_no_duplicate_accounts():
+    """Verify repeated demo login clicks reuse the Hacksmiths user without creating duplicates."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.database import SessionLocal
+    from app.models import User, DematAccount
+
+    client = TestClient(app)
+    # Click 3 times
+    for _ in range(3):
+        resp = client.post("/auth/demo-login", follow_redirects=False)
+        assert resp.status_code == 303
+        assert resp.headers["location"] == "/dashboard"
+
+    db = SessionLocal()
+    try:
+        users = db.query(User).filter(User.email == "hacksmiths360@gmail.com").all()
+        assert len(users) == 1
+        user = users[0]
+        acc_ids = [a.id for a in user.demat_accounts]
+        assert len(acc_ids) == len(set(acc_ids))  # No duplicate account IDs
+    finally:
+        db.close()
+
+
+def test_google_login_flow_preserved():
+    """Verify Google OAuth login flow remains intact."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    resp = client.get("/auth/google", follow_redirects=False)
+    if settings.GOOGLE_CLIENT_ID:
+        assert resp.status_code == 303
+        assert "accounts.google.com" in resp.headers["location"]
+        assert settings.GOOGLE_CLIENT_ID in resp.headers["location"]
+    else:
+        assert resp.status_code == 303
+        assert "login?error=" in resp.headers["location"]
+

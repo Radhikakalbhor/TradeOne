@@ -17,6 +17,7 @@ from app.services.oidc_service import (
 )
 from app.security import is_email_allowed, is_request_secure, verify_secret
 from app.shared_identity import normalize_email
+from app.services.seed_service import ensure_hacksmiths_demo_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 templates = Jinja2Templates(directory="app/templates")
@@ -175,18 +176,15 @@ def handle_verify_otp(
     return resp
 
 @router.post("/demo-login")
+@router.get("/demo-login")
 def demo_login(
     request: Request,
-    email: str = Form(...),
+    email: Optional[str] = Form(None),
     next: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
-    """Direct demo login for Aarav Mehta or Priya Nair when OTP_DEV_MODE is true."""
-    if not settings.OTP_DEV_MODE:
-        return RedirectResponse(url="/auth/login?error=Demo+logins+are+disabled", status_code=303)
-
-    email = normalize_email(email)
-    user = match_or_create_user(db, email=email, provider="email")
+    """Direct demo login for Hacksmiths demo account."""
+    user = ensure_hacksmiths_demo_user(db)
 
     client_ip = request.client.host if request.client else ""
     user_agent = request.headers.get("user-agent", "")

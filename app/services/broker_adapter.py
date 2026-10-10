@@ -380,7 +380,7 @@ class BrokerAdapter:
         now = datetime.now(timezone.utc)
 
         # Demo bypass strictly behind DEMO_MODE
-        if settings.DEMO_MODE and user.email in ("aarav.mehta@example.com", "priya.nair@example.com"):
+        if settings.DEMO_MODE and user.email in ("hacksmiths360@gmail.com", "aarav.mehta@example.com", "priya.nair@example.com"):
             account = db.query(DematAccount).filter(
                 DematAccount.user_id == user.id,
                 DematAccount.dp_id == dp_id

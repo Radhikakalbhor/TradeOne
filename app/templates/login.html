@@ -71,34 +71,23 @@
     </div>
     {% endif %}
 
-    <!-- Demo Accounts Section (Shown when OTP_DEV_MODE is true) -->
-    {% if otp_dev_mode %}
-    <div class="demo-box">
+    <!-- Demo Accounts Section -->
+    <div class="demo-box" id="demo-accounts-box">
       <div class="demo-title">
-        <span>Demo Accounts (Dev Bypass)</span>
-        <span class="badge badge-warning">Simulated</span>
+        <span>Demo Accounts</span>
+        <span class="badge badge-warning">Instant Access</span>
       </div>
-      <div class="demo-btn-group">
-        <form action="/auth/demo-login" method="POST">
+      <div class="demo-btn-group" style="grid-template-columns: 1fr;">
+        <form action="/auth/demo-login" method="POST" style="margin: 0; width: 100%;">
           {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-          <input type="hidden" name="email" value="aarav.mehta@example.com">
-          <button type="submit" class="btn btn-secondary btn-sm btn-block" id="demo-login-aarav" title="3 Demat Accounts (NiftyTrade, BharatInvest, BondBazaar)">
-            <strong>Aarav Mehta</strong><br/>
-            <span style="font-size: 0.72rem; color: var(--text-muted);">3 Demats &bull; Equity+Debt</span>
-          </button>
-        </form>
-
-        <form action="/auth/demo-login" method="POST">
-          {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-          <input type="hidden" name="email" value="priya.nair@example.com">
-          <button type="submit" class="btn btn-secondary btn-sm btn-block" id="demo-login-priya" title="2 Demat Accounts (InvIT + Gold ETF)">
-            <strong>Priya Nair</strong><br/>
-            <span style="font-size: 0.72rem; color: var(--text-muted);">2 Demats &bull; InvIT+Gold</span>
+          <input type="hidden" name="email" value="hacksmiths360@gmail.com">
+          <button type="submit" class="btn btn-secondary btn-sm btn-block" id="demo-login-hacksmiths" title="3 Demat Accounts (NiftyTrade, BharatInvest, BondBazaar)">
+            <strong>Hacksmiths</strong><br/>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">3 Demats &bull; Multi-Asset Unified Portfolio</span>
           </button>
         </form>
       </div>
     </div>
-    {% endif %}
 
   </div>
 </div>
